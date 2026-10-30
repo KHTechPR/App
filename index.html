@@ -445,13 +445,13 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
   <button type="button" class="dlg-x" id="aiClose" aria-label="關閉">×</button>
   <h3 style="margin-top:0">高科iAI 設定</h3>
   <p class="hint" id="aiNoteShared">本系統已內建公關中心的高科iAI 帳號，不需要自己的 API key，只要選擇模型即可。</p>
-  <p class="hint" id="aiNotePersonal">API 網址和模型已預先填好，只要貼上你自己的 API key 即可。還沒有 key 的話，請至 <a href="https://www.iai.nkust.edu.tw/apply" target="_blank" rel="noopener">高科iAI 申請頁</a> 申請。設定只存在這台電腦的瀏覽器。</p>
+  <p class="hint" id="aiNotePersonal">本系統已內建公關中心的高科iAI 帳號，<b>直接選擇模型即可使用</b>，API key 欄位留空就好。若想改用自己的額度，可在下方貼上你自己的 key（<a href="https://www.iai.nkust.edu.tw/apply" target="_blank" rel="noopener">高科iAI 申請頁</a>），按「清除」即恢復使用公關中心帳號。設定只存在這台電腦的瀏覽器。</p>
   <div id="aiBaseRow"><label>API 網址（Base URL）<input type="url" id="aiBase"></label><br><br></div>
   <label>模型名稱
     <div style="display:flex;gap:6px"><select id="aiModel"></select><button type="button" class="small" id="aiList" style="white-space:nowrap">載入可用模型</button></div>
   </label>
   <div class="hint" id="aiListMsg"></div><br>
-  <div id="aiKeyRow"><label>你的 API key<input type="password" id="aiKey" placeholder="貼上 iAI 申請頁複製的 key"></label></div>
+  <div id="aiKeyRow"><label>你的 API key（選填）<input type="password" id="aiKey" placeholder="留空＝使用公關中心內建帳號" autocomplete="off"></label></div>
   <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
     <button type="button" id="aiClear">清除</button>
     <button type="button" id="aiSave" style="background:var(--brand);color:#fff">儲存</button>
@@ -478,6 +478,10 @@ const CONFIG = {
   // true：AI 透過後端使用公關中心內建的 key；false：申請人自行貼上 key（瀏覽器直接連 iAI）
   // 目前 Google 伺服器連不到高科iAI，先設為 false
   AI_VIA_BACKEND: false,
+  // 內建的高科iAI key（編碼存放，介面不顯示；使用者可在「AI 設定」改用自己的 key）
+  // 可直接貼上 sk- 開頭的 key，或貼上編碼後的字串；留空＝不內建，申請人需自行貼 key。
+  // 注意：網頁原始碼公開，懂技術的人仍可取得此 key；若發現額度異常，請到高科iAI 刪除舊 key 並換新的。
+  AI_BUILTIN: 'UVBPZW1OM0lEcDRqa2RyZnFfR0RLWC1rcw==',
   PHOTO_MAX_MB: 25
 };
 const CAT_NAME = {internal:'校內稿',external:'校外稿',notice:'採訪通知',staff:'請公關中心協助',result:'無預定日期之成果報導',fbPre:'FB/IG 活動預告',fbPost:'FB/IG 活動花絮、成果',fbBig:'FB/IG 大型企劃'};
@@ -563,16 +567,25 @@ async function gas(body){
   if(!j.ok)throw new Error(j.error||'上傳失敗');return j}
 function filesToUpload(){
   const out=[];
-  if(!isFast()&&!$('sec5').classList.contains('hidden'))assets.forEach((p,i)=>out.push({p,prefix:`素材${i+1}_`}));
-  if(isFast()||!$('sec6').classList.contains('hidden'))items.forEach((it,i)=>{if(it.photo)out.push({p:it.photo,prefix:`圖${i+1}_`})});
+  // 只要使用者選過的圖片都上傳（不論目前區塊是否顯示）
+  if(!isFast())assets.forEach((p,i)=>out.push({p,prefix:`素材${i+1}_`}));
+  items.forEach((it,i)=>{if(it.photo)out.push({p:it.photo,prefix:`圖${i+1}_`})});
   return out}
+/* 寫入 Drive「申請資訊.txt」的內容：申請項目、標題、圖說對照 */
+function uploadNote(){
+  const c=cats(),plat=platforms();
+  const caps=items.map((x,i)=>x.photo||x.caption.trim()?`圖${i+1}${x.photo?`（${x.photo.name}）`:''}：${x.caption.trim()||'（未填圖說）'}`:'').filter(Boolean);
+  const as=assets.map((p,i)=>`素材${i+1}：${p.name}`);
+  return ['【新申請】',`申請項目：${c.map(k=>CAT_NAME[k]).join('、')||'（未勾選）'}`,plat.length?`發佈平台：${plat.join('、')}`:'',
+    val('title')?`新聞標題：${val('title')}`:'','',caps.length?'【照片與圖說】':'',...caps,as.length?'':'',as.length?'【社群素材】':'',...as].filter((x,i,a)=>x!==''||(a[i-1]&&a[i-1]!=='')).join('\n').trim();
+}
 async function uploadAll(progress,meta){
   if(uploaded&&uploaded.sig===fileSig()+(meta?'F':''))return uploaded;
   const list=filesToUpload();
-  const f=await gas(meta||{action:'folder',unit:val('unit'),eventName:val('eventName'),eventDate:val('eventDate'),contact:val('cName'),email:val('cEmail')});
+  const f=await gas(meta||{action:'folder',unit:val('unit'),eventName:val('eventName'),eventDate:val('eventDate'),contact:`${val('cName')}（${val('cPhone')}）`,email:val('cEmail'),note:uploadNote()});
   for(let i=0;i<list.length;i++){const {p,prefix}=list[i];progress(`上傳檔案 ${i+1}／${list.length}：${p.name}`);
     await gas({action:'file',folderId:f.folderId,token:f.token,name:prefix+p.name,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)})}
-  uploaded={sig:fileSig()+(meta?'F':''),url:f.url,photoCount:list.filter(x=>x.prefix.startsWith('圖')).length,assetCount:list.filter(x=>x.prefix.startsWith('素材')).length};
+  uploaded={sig:fileSig()+(meta?'F':''),url:f.url,folderId:f.folderId,token:f.token,photoCount:list.filter(x=>x.prefix.startsWith('圖')).length,assetCount:list.filter(x=>x.prefix.startsWith('素材')).length};
   return uploaded}
 
 /* Word 用縮圖 */
@@ -841,7 +854,11 @@ async function fallback(d,res,append){
     const blob=await buildDocx(d);
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove();
-    h=`<div class="notice info">申請表已下載。請將申請表寄送至以下信箱${uploaded?'（照片已上傳，不必另附）':'，並附上照片或照片連結'}：<a href="${url}" download="${name}.docx">⬇ 重新下載申請表（Word）</a>`;
+    if(CONFIG.BACKEND_URL&&uploaded&&uploaded.folderId){
+      try{await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:name+'.docx',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',data:await toB64(blob)});uploaded.docSaved=true}
+      catch(e){uploaded.docSaved=false}
+    }
+    h=`<div class="notice info">申請表已下載。${uploaded?`照片${uploaded.docSaved?'與申請表':''}已存入公關中心雲端。`:''}請將申請表寄送至以下信箱${uploaded?'（照片不必另附）':'，並附上照片或照片連結'}：<a href="${url}" download="${name}.docx">⬇ 重新下載申請表（Word）</a>`;
   }catch(err){h=`<div class="notice err">申請表產生失敗：${esc(err.message)}，請重新整理頁面後再試。`}
   for(const g of d.groups){const R=CONFIG.ROUTES[g];
     const href=`mailto:${R.to.join(',')}?${R.cc.length?'cc='+R.cc.join(',')+'&':''}subject=${encodeURIComponent(`【新聞資訊上架申請】${d.unit}－${d.eventName}`)}&body=${encodeURIComponent('申請表如附件，照片連結：'+(d.photoLink||'（另檔寄送）'))}`;
@@ -1014,7 +1031,9 @@ async function buildDocx(d){
 /* ===== 高科iAI ===== */
 const AI_KEY='nkust-iai-settings';
 const AI_DEFAULT={base:'https://www.iai.nkust.edu.tw/aihub/v1',models:['Furen-large','Furen-max']};
-function aiLoad(){let s={};try{s=JSON.parse(localStorage.getItem(AI_KEY))||{}}catch{}return {base:s.base||AI_DEFAULT.base,model:s.model||AI_DEFAULT.models[0],key:s.key||'',models:s.models||AI_DEFAULT.models}}
+const BUILTIN_KEY=(()=>{const v=String(CONFIG.AI_BUILTIN||'').trim();if(!v)return '';if(/^sk-/.test(v))return v;try{return atob(v).split('').reverse().join('')}catch{return ''}})();
+function aiLoad(){let s={};try{s=JSON.parse(localStorage.getItem(AI_KEY))||{}}catch{}
+  return {base:s.base||AI_DEFAULT.base,model:s.model||AI_DEFAULT.models[0],ownKey:s.key||'',key:s.key||BUILTIN_KEY,builtin:!s.key&&!!BUILTIN_KEY,models:s.models||AI_DEFAULT.models}}
 const SHARED=!!CONFIG.BACKEND_URL&&CONFIG.AI_VIA_BACKEND;
 const aiReady=()=>SHARED||!!aiLoad().key;
 async function aiChat(messages,temperature){
@@ -1025,26 +1044,28 @@ async function aiChat(messages,temperature){
   if(!r.ok)throw new Error(`HTTP ${r.status} ${await r.text()}`);
   const j=await r.json();return j.choices?.[0]?.message?.content||'';
 }
-const aiErr=err=>SHARED?`AI 暫時無法使用：${err.message}\n\n請稍後再試；若持續發生，請洽公關中心。`
+const aiErr=err=>(!SHARED&&aiLoad().builtin&&/HTTP (401|403|429)/.test(err.message))?`公關中心提供的 AI 額度今天可能已用完或暫時無法使用（${err.message.slice(0,40)}）。\n\n可以在「AI 設定」貼上你自己的高科iAI key 繼續使用，或稍後再試。`:SHARED?`AI 暫時無法使用：${err.message}\n\n請稍後再試；若持續發生，請洽公關中心。`
   :`無法連線至高科iAI：${err.message}\n\n可能原因：(1) API key 有誤或額度用完；(2) 不在校園網路內；(3) iAI 尚未開放從外部網頁直接呼叫（CORS）。`;
 ['aiNoteShared','aiNotePersonal','aiBaseRow','aiKeyRow'].forEach(id=>$(id).classList.toggle('hidden',id==='aiNoteShared'?!SHARED:SHARED));
-document.querySelectorAll('.ai-mode-hint').forEach(h=>h.textContent=SHARED?'由公關中心提供高科iAI 服務，不需要自己的 key。':'使用你自己的 iAI API key，扣你自己的額度；key 只存在你的瀏覽器。');
+function aiHint(){const b=aiLoad().builtin;document.querySelectorAll('.ai-mode-hint').forEach(h=>h.textContent=(SHARED||b)?'由公關中心提供高科iAI 服務，不需要自己的 key。':'使用你自己的 iAI API key，扣你自己的額度；key 只存在你的瀏覽器。')}
+aiHint();
 function normBase(u){u=(u||'').trim().replace(/\/+$/,'').replace(/\/chat\/completions$/,'');if(u&&!/\/v1$/.test(u))u+='/v1';return u}
 function fillModels(list,sel){const m=$('aiModel');m.innerHTML='';[...new Set(list)].forEach(x=>{const o=document.createElement('option');o.value=o.textContent=x;m.appendChild(o)});if(sel&&list.includes(sel))m.value=sel}
-$('aiSet').onclick=()=>{const s=aiLoad();$('aiBase').value=s.base;fillModels(s.models,s.model);$('aiKey').value=s.key;$('aiListMsg').textContent='';$('aiDlg').showModal()};
+$('aiSet').onclick=()=>{const s=aiLoad();$('aiBase').value=s.base;fillModels(s.models,s.model);$('aiKey').value=s.ownKey;$('aiListMsg').textContent='';$('aiDlg').showModal()};
 $('aiClose').onclick=()=>$('aiDlg').close();
 $('aiDlg').addEventListener('click',e=>{if(e.target===$('aiDlg')){const r=$('aiDlg').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('aiDlg').close()}});
 $('aiSave').onclick=()=>{const models=[...$('aiModel').options].map(o=>o.value);
-  try{localStorage.setItem(AI_KEY,JSON.stringify({base:normBase(val('aiBase')),model:$('aiModel').value,key:val('aiKey'),models}))}catch{}$('aiDlg').close()};
-$('aiClear').onclick=()=>{try{localStorage.removeItem(AI_KEY)}catch{}$('aiBase').value=AI_DEFAULT.base;fillModels(AI_DEFAULT.models);$('aiKey').value='';$('aiListMsg').textContent=''};
+  try{localStorage.setItem(AI_KEY,JSON.stringify({base:normBase(val('aiBase')),model:$('aiModel').value,key:val('aiKey'),models}))}catch{}$('aiDlg').close();aiHint()};
+$('aiClear').onclick=()=>{try{localStorage.removeItem(AI_KEY)}catch{}$('aiBase').value=AI_DEFAULT.base;fillModels(AI_DEFAULT.models);$('aiKey').value='';$('aiListMsg').textContent='';aiHint()};
 $('aiList').onclick=async()=>{
   const base=normBase(val('aiBase')),key=val('aiKey'),msg=$('aiListMsg');
   if(SHARED){msg.textContent='載入中…';
     try{const j=await gas({action:'models'});fillModels(j.models,$('aiModel').value);msg.textContent=`已載入 ${j.models.length} 個對話模型。`}
     catch(err){msg.textContent=`無法載入模型列表（${err.message}），可先使用預設的 Furen-large。`}return}
-  if(!key){msg.textContent='請先貼上 API key。';return}
+  const useKey=key||BUILTIN_KEY;
+  if(!useKey){msg.textContent='請先貼上 API key。';return}
   msg.textContent='載入中…';
-  try{const r=await fetch(base+'/models',{headers:{'Authorization':'Bearer '+key,'accept':'application/json'}});
+  try{const r=await fetch(base+'/models',{headers:{'Authorization':'Bearer '+useKey,'accept':'application/json'}});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const j=await r.json();
     const chat=(j.data||[]).map(x=>x.id).filter(id=>!/asr|speaker|embed|rerank|pic|image|whisper|tts/i.test(id));
