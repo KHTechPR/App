@@ -134,6 +134,13 @@ body.fast #sec6{display:block!important}
 .doc-item.fail{background:var(--warn-soft)}
 .hero-go{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;font-weight:700}
 .hero-go:disabled{opacity:.7}
+.mail-row{margin-top:8px}
+.result a.mail-btn{display:block;background:var(--brand);color:#fff;text-decoration:none;border-radius:8px;padding:8px 12px;font-weight:600;text-align:center}
+.result a.mail-btn:hover{filter:brightness(1.1)}
+.result a.mail-alt{display:inline-block;font-size:12.5px;margin-top:3px}
+.sent-box{background:var(--ok-soft);border:1px solid #b9dfc8;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.6}
+.sent-box b{color:var(--ok);font-size:15px}
+.sent-box .call{margin-top:6px;background:#fff;border-radius:6px;padding:6px 8px;color:var(--ink);font-weight:600}
 .up-ok{background:var(--ok-soft);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:14px}
 .photo-res div{padding:5px 8px;border-radius:6px;margin-bottom:4px}
 .photo-res .pass{background:var(--ok-soft)}.photo-res .fail{background:var(--err-soft)}
@@ -482,7 +489,14 @@ const CONFIG = {
   // 可直接貼上 sk- 開頭的 key，或貼上編碼後的字串；留空＝不內建，申請人需自行貼 key。
   // 注意：網頁原始碼公開，懂技術的人仍可取得此 key；若發現額度異常，請到高科iAI 刪除舊 key 並換新的。
   AI_BUILTIN: 'UVBPZW1OM0lEcDRqa2RyZnFfR0RLWC1rcw==',
-  PHOTO_MAX_MB: 25
+  PHOTO_MAX_MB: 25,
+  // 產生申請表後，由後端（bcoffice03）自動寄通知信給承辦人，申請人為副本
+  AUTO_NOTIFY: true,
+  // 寄出後提醒申請人致電確認的聯絡方式
+  PHONES: {
+    news:   '楊豐榮資深經理（分機 31021）',
+    social: '鄭婷專案副理（分機 31053）、鄭潔珊專案副理（分機 31025）'
+  }
 };
 const CAT_NAME = {internal:'校內稿',external:'校外稿',notice:'採訪通知',staff:'請公關中心協助',result:'無預定日期之成果報導',fbPre:'FB/IG 活動預告',fbPost:'FB/IG 活動花絮、成果',fbBig:'FB/IG 大型企劃'};
 const NEWS_CATS=['internal','external','notice','staff','result'], SOCIAL_CATS=['fbPre','fbPost','fbBig'];
@@ -812,11 +826,15 @@ ${row('系統檢核提醒',d.warnings.join('\n'))}
 $('submitBtn').onclick=async()=>{
   const res=$('result');
   if(isFast())return runFast(res);
-  if(CONFIG.BACKEND_URL&&filesToUpload().length){
+  if(CONFIG.BACKEND_URL){
+    const hasFiles=filesToUpload().length>0;
     $('submitBtn').disabled=true;
     try{await uploadAll(m=>res.innerHTML=`<div class="notice info">${esc(m)}…請勿關閉頁面</div>`);
-      res.innerHTML=`<div class="up-ok">✓ 檔案已上傳至公關中心雲端（照片 ${uploaded.photoCount} 張、素材 ${uploaded.assetCount} 個）</div>`}
-    catch(err){res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再按一次，或移除檔案改填雲端連結。</div>`;$('submitBtn').disabled=false;return}
+      res.innerHTML=`<div class="up-ok">✓ 已存入公關中心雲端${hasFiles?`（照片 ${uploaded.photoCount} 張、素材 ${uploaded.assetCount} 個）`:''}</div>`}
+    catch(err){
+      if(hasFiles){res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再按一次，或移除檔案改填雲端連結。</div>`;$('submitBtn').disabled=false;return}
+      uploaded=null;res.innerHTML='';
+    }
     $('submitBtn').disabled=false;
   }
   meSave();
@@ -840,12 +858,39 @@ async function runFast(res){
   try{await uploadAll(m=>res.innerHTML=`<div class="notice info">${esc(m)}…請勿關閉頁面</div>`,meta)}
   catch(err){res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再試，或改以 Email 寄送照片。</div>`;$('submitBtn').disabled=false;return}
   $('submitBtn').disabled=false;
+  if(CONFIG.AUTO_NOTIFY){
+    res.innerHTML=`<div class="notice info">正在寄送通知信給承辦人…</div>`;
+    try{const n=await gas({action:'notify',folderId:uploaded.folderId,token:uploaded.token,groups:ftKinds(),email:val('ftEmail'),kind:'fast',
+        unit:val('ftUnit'),name:val('ftName'),eventName:val('ftEvent'),photoCount:uploaded.photoCount});
+      res.innerHTML=sentBox(ftKinds(),!!n.already,`照片 ${uploaded.photoCount} 張`,val('ftEmail'));return}
+    catch(e){/* 改用手動寄信 */}
+  }
   const subj=`【補傳照片】${val('ftUnit')}－${val('ftEvent')}`;
   const body=[`公關中心您好：`,``,`「${val('ftEvent')}」已透過線上申請系統補傳照片 ${uploaded.photoCount} 張至公關中心雲端：`,uploaded.url,``,...caps,``,val('ftNote')?`補充說明：${val('ftNote')}`:'',`聯絡人：${val('ftName')}　${val('ftPhone')}　${val('ftEmail')}`].join('\n');
   let h=`<div class="up-ok">✓ 已上傳 ${uploaded.photoCount} 張至公關中心雲端</div><div class="notice info">最後一步：請寄信通知承辦人，信件內容已自動填好。`;
-  for(const k of ftKinds()){const R=CONFIG.ROUTES[k];
-    h+=`<a href="mailto:${R.to.join(',')}?${R.cc.length?'cc='+R.cc.join(',')+'&':''}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}">✉ 通知公關中心：${R.label}</a>`}
+  for(const k of ftKinds())h+=mailLinks(CONFIG.ROUTES[k],subj,body,CONFIG.ROUTES[k].label,val('ftEmail'));
   res.innerHTML=h+'</div>';
+}
+function notifySummary(d){
+  return [['申請單位',d.unit],['聯絡人',`${d.contact.name}　${d.contact.phone}`],['Email',d.contact.email],['活動或成果名稱',d.eventName],
+    ['事件日期',d.eventDate?roc(d.eventDate):'無預定日期'],['申請項目',d.categories.join('、')],
+    ...(d.platforms&&d.platforms.length?[['發佈平台',d.platforms.join('、')]]:[]),...(d.title?[['新聞標題',d.title]]:[]),
+    ...(uploaded?[['照片／素材',`照片 ${uploaded.photoCount} 張、素材 ${uploaded.assetCount} 個`]]:[]),
+    ...(d.warnings&&d.warnings.length?[['系統檢核提醒',d.warnings.join('\n')]]:[])].filter(r=>r[1]);
+}
+function sentBox(groups,already,what,email){
+  const who=groups.map(g=>CONFIG.PHONES[g]).filter(Boolean);
+  return `<div class="sent-box"><b>${already?'✓ 通知信先前已寄出':'✓ 已寄送通知信給承辦人'}</b>`+
+    `<div>${what?`${what}已上傳至公關中心雲端。`:''}${already?'更新後的申請表已存入同一資料夾。':`副本已寄到你的信箱（${esc(email)}）。`}</div>`+
+    `<div class="call">📞 請撥打電話給承辦人，確認是否收到：${esc(who.join('；'))}</div></div>`;
+}
+/* 郵件連結：預設開啟高科大 Gmail 撰寫視窗（帶入收件人、副本、主旨、內文） */
+function mailLinks(R,subj,body,label,from){
+  const q=(o)=>Object.entries(o).filter(([,v])=>v).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+  const acct=/@nkust\.edu\.tw$/i.test(from||'')?from:'';
+  const gmail='https://mail.google.com/mail/?'+q({authuser:acct,view:'cm',fs:'1',to:R.to.join(','),cc:R.cc.join(','),su:subj,body});
+  const mailto=`mailto:${R.to.join(',')}?`+q({cc:R.cc.join(','),subject:subj,body}).replace(/\+/g,'%20');
+  return `<div class="mail-row"><a class="mail-btn" href="${gmail}" target="_blank" rel="noopener">✉ 用高科大 Gmail 寄給：${label}</a><a class="mail-alt" href="${mailto}">或用電腦的郵件程式</a></div>`;
 }
 async function fallback(d,res,append){
   const name=`新聞資訊上架申請表_${d.unit}_${d.eventName}`.replace(/[\\/:*?"<>|]/g,'');
@@ -855,14 +900,30 @@ async function fallback(d,res,append){
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove();
     if(CONFIG.BACKEND_URL&&uploaded&&uploaded.folderId){
-      try{await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:name+'.docx',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',data:await toB64(blob)});uploaded.docSaved=true}
+      try{const r=await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:name+'.docx',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',data:await toB64(blob)});uploaded.docSaved=true;uploaded.docId=r.id}
       catch(e){uploaded.docSaved=false}
+      if(CONFIG.AUTO_NOTIFY){
+        const prevHTML=res.innerHTML;res.innerHTML=`<div class="notice info">正在寄送通知信給承辦人…</div>`;
+        try{const n=await gas({action:'notify',folderId:uploaded.folderId,token:uploaded.token,docId:uploaded.docId||'',groups:d.groups,email:d.contact.email,kind:'new',
+            unit:d.unit,name:d.contact.name,eventName:d.eventName,categories:d.categories.join('、')});
+          uploaded.notified=n.already?'already':'sent'}
+        catch(e){uploaded.notified='';uploaded.notifyErr=e.message}
+        res.innerHTML=prevHTML;
+      }
     }
-    h=`<div class="notice info">申請表已下載。${uploaded?`照片${uploaded.docSaved?'與申請表':''}已存入公關中心雲端。`:''}請將申請表寄送至以下信箱${uploaded?'（照片不必另附）':'，並附上照片或照片連結'}：<a href="${url}" download="${name}.docx">⬇ 重新下載申請表（Word）</a>`;
+    h=`<div class="notice info">✓ 申請表已下載。${uploaded&&uploaded.docSaved?'申請表也已存入公關中心雲端。':''}<a href="${url}" download="${name}.docx">⬇ 重新下載申請表（Word）</a>`;
   }catch(err){h=`<div class="notice err">申請表產生失敗：${esc(err.message)}，請重新整理頁面後再試。`}
-  for(const g of d.groups){const R=CONFIG.ROUTES[g];
-    const href=`mailto:${R.to.join(',')}?${R.cc.length?'cc='+R.cc.join(',')+'&':''}subject=${encodeURIComponent(`【新聞資訊上架申請】${d.unit}－${d.eventName}`)}&body=${encodeURIComponent('申請表如附件，照片連結：'+(d.photoLink||'（另檔寄送）'))}`;
-    h+=`<a href="${href}">✉ 開啟郵件：${R.label}（請記得附上申請表）</a>`}
+  if(uploaded&&uploaded.notified){
+    h+=sentBox(d.groups,uploaded.notified==='already',`${uploaded.docSaved?'申請表':''}${uploaded.photoCount?`${uploaded.docSaved?'與':''}照片 ${uploaded.photoCount} 張`:''}${uploaded.assetCount?`、素材 ${uploaded.assetCount} 個`:''}`,d.contact.email);
+    h+='</div>';res.innerHTML=append?res.innerHTML+h:h;return;
+  }
+  const subj=`【新聞資訊上架申請】${d.unit}－${d.eventName}`;
+  const mbody=['公關中心您好：','',`${d.unit}申請「${d.eventName}」新聞資訊上架，申請表 Word 檔如附件，請協助評估。`,'',
+    `申請項目：${d.categories.join('、')}`,d.eventDate?`事件日期：${roc(d.eventDate)}`:'',d.title?`新聞標題：${d.title}`:'',
+    uploaded?`照片與申請表雲端資料夾：${uploaded.url}`:(d.photoLink?`照片連結：${d.photoLink}`:''),'',
+    `聯絡人：${d.contact.name}　${d.contact.phone}　${d.contact.email}`,'','※ 寄出前請把剛下載的申請表 Word 檔拖進信件附件。'].filter((x,k,a)=>x!==''||a[k-1]!=='').join('\n');
+  h+=`<div style="margin-top:6px;font-weight:600">${uploaded&&uploaded.notifyErr?'自動通知信未能寄出，請改用下方按鈕寄信：':'下一步：寄信給公關中心（收件人、主旨與內文已自動填好，請附上 Word 檔）'}</div>`;
+  for(const g of d.groups)h+=mailLinks(CONFIG.ROUTES[g],subj,mbody,CONFIG.ROUTES[g].label,d.contact.email);
   h+='</div>';res.innerHTML=append?res.innerHTML+h:h;
 }
 

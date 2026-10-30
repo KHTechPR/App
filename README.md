@@ -46,3 +46,10 @@
 
 ## 高科iAI
 後端設定完成後，AI 功能使用指令碼屬性中的 key，申請人只需在「AI 設定」選擇模型。後端未設定時，申請人需自行貼上 API key（網址與模型已預設為 `https://www.iai.nkust.edu.tw/aihub/v1`、`Furen-large`）。
+
+## 自動通知信（2026-10-31a 起）
+- 產生申請表或補傳照片後，後端以 bcoffice03 帳號自動寄通知信給承辦人（依申請項目分流），申請人為副本，信件為簡短文字，附雲端資料夾連結（Word 申請表、照片都在資料夾內）。
+- 收件人設定在 `nkust-pr-backend.gs` 的 `NOTIFY_ROUTES`；畫面上提醒申請人致電確認的聯絡方式在 `index.html` 的 `CONFIG.PHONES`。
+- 更新後端後須在 Apps Script 執行一次 `testSetup`，授權「代表你傳送電子郵件」，再以「管理部署作業 → 新版本」發佈。
+- 每日通知信上限 `NOTIFY_DAILY_LIMIT`（預設 150 封）；同一件申請只會寄一次。
+- 若自動寄信失敗，網頁會改為顯示「用高科大 Gmail 寄信」按鈕。
