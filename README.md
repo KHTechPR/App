@@ -2,12 +2,15 @@
 
 國立高雄科技大學秘書室公關中心「新聞資訊上架申請表」線上版，依 BC03 新聞稿發佈及新媒體整合應用作業程序（115.10.28）及新聞稿撰寫指引建置。
 
-網址：https://szu1104.github.io/NKUSTPR/
+網址：https://khtechpr.github.io/App/（原測試站：https://szu1104.github.io/NKUSTPR/）
 
 ## Repository 內的檔案
 - `index.html`：申請表網頁
 - `BC03-writing-guide.pdf`：新聞稿撰寫指引（網頁上的下載連結指向此檔名）
 - `README.md`：本說明
+- `高科大NKUST.png`：表頭 logo（檔名不可更改）
+- `SuperNorth-header.png`：表頭與媒體超人吉祥物（去背版）
+- `SuperNorth.png`：吉祥物原圖（去背版不存在時的備用）
 
 `nkust-pr-backend.gs` 不放在 repository，它是貼到 Google Apps Script 使用的，裡面不含任何 key。
 
