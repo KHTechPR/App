@@ -1,0 +1,1330 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<title>新聞資訊上架申請表｜國立高雄科技大學公關中心</title>
+<style>
+:root{
+  --ink:#1c2430; --muted:#5d6878; --line:#d7dce8; --bg:#f5f6fa; --paper:#fff;
+  --brand:#2a4198; --brand-soft:#eef1fa; --sky:#006dac; --accent:#ed6d00; --ok:#1d7a46; --ok-soft:#e5f4ec;
+  --warn:#9a5b00; --warn-soft:#fff4df; --err:#b3261e; --err-soft:#fdeceb;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+header{background:#fff;color:var(--brand);padding:16px 16px 14px;border-bottom:1px solid var(--line);position:relative}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:linear-gradient(90deg,var(--brand) 0 60%,var(--sky) 60% 85%,var(--accent) 85%)}
+header .wrap{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.head-row{display:flex;align-items:center;gap:14px;min-width:0}
+.head-logo{height:64px;width:auto;flex:none;display:block}
+.head-text{min-width:0}
+header small{display:block;font-size:13px;color:var(--sky);letter-spacing:.02em}
+header h1{margin:2px 0 0;font-size:24px;letter-spacing:.04em;color:var(--brand)}
+.guide-link{display:inline-block;color:var(--brand);font-size:14px;border:1px solid var(--brand);border-radius:99px;padding:4px 14px;text-decoration:none;background:#fff;white-space:nowrap}
+.guide-link:hover{background:var(--brand-soft)}
+.head-side{display:flex;align-items:center;gap:12px}
+.head-mascot{height:68px;width:auto;max-width:110px;object-fit:contain;flex:none}
+.beta{display:inline-block;vertical-align:middle;margin-left:10px;padding:1px 9px;border-radius:99px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;letter-spacing:.08em;line-height:1.7;position:relative;top:-2px}
+@media (max-width:640px){.head-logo{height:52px}header h1{font-size:21px}.head-side{width:100%;justify-content:space-between}.head-mascot{height:50px}}
+.layout{max-width:1180px;margin:0 auto;padding:20px 16px 80px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.side{position:static!important;max-height:none}}
+section.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:18px;overflow:hidden}
+section.card>h2{margin:0;padding:12px 16px 12px 14px;font-size:17px;background:var(--brand-soft);color:var(--brand);border-bottom:1px solid var(--line);border-left:4px solid var(--brand)}
+section.card>.body{padding:14px 16px}
+.hint{color:var(--muted);font-size:13.5px}
+table.form{width:100%;border-collapse:collapse}
+table.form th,table.form td{border:1px solid var(--line);padding:9px 10px;vertical-align:top;text-align:left}
+table.form th{background:#fafbfc;width:170px;font-weight:600}
+table.form th .hint{font-weight:400;display:block}
+@media (max-width:640px){table.form th,table.form td{display:block;width:100%}table.form th{border-bottom:0}}
+input[type=text],input[type=email],input[type=tel],input[type=date],input[type=time],input[type=url],input[type=password],textarea,select{
+  width:100%;font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+textarea{min-height:90px;resize:vertical}
+textarea#body{min-height:300px}
+input:focus,textarea:focus{outline:2px solid #8fb0e0;border-color:#8fb0e0}
+label.chk{display:inline-flex;gap:6px;align-items:flex-start;margin:2px 14px 2px 0;cursor:pointer}
+label.chk input{margin-top:5px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:640px){.row2,.row3{grid-template-columns:1fr}}
+.inline-in{display:inline-block;width:auto;min-width:180px;margin-left:4px}
+.status{font-size:13px;font-weight:600;white-space:nowrap}
+.status.ok{color:var(--ok)}.status.bad{color:var(--err)}.status.wait{color:var(--muted);font-weight:400}
+.counter{font-size:13px;color:var(--muted);text-align:right;margin-top:3px}
+.counter.bad{color:var(--err)}.counter.ok{color:var(--ok)}
+.notice{border-radius:8px;padding:10px 12px;margin:8px 0;font-size:14.5px}
+.notice.info{background:var(--brand-soft)}
+.notice.warn{background:var(--warn-soft);color:#5c3b00}
+.notice.err{background:var(--err-soft);color:#6d1712}
+.hidden{display:none!important}
+table.route{width:100%;border-collapse:collapse;font-size:14px}
+table.route td,table.route th{border:1px solid var(--line);padding:7px 9px;text-align:left}
+table.route tr.active{background:var(--ok-soft)}
+table.route tr.dim{color:#9aa3ae}
+.side{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;display:grid;gap:12px;align-content:start}
+.route-panel h3{margin-bottom:4px}
+.route-item{font-size:13px;line-height:1.55;border:1px solid var(--line);border-radius:8px;padding:7px 9px;margin-top:6px}
+.route-item b{display:block;font-size:13.5px}
+.route-item .hint{display:block;font-size:12px}
+.route-item.dim{color:#9aa3ae}.route-item.dim b{color:#9aa3ae}
+.route-item.active{background:var(--ok-soft);border-color:#b9dfc8}
+.side .panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.side h3{margin:0 0 8px;font-size:16px}
+.side ul{list-style:none;margin:0;padding:0;font-size:14px}
+.side li{padding:6px 8px;border-radius:6px;margin-bottom:5px}
+.side li.e{background:var(--err-soft);color:#6d1712}
+.side li.w{background:var(--warn-soft);color:#5c3b00}
+.side li.i{background:var(--brand-soft)}
+.side li.k{background:var(--ok-soft);color:#0f4a2a}
+.tally{display:flex;gap:8px;margin-bottom:10px;font-size:13px}
+.tally span{padding:2px 8px;border-radius:99px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--brand);padding:9px 14px;background:#fff;color:var(--brand)}
+button.primary{background:var(--brand);color:#fff;width:100%;margin-top:10px;font-weight:600}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.small{padding:5px 10px;font-size:14px}
+.photo-res{font-size:13.5px;margin-top:8px}
+.pick-btn{display:inline-block;border:1px solid var(--brand);color:var(--brand);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:14px}
+.pick-btn:hover{background:var(--brand-soft)}
+.photo-list{display:grid;gap:8px;margin-top:10px}
+.ph{display:grid;grid-template-columns:44px 72px 1fr 32px;gap:10px;align-items:center;padding:6px 8px;border-radius:8px;font-size:13.5px}
+.ph.pass{background:var(--ok-soft)}.ph.fail{background:var(--warn-soft)}
+.ph img{width:72px;height:48px;object-fit:cover;border-radius:4px;background:#ddd}
+.ph b{color:var(--muted);font-weight:600;text-align:center}
+.x-btn{border:0;background:none;color:var(--muted);font-size:20px;line-height:1;padding:2px 6px;cursor:pointer}
+.x-btn:hover{color:var(--err);background:#fff}
+.cap-list{display:grid;gap:10px;margin-top:10px}
+.cap-row{display:grid;grid-template-columns:44px 200px 1fr 32px;gap:12px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:10px}
+.cap-row .no{font-weight:700;color:var(--brand);padding-top:6px;text-align:center}
+.cap-row .pic{border-radius:8px;overflow:hidden;background:var(--bg);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cap-row .pic img{width:100%;height:133px;object-fit:cover;display:block}
+.cap-row .pic .meta{font-size:12px;padding:4px 6px;width:100%;line-height:1.4}
+.cap-row .pic .meta.fail{background:var(--warn-soft);color:#5c3b00}.cap-row .pic .meta.pass{background:var(--ok-soft);color:#0f4a2a}
+.cap-row textarea{min-height:90px}
+.cap-row .pic .pick-btn{font-size:13px}
+@media (max-width:640px){.cap-row{grid-template-columns:1fr 32px}.cap-row .no{grid-column:1;grid-row:1;text-align:left;padding-top:2px}.cap-row .x-btn{grid-column:2;grid-row:1}.cap-row .pic,.cap-row .txt{grid-column:1/3}}
+.remember{margin-top:8px;font-size:14px}
+.linkbtn{border:0;background:none;color:var(--brand);text-decoration:underline;padding:0 4px;font-size:13.5px}
+.mode-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.mode-pick{grid-template-columns:1fr}}
+.mode-opt{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:#fff}
+.mode-opt input{margin-top:6px}
+.mode-opt:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}
+.fast-only{display:none}
+body.fast .fast-only{display:block}
+body.fast .main-only{display:none!important}
+body.fast #sec6{display:block!important}
+.invalid-f{border-color:var(--err)!important;box-shadow:0 0 0 3px rgba(179,38,30,.15)!important}
+.invalid-b{outline:2px solid var(--err);outline-offset:3px;border-radius:6px}
+.side li.e{cursor:pointer}.side li.e:hover{filter:brightness(.96)}
+.hero{border:2px solid var(--brand);border-radius:12px;margin:0 0 14px;background:linear-gradient(135deg,#f3f6ff,#fff7ee)}
+.hero summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 14px}
+.hero summary::-webkit-details-marker{display:none}
+.hero summary img{height:48px;width:auto;transition:transform .3s}
+.hero[open] summary img,.hero summary:hover img{transform:translate(4px,-4px) rotate(-4deg)}
+.hero summary b{display:block;color:var(--brand);font-size:17px}
+.hero summary::after{content:"▾ 展開";margin-left:auto;font-size:13px;color:var(--brand);white-space:nowrap}
+.hero[open] summary::after{content:"▴ 收合"}
+.hero-body{padding:0 14px 14px}
+.hero-docs{margin-top:8px}
+.doc-list{display:grid;gap:6px;margin-top:6px}
+.doc-item{display:flex;align-items:center;gap:8px;font-size:13.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.doc-item .x-btn{margin-left:auto}
+.doc-item.fail{background:var(--warn-soft)}
+.hero-go{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;font-weight:700}
+.hero-go:disabled{opacity:.7}
+.up-ok{background:var(--ok-soft);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:14px}
+.photo-res div{padding:5px 8px;border-radius:6px;margin-bottom:4px}
+.photo-res .pass{background:var(--ok-soft)}.photo-res .fail{background:var(--err-soft)}
+.caps td:first-child{width:70px;text-align:center;color:var(--muted)}
+.grey th,.grey td{color:#8b95a1;background:#fafafa}
+.ai-box{border:1px dashed #9db4d8;border-radius:8px;padding:10px 12px;margin-top:10px;background:#f9fbfe}
+.ai-out{white-space:pre-wrap;font-size:14.5px;margin-top:8px;max-height:420px;overflow:auto}
+dialog{border:1px solid var(--line);border-radius:12px;max-width:520px;width:92vw;padding:18px}
+dialog{position:relative}
+.dlg-x{position:absolute;top:10px;right:10px;border:0;background:none;font-size:26px;line-height:1;padding:2px 8px;color:var(--muted)}
+.dlg-x:hover{color:var(--ink);background:var(--bg)}
+dialog::backdrop{background:rgba(10,20,40,.35)}
+.result{margin-top:10px}
+.result a{display:block;margin-top:6px}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
+@media print{header,.side,.ai-box,button{display:none!important}.layout{display:block}body{background:#fff}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="head-row">
+    <img class="head-logo" src="%E9%AB%98%E7%A7%91%E5%A4%A7NKUST.png" alt="國立高雄科技大學 NKUST" onerror="this.remove()">
+    <div class="head-text">
+      <small>國立高雄科技大學｜秘書室公關中心｜你的媒體超人</small>
+      <h1>新聞資訊上架申請表<span class="beta" title="封閉測試中，歡迎回饋意見">BETA</span></h1>
+    </div>
+  </div>
+  <div class="head-side">
+    <a class="guide-link" href="BC03-writing-guide.pdf" target="_blank" rel="noopener">📄 下載新聞稿撰寫指引（含範例）</a>
+    <img class="head-mascot" src="SuperNorth-header.png" alt="" aria-hidden="true" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='SuperNorth.png'}else this.remove()">
+  </div>
+</div></header>
+
+<div class="layout">
+<main id="form">
+
+<!-- 申請類型 -->
+<section class="card mode-card">
+  <div class="body mode-pick">
+    <label class="mode-opt"><input type="radio" name="mode" value="new" checked><span><b>新申請</b><br><span class="hint">新聞稿、邀請媒體、社群貼文等上架申請</span></span></label>
+    <label class="mode-opt"><input type="radio" name="mode" value="fast"><span><b>已提送申請，補照片或圖片</b><br><span class="hint">稿件已送出，活動結束後補傳照片（直接上傳，免填其他欄位）</span></span></label>
+  </div>
+</section>
+
+<!-- 補件 -->
+<section class="card fast-only">
+  <h2>補傳照片或圖片</h2>
+  <div class="body">
+    <p class="hint" style="margin-top:0">請填寫原申請的基本資料，以便公關中心對應。照片上傳至公關中心雲端後，請按「通知公關中心」寄信告知。</p>
+    <table class="form">
+      <tr><th>* 原申請項目</th><td>
+        <label class="chk"><input type="checkbox" name="ftKind" value="news">新聞（校內稿、校外稿、到校採訪、成果報導）</label><br>
+        <label class="chk"><input type="checkbox" name="ftKind" value="social">官方 Facebook／Instagram</label></td></tr>
+      <tr><th>* 申請單位</th><td><input type="text" id="ftUnit"></td></tr>
+      <tr><th>* 聯絡窗口</th><td><div class="row3"><input type="text" id="ftName" placeholder="姓名"><input type="tel" id="ftPhone" placeholder="分機／手機"><input type="email" id="ftEmail" placeholder="Email"></div></td></tr>
+      <tr><th>* 原申請活動名稱<span class="hint">與原申請表相同</span></th><td><input type="text" id="ftEvent"></td></tr>
+      <tr><th>事件日期</th><td><input type="date" id="ftDate"></td></tr>
+      <tr><th>補充說明</th><td><textarea id="ftNote" style="min-height:60px" placeholder="例如：原申請於 11/10 寄出，新聞稿已確認；本次補 5 張活動照片"></textarea></td></tr>
+    </table>
+  </div>
+</section>
+
+
+
+<!-- 一、申請項目 -->
+<section class="card main-only">
+  <h2>一、申請項目（可複選）</h2>
+  <div class="body">
+    <p class="hint">期限以日曆天計，自收件日（今天：<b id="today-label"></b>）起算；事件日指活動舉行日或成果擬公布日。</p>
+    <table class="form">
+      <tr><th>校內稿<span class="hint">校官網新聞</span></th>
+        <td><label class="chk"><input type="checkbox" data-cat="internal">申請</label>
+          <div class="hint">最遲：事件日前 10 日　<span class="status" id="st-internal"></span></div></td></tr>
+      <tr><th>校外稿<span class="hint">對外媒體群組</span></th>
+        <td><label class="chk"><input type="checkbox" data-cat="external">申請</label>
+          <input type="text" id="externalReason" class="inline-in" placeholder="理由（必填）">
+          <div class="hint">最遲：事件日前 14 日　<span class="status" id="st-external"></span></div>
+          <div class="notice info hidden" id="note-external">校外稿以校級重要議題為原則（如全國性或國際性獲獎、重大計畫成果、產學合作、國際交流及校級典禮）；未獲同意者，改以校內稿刊登。</div></td></tr>
+      <tr><th>邀請媒體到校採訪<span class="hint">含記者會、校級活動之媒體接待、拍攝</span></th>
+        <td><label class="chk"><input type="checkbox" data-cat="notice">採訪通知</label>
+          <span class="hint">最遲：事件日前 14 日　<span class="status" id="st-notice"></span></span><br>
+          <label class="chk"><input type="checkbox" data-cat="staff">請公關中心協助</label>
+          <input type="text" id="staffNeeds" class="inline-in" placeholder="協助項目（如媒體接待、攝影、錄影）">
+          <span class="hint">最遲：事件日前 21 日　<span class="status" id="st-staff"></span></span>
+          <div class="notice info hidden" id="note-staff">請公關中心協助以校級活動為原則，公關中心將於評估結果中回覆是否派員協助。</div></td></tr>
+      <tr><th>無預定日期之成果報導</th>
+        <td><label class="chk"><input type="checkbox" data-cat="result">申請</label>
+          <div id="resultTypes" class="hidden">
+            <label class="chk"><input type="checkbox" name="resultType" value="論文發表">論文發表</label>
+            <label class="chk"><input type="checkbox" name="resultType" value="技術轉移">技術轉移</label>
+            <label class="chk"><input type="checkbox" name="resultType" value="產學合作">產學合作</label>
+            <label class="chk"><input type="checkbox" name="resultType" value="其他" id="resultOtherChk">其他</label>
+            <input type="text" id="resultOther" class="inline-in" placeholder="其他類型">
+            <div><label class="chk"><input type="checkbox" id="resultPublic">內容已公開，或已經合作單位同意發佈（必勾）</label></div>
+          </div>
+          <div class="hint">隨時提供，由公關中心依排程安排上架日</div></td></tr>
+      <tr><th>本校官方 Facebook／Instagram</th>
+        <td><label class="chk"><input type="checkbox" data-cat="fbPre">活動預告（報名、宣傳）</label>
+          <input type="date" id="postDate" class="inline-in" title="預定發文日">
+          <span class="hint">預定發文日前 3 日　<span class="status" id="st-fbPre"></span></span><br>
+          <label class="chk"><input type="checkbox" data-cat="fbPost">活動花絮、成果</label>
+          <span class="hint">事件日後 1 日內提供照片及重點文字　<span class="status" id="st-fbPost"></span></span><br>
+          <label class="chk"><input type="checkbox" data-cat="fbBig">大型企劃（直播、短影音、抽獎、系列宣傳）</label>
+          <span class="hint">事件日前 30 日　<span class="status" id="st-fbBig"></span></span>
+          <div class="notice info hidden" id="note-fbBig">社群宣傳以本校官方平台為限；抽獎活動由申請單位自辦，公關中心協助宣傳。如有媒體宣傳經費規劃，請另洽公關中心。</div></td></tr>
+      <tr><th>榮譽肯定／校官網 Banner</th>
+        <td><span class="hint">不適用本表。請依「BC04 校官網首頁資訊刊登作業程序」，至</span>
+          <a href="https://ws1.nkust.edu.tw/CCElecForm/" target="_blank" rel="noopener">電算中心電子表單申請系統</a>
+          <span class="hint">登入後，選擇「校園網頁建置修改申請」提出。</span></td></tr>
+    </table>
+
+  </div>
+</section>
+
+<!-- 二、基本資料 -->
+<section class="card main-only">
+  <h2>二、基本資料（* 為必填）</h2>
+  <div class="body">
+    <table class="form">
+      <tr><th>* 申請單位</th><td><input type="text" id="unit"></td></tr>
+      <tr><th>* 聯絡窗口</th><td><div class="row3">
+        <input type="text" id="cName" placeholder="姓名">
+        <input type="tel" id="cPhone" placeholder="分機／手機">
+        <input type="email" id="cEmail" placeholder="Email"></div>
+        <div class="remember">
+          <label class="chk"><input type="checkbox" id="rememberMe">記住申請單位與聯絡窗口，下次自動帶入</label>
+          <span class="hint">（只存在這台電腦的瀏覽器；公用電腦請勿勾選）</span>
+          <button type="button" class="linkbtn hidden" id="forgetMe">清除已儲存的資料</button>
+          <span class="hint" id="rememberMsg"></span>
+        </div></td></tr>
+      <tr><th>* 活動或成果名稱</th><td><input type="text" id="eventName"></td></tr>
+      <tr><th>事件日期<span class="hint">活動舉行日或成果擬公布日；無預定日期之成果報導免填</span></th>
+        <td><input type="date" id="eventDate"></td></tr>
+      <tr><th>事件地點<span class="hint">有活動者填寫</span></th><td><input type="text" id="eventPlace"></td></tr>
+    </table>
+    <div class="notice warn hidden" id="overdueBox">
+      <b>部分項目已逾申請期限</b>（<span id="overdueList"></span>）。依 BC03，逾申請期限或已逾新聞時效者，公關中心得退回或改以其他管道刊登。<br>
+      <label class="chk"><input type="checkbox" id="overdueAck">我了解，仍要提出申請</label>
+    </div>
+  </div>
+</section>
+
+<!-- 三、新聞稿 -->
+<section class="card main-only hidden" id="sec3">
+  <h2>三、新聞稿（校內稿、校外稿、到校採訪、成果報導填寫）</h2>
+  <div class="body">
+    <details class="hero" id="heroBox">
+      <summary><img src="SuperNorth-header.png" alt="" aria-hidden="true" onerror="this.remove()"><span><b>媒體超人幫幫我！</b><span class="hint">丟資料給我，新聞稿交給我寫。（選用，點開使用）</span></span></summary>
+      <div class="hero-body">
+        <p class="hint" style="margin-top:0">把活動的零散資訊貼進來，或丟一份議程、企劃書給我，媒體超人會依高科大新聞稿撰寫指引，飛快寫出標題、事件亮點和內文草稿。上方基本資料（單位、活動名稱、日期、地點）也會一起帶給我。</p>
+        <textarea id="rawNotes" style="min-height:120px" placeholder="例如：&#10;- 11/19 上午在燕巢校區簽約&#10;- 跟○○公司簽產學合作，合作 3 年，共同開設半導體學程&#10;- 校長吳忠信、○○公司總經理○○○出席&#10;- 校長說：希望學生畢業就能接軌產業"></textarea>
+        <div class="hero-docs">
+          <label class="small pick-btn"><input type="file" id="docFiles" accept=".docx,.pdf,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" multiple hidden>📎 上傳參考文件</label>
+          <span class="hint">Word（.docx）、PDF、TXT，例如議程、企劃書、活動流程。文件只在你的瀏覽器裡讀取，不會另外存檔。</span>
+          <div id="docList" class="doc-list"></div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="small hero-go" id="aiDraft">🦸 媒體超人，出動！</button>
+          <button type="button" class="small hidden" id="aiApply" style="background:var(--brand);color:#fff">套用到下方欄位</button>
+          <button type="button" class="small" id="aiSet2">AI 設定</button>
+        </div>
+        <div class="hint" id="draftApplied" style="margin-top:6px"></div>
+        <div class="ai-out" id="draftOut"></div>
+        <div class="hint" style="margin-top:6px">※ 超人也會看錯字：套用後請在下方欄位逐一核對人名、職稱、數據與引言，「○○」處請補上正確資訊。</div>
+      </div>
+    </details>
+    <table class="form">
+      <tr><th>* 新聞標題<span class="hint">20 字內</span></th>
+        <td><input type="text" id="title"><div class="counter" id="cnt-title"></div></td></tr>
+      <tr><th>* 事件亮點<span class="hint">條列 3 點內</span></th>
+        <td><input type="text" id="hl1" placeholder="1."><input type="text" id="hl2" placeholder="2." style="margin-top:6px"><input type="text" id="hl3" placeholder="3." style="margin-top:6px"></td></tr>
+      <tr><th>出席貴賓<span class="hint">單位＋職稱＋姓名；一級單位主管以上須列出</span></th>
+        <td><textarea id="guests3" style="min-height:60px"></textarea></td></tr>
+      <tr><th>* 初稿內文<span class="hint">800 至 1000 字</span></th>
+        <td><textarea id="body" placeholder="首段交代人、事、時、地、物；校名首次寫「國立高雄科技大學（以下簡稱高科大）」。"></textarea>
+          <div class="hint">撰寫方式請參閱<a href="BC03-writing-guide.pdf" target="_blank" rel="noopener">新聞稿撰寫指引（PDF）</a></div>
+          <div class="counter" id="cnt-body"></div>
+          <div class="ai-box">
+            <b>AI 稿件建議（高科iAI）</b> <span class="hint ai-mode-hint"></span><br>
+            <button type="button" class="small" id="aiRun">請 AI 依撰寫指引檢視初稿</button>
+            <button type="button" class="small" id="aiSet">AI 設定</button>
+            <div class="ai-out" id="aiOut"></div>
+          </div></td></tr>
+      <tr><th>* 修改授權</th>
+        <td><label class="chk"><input type="radio" name="auth" value="照刊">無須修改，請依原文照刊</label>
+          <input type="text" id="authNote" class="inline-in" placeholder="說明（如已經合作單位審閱定稿）"><br>
+          <span class="hint">如文稿已經合作單位、主管機關或受訪者審閱定稿，請勾選並說明</span><br>
+          <label class="chk"><input type="radio" name="auth" value="可修改">可修改，修改後請回傳申請單位確認</label></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 四、邀請媒體 -->
+<section class="card main-only hidden" id="sec4">
+  <h2>四、邀請媒體到校採訪（申請採訪通知、辦理記者會或請公關中心協助者填寫）</h2>
+  <div class="body">
+    <table class="form">
+      <tr><th>* 活動流程<span class="hint">時間＋流程；或另附流程表</span></th><td><textarea id="flow"></textarea></td></tr>
+      <tr><th>活動結束時間</th><td><input type="time" id="endTime" style="max-width:180px"><div id="mealNote" class="notice info hidden"></div></td></tr>
+      <tr><th>出席貴賓<span class="hint">單位＋職稱＋姓名；一級單位主管以上須列出</span></th><td><textarea id="guests4" style="min-height:60px"></textarea></td></tr>
+      <tr><th>計畫名稱<span class="hint">須標註補助計畫者填寫</span></th><td><input type="text" id="project"></td></tr>
+      <tr><th>* 採訪重點<span class="hint">條列 3 點內</span></th>
+        <td><input type="text" id="fc1" placeholder="1."><input type="text" id="fc2" placeholder="2." style="margin-top:6px"><input type="text" id="fc3" placeholder="3." style="margin-top:6px"></td></tr>
+      <tr><th>* 現場聯絡人</th><td><div class="row2"><input type="text" id="siteName" placeholder="姓名"><input type="tel" id="sitePhone" placeholder="手機"></div></td></tr>
+    </table>
+    <div class="notice info">申請單位準備記者會紀念品；媒體是否出席由媒體自行判斷，公關中心不保證露出。活動後請提供媒體出席名單或簽到表。</div>
+  </div>
+</section>
+
+<!-- 五、社群素材 -->
+<section class="card main-only hidden" id="sec5">
+  <h2>五、社群素材（申請 Facebook／Instagram 者填寫）</h2>
+  <div class="body">
+    <table class="form" style="margin-bottom:14px">
+      <tr><th>* 發佈平台<span class="hint">可複選</span></th>
+        <td><label class="chk"><input type="checkbox" name="platform" value="Facebook">Facebook</label>
+          <label class="chk"><input type="checkbox" name="platform" value="Instagram">Instagram</label>
+          <div class="hint">※ Instagram 以學生事務及校內宣傳為主，其他訊息請選 Facebook。</div></td></tr>
+    </table>
+    <div class="ai-box" style="margin:0 0 14px">
+      <b>AI 協助撰寫貼文（高科iAI）</b> <span class="hint">輸入活動重點，AI 會依勾選的發佈平台產生貼文：FB 版資訊完整，IG 版針對學生族群、簡短活潑並附 hashtag。上方基本資料、預定發文日與相關連結會一併提供給 AI。</span>
+      <div class="notice info hidden" id="socialFromNews" style="margin-top:8px">✓ 已偵測到第三項新聞稿內容，AI 會以新聞稿為主濃縮改寫成貼文。下方可留空，或補充社群專屬資訊（如報名連結、抽獎辦法、集合時間）。</div>
+      <textarea id="socialNotes" style="margin-top:8px;min-height:110px" placeholder="例如：&#10;- 11/20 職涯博覽會，燕巢校區活動中心 10:00–16:00&#10;- 80 家企業、超過 1,000 個職缺&#10;- 現場有履歷健診、模擬面試&#10;- 集點可抽 AirPods"></textarea>
+      <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="small" id="aiSocial">生成社群貼文</button>
+        <button type="button" class="small hidden" id="aiSocialApply" style="background:var(--brand);color:#fff">套用到貼文內容</button>
+        <button type="button" class="small" id="aiSet3">AI 設定</button>
+      </div>
+      <div class="hint" id="socialApplied" style="margin-top:6px"></div>
+      <div class="ai-out" id="socialOut"></div>
+      <div class="hint" style="margin-top:6px">※ 套用後可在「貼文內容」欄直接修改，也可以只複製需要的版本。公關中心仍會依各平台調整文案；活動資訊、日期與連結請再次核對。</div>
+    </div>
+    <table class="form">
+      <tr><th>* 貼文內容</th><td><textarea id="postText" style="min-height:200px" placeholder="提供貼文文案或重點；含活動名稱、日期、地點等，由公關中心依平台改寫"></textarea></td></tr>
+      <tr><th>相關連結</th><td><input type="url" id="postLink" placeholder="如報名網址；無則免填"></td></tr>
+      <tr><th>素材<span class="hint">活動預告附確認版圖卡；花絮、成果附照片</span></th>
+        <td><label class="small pick-btn"><input type="file" id="assetFiles" accept="image/*" multiple hidden>＋ 選擇圖片</label>
+          <span class="hint" id="assetCount"></span>
+          <div class="photo-list" id="assetList"></div>
+          <input type="text" id="assets" style="margin-top:8px" placeholder="或提供素材下載連結（雲端資料夾）；無則免填"></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 六、照片及圖說 -->
+<section class="card hidden" id="sec6">
+  <h2>六、照片及圖說</h2>
+  <div class="body">
+    <div class="notice info">照片規格：橫式為主，寬高比 3:2；長邊 3000 像素以上（如 3000×2000）；JPG 原檔，單檔 2MB 以上。新聞稿 5 張以內；社群貼文可提供多張供挑選。以簽約、頒獎、操作、互動等動態畫面為主，團體合照至多 1 張。圖說寫法請參閱<a href="BC03-writing-guide.pdf" target="_blank" rel="noopener">新聞稿撰寫指引（PDF）</a>。</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="small pick-btn"><input type="file" id="photoFiles" accept="image/jpeg,image/png,image/heic,image/*" multiple hidden>＋ 選擇照片（可多選）</label>
+      <button type="button" class="small" id="addCap">＋ 增列一則（不附照片）</button>
+      <span class="hint" id="photoCount"></span>
+    </div>
+    <div class="hint" style="margin-top:6px">每張照片右側填寫對應的圖說（建議 10–40 字；有人物時標註單位、職稱、姓名及位置，如左一、右二；社群照片可免填）。照片會先檢查規格，送出時一併上傳。</div>
+    <div class="hint hidden" id="uploadOff" style="margin-top:4px">※ 照片上傳功能尚未啟用：照片縮圖會放進申請表供對照，原檔請另提供雲端連結。</div>
+    <div class="cap-list" id="capList"></div>
+    <table class="form main-only" style="margin-top:10px">
+      <tr><th>照片下載連結<span class="hint">選填：雲端資料夾連結，或註明另檔寄送</span></th><td><input type="text" id="photoLink"></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 確認事項 -->
+<section class="card main-only hidden" id="secConfirm">
+  <h2>確認事項</h2>
+  <div class="body">
+    <label class="chk" id="cf-check-w"><input type="checkbox" id="cfCheck">已核實新聞稿內容，尤以姓名、單位、職稱、專有名詞及數據；引述受訪者發言已經本人確認。</label><br>
+    <label class="chk" id="cf-portrait-w"><input type="checkbox" id="cfPortrait">照片中人物肖像已取得授權或具合法使用依據；非本校拍攝之照片已取得授權並註明出處。</label><br>
+    <label class="chk"><input type="checkbox" id="cfDup">本則訊息尚未自行發送媒體、未由校外單位發佈，亦未經媒體報導。</label>
+    <div class="notice warn hidden" id="dupNote">已自行發送媒體、由校外單位發佈或已經媒體報導之新聞，以不重複發佈為原則。</div>
+  </div>
+</section>
+
+<!-- 七、公關中心評估意見 -->
+<section class="card main-only">
+  <h2>七、公關中心評估意見（公關中心填寫）</h2>
+  <div class="body">
+    <table class="form grey">
+      <tr><th>收件及上架</th><td>收件、預定上架日期及承辦人由公關中心填寫。上架日遇假日順延。</td></tr>
+      <tr><th>評估結果</th><td>退回或改變刊登方式／補件／潤修／照刊</td></tr>
+      <tr><th>校外稿</th><td>同意發送對外媒體群組／改以校內稿刊登</td></tr>
+      <tr><th>派員出席</th><td>派員／不派員（活動照片及出席媒體名單由申請單位提供）</td></tr>
+    </table>
+    <p class="hint">回覆期限（工作日）：社群時效稿件 1 日內；一般稿件 2 日內；需協調資源之稿件（到校採訪、大型企劃）3 日內。</p>
+  </div>
+</section>
+</main>
+
+<aside class="side">
+  <div class="panel route-panel main-only">
+    <h3>寄送方式</h3>
+    <p class="hint" style="margin:0 0 6px">依勾選的申請項目自動分流，亮起的即本次收件人。</p>
+    <div class="route-item dim" id="route-news"><b>新聞</b><span class="hint">校內稿、校外稿、到校採訪、成果報導</span>正本：公務信箱 bcoffice01@nkust.edu.tw<br>副本：林思吟主任、楊豐榮資深經理</div>
+    <div class="route-item dim" id="route-social"><b>官方 Facebook／Instagram</b>鄭婷專案副理、鄭潔珊專案副理</div>
+  </div>
+  <div class="panel">
+    <h3>即時檢核</h3>
+    <div class="tally"><span style="background:var(--err-soft)" id="tE">0 項必須修正</span><span style="background:var(--warn-soft)" id="tW">0 項提醒</span></div>
+    <ul id="checkList"></ul>
+    <div id="submitWrap" style="position:relative"><button class="primary" id="submitBtn" disabled>送出申請</button><span id="submitCatch" style="position:absolute;inset:10px 0 0 0;cursor:not-allowed" class="hidden"></span></div>
+    <div class="result" id="result"></div>
+    <p class="hint" style="margin-top:10px">紅色項目須修正才能繼續；黃色項目不擋送出，但可能被通知補件或改變刊登方式。撰寫問題請洽楊豐榮資深經理（分機 31021）。</p>
+  </div>
+</aside>
+</div>
+
+<dialog id="aiDlg">
+  <button type="button" class="dlg-x" id="aiClose" aria-label="關閉">×</button>
+  <h3 style="margin-top:0">高科iAI 設定</h3>
+  <p class="hint" id="aiNoteShared">本系統已內建公關中心的高科iAI 帳號，不需要自己的 API key，只要選擇模型即可。</p>
+  <p class="hint" id="aiNotePersonal">API 網址和模型已預先填好，只要貼上你自己的 API key 即可。還沒有 key 的話，請至 <a href="https://www.iai.nkust.edu.tw/apply" target="_blank" rel="noopener">高科iAI 申請頁</a> 申請。設定只存在這台電腦的瀏覽器。</p>
+  <div id="aiBaseRow"><label>API 網址（Base URL）<input type="url" id="aiBase"></label><br><br></div>
+  <label>模型名稱
+    <div style="display:flex;gap:6px"><select id="aiModel"></select><button type="button" class="small" id="aiList" style="white-space:nowrap">載入可用模型</button></div>
+  </label>
+  <div class="hint" id="aiListMsg"></div><br>
+  <div id="aiKeyRow"><label>你的 API key<input type="password" id="aiKey" placeholder="貼上 iAI 申請頁複製的 key"></label></div>
+  <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+    <button type="button" id="aiClear">清除</button>
+    <button type="button" id="aiSave" style="background:var(--brand);color:#fff">儲存</button>
+  </div>
+</dialog>
+
+<footer>國立高雄科技大學 秘書室公關中心｜依 BC03 新聞稿發佈及新媒體整合應用作業程序（115.10.28）</footer>
+
+<script>
+/* ===== 設定區：部署時只需修改這裡 ===== */
+const CONFIG = {
+  // Google Apps Script 網頁應用程式網址；留空時改為「下載申請表＋開啟郵件」
+  SUBMIT_URL: '',
+  ROUTES: {
+    news:   { to: ['bcoffice01@nkust.edu.tw'], cc: ['szu1104@nkust.edu.tw','mus2026@nkust.edu.tw'], label: '新聞（校內稿／校外稿／到校採訪／成果報導）' },
+    social: { to: ['yulanda@nkust.edu.tw','jessica12227@nkust.edu.tw'], cc: [], label: '官方 Facebook／Instagram' }
+  },
+  DEADLINES: { internal:10, external:14, notice:14, staff:21, fbBig:30, fbPre:3 },
+  CAPTION_MIN: 10, CAPTION_MAX: 40, NEWS_PHOTO_MAX: 5,
+  // 後端：Google Apps Script（bcoffice03 帳號部署）網址。
+  // 填入後：照片上傳至 Google Drive，AI 功能使用公關中心內建的高科iAI 帳號（申請人不必有 key）。
+  // 留空：停用照片上傳；AI 功能需申請人自行設定 API key。
+  BACKEND_URL: 'https://script.google.com/macros/s/AKfycbz473I1EP0_3EYYKbZqF4aeAm4egCHr_4vXjfkgy88WIO6fLKKH28ssQ-CRrFL_NO73gw/exec',
+  // true：AI 透過後端使用公關中心內建的 key；false：申請人自行貼上 key（瀏覽器直接連 iAI）
+  // 目前 Google 伺服器連不到高科iAI，先設為 false
+  AI_VIA_BACKEND: false,
+  PHOTO_MAX_MB: 25
+};
+const CAT_NAME = {internal:'校內稿',external:'校外稿',notice:'採訪通知',staff:'請公關中心協助',result:'無預定日期之成果報導',fbPre:'FB/IG 活動預告',fbPost:'FB/IG 活動花絮、成果',fbBig:'FB/IG 大型企劃'};
+const NEWS_CATS=['internal','external','notice','staff','result'], SOCIAL_CATS=['fbPre','fbPost','fbBig'];
+
+const $=id=>document.getElementById(id);
+const val=id=>($(id)?.value||'').trim();
+const today=new Date(); today.setHours(0,0,0,0);
+$('today-label').textContent=fmt(today);
+function fmt(d){return `${d.getFullYear()-1911}年${d.getMonth()+1}月${d.getDate()}日`}
+function parseDate(s){if(!s)return null;const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function diffDays(a,b){return Math.round((a-b)/86400000)}
+const chars=s=>s.replace(/\s/g,'').length;
+function platforms(){return [...document.querySelectorAll('[name=platform]:checked')].map(x=>x.value)}
+function cats(){return [...document.querySelectorAll('[data-cat]')].filter(c=>c.checked).map(c=>c.dataset.cat)}
+
+let items=[];      // 第六項：{photo:info|null, caption:''}
+let assets=[];     // 第五項素材：info
+let uploaded=null; // {sig,url,photoCount,assetCount}
+
+const fileSig=()=>[...assets.map(a=>'A'+a.name+':'+a.size),...items.filter(x=>x.photo).map(x=>'P'+x.photo.name+':'+x.photo.size)].join('|');
+async function inspect(f,specCheck=true){
+  const info={file:f,name:f.name,size:f.size,url:URL.createObjectURL(f),jpg:/jpe?g$/i.test(f.type)||/\.jpe?g$/i.test(f.name)};
+  try{const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=info.url});info.w=img.naturalWidth;info.h=img.naturalHeight;info.ok=true}catch{info.w=0;info.h=0}
+  const p=[];
+  if(info.size>CONFIG.PHOTO_MAX_MB*1048576)p.push(`超過 ${CONFIG.PHOTO_MAX_MB}MB，無法上傳`);
+  if(specCheck){
+    if(!info.jpg)p.push('非 JPG');
+    if(info.size<2*1024*1024)p.push('未達 2MB');
+    if(info.w){const L=Math.max(info.w,info.h);if(L<3000)p.push(`長邊 ${L}px（需 3000）`);
+      if(info.w<info.h)p.push('直式');
+      const ratio=L/Math.max(1,Math.min(info.w,info.h));if(Math.abs(ratio-1.5)>0.05)p.push('非 3:2')}}
+  info.problems=p;return info}
+const metaText=p=>`${p.w?p.w+'×'+p.h+'・':''}${(p.size/1048576).toFixed(1)}MB${p.problems.length?'<br>！'+esc(p.problems.join('、')):'・✓ 符合規格'}`;
+
+/* 第六項：照片＋圖說同一列 */
+function renderItems(){
+  const box=$('capList');box.innerHTML='';
+  items.forEach((it,i)=>{
+    const row=document.createElement('div');row.className='cap-row';
+    const pic=it.photo?`<img alt="圖${i+1}" src="${it.photo.url}"><div class="meta ${it.photo.problems.length?'fail':'pass'}">${esc(it.photo.name)}<br>${metaText(it.photo)}</div>`
+      :`<label class="small pick-btn"><input type="file" accept="image/*" hidden>＋ 加入照片</label><div class="hint" style="margin-top:4px">未附照片</div>`;
+    row.innerHTML=`<div class="no">圖${i+1}</div><div class="pic">${pic}</div><div class="txt"><textarea class="cap" placeholder="圖${i+1} 圖說，例如：校長吳忠信（左二）與企業代表簽署合作備忘錄"></textarea><div class="counter"></div></div><button type="button" class="x-btn" title="刪除這張照片與圖說" aria-label="刪除">×</button>`;
+    const ta=row.querySelector('textarea');ta.value=it.caption;ta.addEventListener('input',()=>{it.caption=ta.value;check()});
+    const one=row.querySelector('input[type=file]');
+    if(one)one.onchange=async e=>{const f=e.target.files[0];if(!f)return;it.photo=await inspect(f);renderItems();check()};
+    row.querySelector('.x-btn').onclick=()=>{if(it.photo)URL.revokeObjectURL(it.photo.url);items.splice(i,1);if(!items.length)items.push({photo:null,caption:''});renderItems();check()};
+    box.appendChild(row)});
+  const n=items.filter(x=>x.photo).length;
+  $('photoCount').textContent=n?`已選 ${n} 張照片`:'';
+  if(uploaded&&!uploaded.sig.startsWith(fileSig()))uploaded=null;
+}
+$('photoFiles').addEventListener('change',async e=>{
+  const fs=[...e.target.files];e.target.value='';
+  for(const f of fs){const info=await inspect(f);
+    const empty=items.find(x=>!x.photo&&!x.caption.trim());
+    if(empty)empty.photo=info;else items.push({photo:info,caption:''})}
+  renderItems();check()});
+$('addCap').onclick=()=>{items.push({photo:null,caption:''});renderItems();check();const t=[...document.querySelectorAll('.cap')].pop();t&&t.focus()};
+items.push({photo:null,caption:''});renderItems();
+
+/* 第五項：素材圖片 */
+function renderAssets(){
+  const box=$('assetList');box.innerHTML='';
+  assets.forEach((p,i)=>{const d=document.createElement('div');d.className='ph '+(p.problems.length?'fail':'pass');
+    d.innerHTML=`<b>素材${i+1}</b><img alt="" src="${p.url}"><div>${esc(p.name)}<br><span class="hint">${p.w?p.w+'×'+p.h+'，':''}${(p.size/1048576).toFixed(1)}MB${p.problems.length?'　！'+esc(p.problems.join('；')):''}</span></div><button type="button" class="x-btn" title="移除" aria-label="移除">×</button>`;
+    d.querySelector('.x-btn').onclick=()=>{URL.revokeObjectURL(p.url);assets.splice(i,1);renderAssets();check()};
+    box.appendChild(d)});
+  $('assetCount').textContent=assets.length?`已選 ${assets.length} 個檔案`:'';
+  if(uploaded&&!uploaded.sig.startsWith(fileSig()))uploaded=null;
+}
+$('assetFiles').addEventListener('change',async e=>{for(const f of [...e.target.files])assets.push(await inspect(f,false));e.target.value='';renderAssets();check()});
+
+if(!CONFIG.BACKEND_URL)$('uploadOff').classList.remove('hidden');
+
+/* 上傳至 Google Drive（透過 Apps Script） */
+const toB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(new Error('讀取檔案失敗'));r.readAsDataURL(f)});
+async function gas(body){
+  let r;try{r=await fetch(CONFIG.BACKEND_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})}
+  catch(e){throw new Error('無法連線至後端（Failed to fetch）。請確認 Apps Script 部署的「誰可以存取」為「任何人」')}
+  const t=await r.text();let j;
+  try{j=JSON.parse(t)}catch{throw new Error(`後端回應不是預期格式（HTTP ${r.status}）。可能是部署存取權不是「任何人」，或程式碼尚未發佈新版本`)}
+  if(!j.ok)throw new Error(j.error||'上傳失敗');return j}
+function filesToUpload(){
+  const out=[];
+  if(!isFast()&&!$('sec5').classList.contains('hidden'))assets.forEach((p,i)=>out.push({p,prefix:`素材${i+1}_`}));
+  if(isFast()||!$('sec6').classList.contains('hidden'))items.forEach((it,i)=>{if(it.photo)out.push({p:it.photo,prefix:`圖${i+1}_`})});
+  return out}
+async function uploadAll(progress,meta){
+  if(uploaded&&uploaded.sig===fileSig()+(meta?'F':''))return uploaded;
+  const list=filesToUpload();
+  const f=await gas(meta||{action:'folder',unit:val('unit'),eventName:val('eventName'),eventDate:val('eventDate'),contact:val('cName'),email:val('cEmail')});
+  for(let i=0;i<list.length;i++){const {p,prefix}=list[i];progress(`上傳檔案 ${i+1}／${list.length}：${p.name}`);
+    await gas({action:'file',folderId:f.folderId,token:f.token,name:prefix+p.name,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)})}
+  uploaded={sig:fileSig()+(meta?'F':''),url:f.url,photoCount:list.filter(x=>x.prefix.startsWith('圖')).length,assetCount:list.filter(x=>x.prefix.startsWith('素材')).length};
+  return uploaded}
+
+/* Word 用縮圖 */
+async function thumb(info,maxW=900){
+  if(!info.ok)return null;
+  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=info.url});
+  const k=Math.min(1,maxW/Math.max(img.naturalWidth,img.naturalHeight));
+  const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.82));
+  return {buf:await blob.arrayBuffer(),w:c.width,h:c.height}}
+
+/* 主檢核 */
+const isFast=()=>document.querySelector('[name=mode]:checked')?.value==='fast';
+const ftKinds=()=>[...document.querySelectorAll('[name=ftKind]:checked')].map(x=>x.value);
+function setMode(){
+  const f=isFast();document.body.classList.toggle('fast',f);
+  $('submitBtn').textContent=f?'上傳照片至公關中心':(CONFIG.SUBMIT_URL?'送出申請':'產生申請表（Word）');
+  $('result').innerHTML='';showAll=false;
+  try{history.replaceState(null,'',f?'#photos':location.pathname+location.search)}catch{}
+  check();
+}
+document.querySelectorAll('[name=mode]').forEach(r=>r.addEventListener('change',setMode));
+function checkFast(){
+  const E=[],W=[],I=[];
+  if(!CONFIG.BACKEND_URL)E.push('照片上傳功能尚未啟用，請改以 Email 寄送照片');
+  if(!ftKinds().length)E.push('請勾選原申請項目');
+  [['ftUnit','申請單位'],['ftName','聯絡窗口姓名'],['ftEmail','聯絡窗口 Email'],['ftEvent','原申請活動名稱']].forEach(([id,n])=>{if(!val(id))E.push(`請填${n}`)});
+  if(val('ftEmail')&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val('ftEmail')))E.push('Email 格式不正確');
+  const withPhoto=items.filter(x=>x.photo);
+  if(!withPhoto.length)E.push('請選擇要上傳的照片或圖片');
+  document.querySelectorAll('.cap').forEach((inp,i)=>{const s=inp.value.trim(),l=chars(s),ct=inp.nextElementSibling;
+    if(!s){ct.textContent='';return}ct.textContent=`${l} 字`;ct.className='counter '+(l>CONFIG.CAPTION_MAX?'bad':'ok');
+    if(l>CONFIG.CAPTION_MAX)W.push(`圖${i+1} 圖說 ${l} 字，建議 ${CONFIG.CAPTION_MAX} 字內`)});
+  const big=withPhoto.filter(x=>x.photo.size>CONFIG.PHOTO_MAX_MB*1048576);if(big.length)E.push(`${big.length} 張超過 ${CONFIG.PHOTO_MAX_MB}MB，請移除或壓縮`);
+  const bad=withPhoto.map((x,i)=>x.photo.problems.length?`圖${items.indexOf(x)+1}`:'').filter(Boolean);
+  if(bad.length)W.push(`${bad.join('、')} 規格不符（建議：JPG、2MB 以上、長邊 3000px、橫式 3:2）`);
+  else if(withPhoto.length)I.push(`${withPhoto.length} 張照片皆符合規格`);
+  if(ftKinds().includes('news')&&withPhoto.length>CONFIG.NEWS_PHOTO_MAX)W.push(`新聞稿照片以 ${CONFIG.NEWS_PHOTO_MAX} 張為限，目前 ${withPhoto.length} 張`);
+  $('tE').textContent=`${E.length} 項必須修正`;$('tW').textContent=`${W.length} 項提醒`;
+  $('checkList').innerHTML=[...E.map(t=>`<li class="e">✗ ${t}</li>`),...W.map(t=>`<li class="w">！${t}</li>`),...I.map(t=>`<li class="i">${t}</li>`),...(!E.length&&!W.length?['<li class="k">✓ 可以上傳</li>']:[])].join('');
+  $('submitBtn').disabled=!!E.length;$('submitCatch').classList.toggle('hidden',!E.length);
+  if(typeof markErrors==='function')markErrors(E);
+  return {E,W};
+}
+function check(){
+  if(isFast())return checkFast();
+  const E=[],W=[],I=[];const c=cats();
+  const isNews=c.some(x=>NEWS_CATS.includes(x)), isSocial=c.some(x=>SOCIAL_CATS.includes(x));
+  const needS3=c.some(x=>['internal','external','notice','staff','result'].includes(x));
+  const needS4=c.includes('notice')||c.includes('staff');
+  $('sec3').classList.toggle('hidden',!needS3);
+  $('sec4').classList.toggle('hidden',!needS4);
+  $('sec5').classList.toggle('hidden',!isSocial);
+  $('socialFromNews').classList.toggle('hidden',!(isSocial&&needS3&&chars($('body').value)>=50));
+  $('sec6').classList.toggle('hidden',!(isNews||c.includes('fbPost')));
+  $('secConfirm').classList.toggle('hidden',!c.length);
+  $('route-news').className='route-item '+(isNews?'active':'dim');
+  $('route-social').className='route-item '+(isSocial?'active':'dim');
+  $('note-external').classList.toggle('hidden',!c.includes('external'));
+  $('note-staff').classList.toggle('hidden',!c.includes('staff'));
+  $('note-fbBig').classList.toggle('hidden',!c.includes('fbBig'));
+  $('resultTypes').classList.toggle('hidden',!c.includes('result'));
+  $('dupNote').classList.toggle('hidden',$('cfDup').checked||!c.length);
+
+  if(!c.length){I.push('請先勾選申請項目')}
+
+  /* 期限判定 */
+  const ev=parseDate(val('eventDate'));
+  const needDate=c.some(x=>['internal','external','notice','staff','fbPost','fbBig'].includes(x));
+  let overdue=false;
+  for(const k of Object.keys(CAT_NAME)){const st=$('st-'+k);if(st){st.textContent='';st.className='status'}}
+  if(needDate&&!ev)E.push('請填事件日期（期限依事件日計算）');
+  for(const k of ['internal','external','notice','staff','fbBig']){
+    if(!c.includes(k)||!ev)continue;const d=diffDays(ev,today),need=CONFIG.DEADLINES[k],st=$('st-'+k);
+    if(d>=need){st.textContent=`✓ 距事件日 ${d} 日，符合期限`;st.className='status ok'}
+    else{st.textContent=d<0?`✗ 事件日已過`:`✗ 距事件日僅 ${d} 日（需 ${need} 日）`;st.className='status bad';overdue=true;W.push(`${CAT_NAME[k]}已逾申請期限（需事件日前 ${need} 日）`)}
+  }
+  if(c.includes('fbPre')){const pd=parseDate(val('postDate')),st=$('st-fbPre');
+    if(!pd){E.push('活動預告請填預定發文日')}
+    else{const d=diffDays(pd,today);if(d>=3){st.textContent=`✓ 距發文日 ${d} 日`;st.className='status ok'}else{st.textContent=`✗ 距發文日僅 ${d} 日（需 3 日）`;st.className='status bad';overdue=true;W.push('活動預告已逾申請期限（需發文日前 3 日）')}}}
+  if(c.includes('fbPost')&&ev){const d=diffDays(today,ev),st=$('st-fbPost');
+    if(d<0){st.textContent='活動尚未舉行';st.className='status wait';W.push('花絮、成果請於活動後 1 日內提供，目前事件日尚未到')}
+    else if(d<=1){st.textContent='✓ 於事件日後 1 日內';st.className='status ok'}
+    else{st.textContent=`✗ 事件日後已 ${d} 日`;st.className='status bad';overdue=true;W.push('花絮、成果已逾時效（事件日後 1 日內）')}}
+  $('overdueList').textContent=W.filter(w=>/逾申請期限|已逾時效/.test(w)).map(w=>w.replace(/已逾.*$/,'')).join('、');
+  $('overdueBox').classList.toggle('hidden',!overdue);
+  if(overdue&&!$('overdueAck').checked)E.push('部分項目逾期，請勾選「我了解，仍要提出申請」');
+
+  /* 項目附帶欄位 */
+  if(c.includes('external')&&!val('externalReason'))E.push('校外稿請填寫理由');
+  if(c.includes('staff')&&!val('staffNeeds'))E.push('請公關中心協助，請填寫協助項目');
+  if(c.includes('result')){
+    const rt=[...document.querySelectorAll('[name=resultType]:checked')];
+    if(!rt.length)E.push('成果報導請勾選類型');
+    if($('resultOtherChk').checked&&!val('resultOther'))E.push('成果報導「其他」請填寫類型');
+    if(!$('resultPublic').checked)E.push('成果報導須確認內容已公開或經合作單位同意');
+  }
+
+  /* 基本資料 */
+  [['unit','申請單位'],['cName','聯絡窗口姓名'],['cPhone','聯絡窗口分機／手機'],['cEmail','聯絡窗口 Email'],['eventName','活動或成果名稱']].forEach(([id,n])=>{if(c.length&&!val(id))E.push(`請填${n}`)});
+  if(val('cEmail')&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val('cEmail')))E.push('Email 格式不正確');
+
+  /* 三、新聞稿 */
+  if(needS3){
+    const t=val('title'),tl=chars(t);
+    $('cnt-title').textContent=`${tl} / 20 字`;$('cnt-title').className='counter '+(tl>20?'bad':tl?'ok':'');
+    if(!t)E.push('請填新聞標題');else if(tl>20)W.push(`新聞標題 ${tl} 字，超過 20 字`);
+    if(!val('hl1'))E.push('請至少填 1 點事件亮點');
+    const b=$('body').value,bl=chars(b);
+    $('cnt-body').textContent=`${bl} 字（建議 800–1000 字）`;$('cnt-body').className='counter '+(bl>1000?'bad':bl?'ok':'');
+    if(!bl)E.push('請填初稿內文');
+    else{
+      if(bl>1000)W.push(`內文 ${bl} 字，超過建議上限 1000 字`);
+      const full=/國立高雄科技大學[（(]以下簡稱高科大[）)]/;const m=b.search(full);
+      if(m<0)W.push('內文首次提及校名應寫「國立高雄科技大學（以下簡稱高科大）」');
+      else{const first=b.indexOf('高科大');if(first>=0&&first<m)W.push('「高科大」在完整校名之前就出現了，首次應寫全稱')}
+      const seen=new Set(),bad=[];
+      for(const mm of b.matchAll(/\b[A-Z][A-Za-z]*[A-Z]+\b/g)){const ab=mm[0];if(seen.has(ab))continue;seen.add(ab);
+        const after=b.slice(mm.index+ab.length,mm.index+ab.length+2);if(!/^[（(]/.test(after))bad.push(ab)}
+      if(bad.length)W.push(`英文縮寫首次出現應註明中英文全名：${bad.slice(0,5).join('、')}`);
+    }
+    if(/○○/.test(t+b+val('hl1')+val('hl2')+val('hl3')))W.push('標題、亮點或內文仍有「○○」待補資訊');
+    const auth=document.querySelector('[name=auth]:checked');
+    if(!auth)E.push('請勾選修改授權');else if(auth.value==='照刊'&&!val('authNote'))E.push('勾選「依原文照刊」請說明審閱定稿情形');
+  }
+
+  /* 四、到校採訪 */
+  if(needS4){
+    if(!val('flow'))E.push('請填活動流程（或註明另附流程表）');
+    if(!val('fc1'))E.push('請至少填 1 點採訪重點');
+    if(!val('siteName')||!val('sitePhone'))E.push('請填現場聯絡人姓名及手機');
+    const et=val('endTime');let meal='';
+    if(et){if(et>'17:30')meal='活動結束晚於 17:30，請準備晚餐餐盒。';else if(et>'11:00')meal='活動結束晚於 11:00，請準備午餐餐盒。'}
+    $('mealNote').textContent=meal;$('mealNote').classList.toggle('hidden',!meal);if(meal)I.push(meal);
+    if(!c.includes('staff'))I.push('未請公關中心協助者，活動照片及出席媒體名單由申請單位提供；活動後新聞稿仍由公關中心發佈');
+  }
+
+  /* 五、社群 */
+  if(isSocial&&!platforms().length)E.push('請勾選發佈平台（Facebook／Instagram）');
+  if(isSocial&&!val('postText'))E.push('請填貼文內容或重點');
+  if(isSocial&&/○○/.test(val('postText')))W.push('貼文內容仍有「○○」待補資訊');
+
+  /* 六、照片圖說 */
+  if(!$('sec6').classList.contains('hidden')){
+    const withPhoto=items.filter(x=>x.photo);
+    const willUpload=CONFIG.BACKEND_URL&&withPhoto.length;
+    document.querySelectorAll('.cap').forEach((inp,i)=>{const s=inp.value.trim(),l=chars(s),ct=inp.nextElementSibling;
+      if(!s){ct.textContent='';return}
+      ct.textContent=`${l} 字`;ct.className='counter '+(l>CONFIG.CAPTION_MAX?'bad':'ok');
+      if(l>CONFIG.CAPTION_MAX)W.push(`圖${i+1} 圖說 ${l} 字，建議 ${CONFIG.CAPTION_MAX} 字內`)});
+    const noCap=items.map((x,i)=>x.photo&&!x.caption.trim()?`圖${i+1}`:'').filter(Boolean);
+    if(isNews&&noCap.length)I.push(`${noCap.join('、')} 尚未填寫圖說`);
+    const used=items.filter(x=>x.photo||x.caption.trim()).length;
+    if(isNews&&used>CONFIG.NEWS_PHOTO_MAX)W.push(`新聞稿照片以 ${CONFIG.NEWS_PHOTO_MAX} 張為限，目前 ${used} 張`);
+    const tooBig=withPhoto.filter(x=>x.photo.size>CONFIG.PHOTO_MAX_MB*1048576);if(willUpload&&tooBig.length)E.push(`${tooBig.length} 張照片超過 ${CONFIG.PHOTO_MAX_MB}MB，請移除或壓縮`);
+    const bad=withPhoto.filter(x=>x.photo.problems.length);if(bad.length)W.push(`${bad.length} 張照片規格不符（見第六項）`);
+  }
+  if(!$('sec5').classList.contains('hidden')){
+    const big=assets.filter(p=>p.size>CONFIG.PHOTO_MAX_MB*1048576);if(CONFIG.BACKEND_URL&&big.length)E.push(`${big.length} 個素材超過 ${CONFIG.PHOTO_MAX_MB}MB，請移除或壓縮`);
+  }
+
+  /* 確認事項 */
+  if(c.length){
+    $('cf-check-w').classList.toggle('hidden',!needS3);
+    if(needS3&&!$('cfCheck').checked)E.push('請勾選確認已核實新聞稿內容');
+    if(!$('sec6').classList.contains('hidden')&&!$('cfPortrait').checked)E.push('請勾選確認照片肖像授權');
+    if(!$('cfDup').checked)W.push('已自行發送媒體或已經媒體報導之新聞，以不重複發佈為原則');
+  }
+
+  render(E,W,I);return {E,W};
+}
+
+function render(E,W,I){
+  $('tE').textContent=`${E.length} 項必須修正`;$('tW').textContent=`${W.length} 項提醒`;
+  const ok=cats().length&&!E.length;
+  $('checkList').innerHTML=[...E.map(t=>`<li class="e">✗ ${t}</li>`),...W.map(t=>`<li class="w">！${t}</li>`),...I.map(t=>`<li class="i">${t}</li>`),...(ok&&!W.length?['<li class="k">✓ 檢核通過</li>']:[])].join('');
+  $('submitBtn').disabled=!ok;$('submitCatch').classList.toggle('hidden',!!ok);
+  if(typeof markErrors==='function')markErrors(E);
+}
+
+document.getElementById('form').addEventListener('input',check);
+document.getElementById('form').addEventListener('change',check);
+
+/* ===== 送出 ===== */
+function collect(){
+  const c=cats();
+  return {
+    submittedAt:new Date().toISOString(),cats:c,
+    categories:c.map(k=>CAT_NAME[k]),
+    groups:[...(c.some(x=>NEWS_CATS.includes(x))?['news']:[]),...(c.some(x=>SOCIAL_CATS.includes(x))?['social']:[])],
+    externalReason:val('externalReason'),staffNeeds:val('staffNeeds'),
+    resultTypes:[...document.querySelectorAll('[name=resultType]:checked')].map(x=>x.value==='其他'?'其他：'+val('resultOther'):x.value),
+    postDate:val('postDate'),
+    unit:val('unit'),contact:{name:val('cName'),phone:val('cPhone'),email:val('cEmail')},
+    eventName:val('eventName'),eventDate:val('eventDate'),eventPlace:val('eventPlace'),
+    title:val('title'),highlights:[val('hl1'),val('hl2'),val('hl3')].filter(Boolean),guests:val('guests3'),body:$('body').value.trim(),
+    auth:(document.querySelector('[name=auth]:checked')||{}).value||'',authNote:val('authNote'),
+    flow:val('flow'),endTime:val('endTime'),guests4:val('guests4'),project:val('project'),
+    focus:[val('fc1'),val('fc2'),val('fc3')].filter(Boolean),site:{name:val('siteName'),phone:val('sitePhone')},
+    platforms:platforms(),postText:val('postText'),postLink:val('postLink'),
+    assets:[...(assets.length?[`${assets.map((p,i)=>`素材${i+1}：${p.name}`).join('、')}${uploaded&&uploaded.assetCount?`（已上傳：${uploaded.url}）`:''}`]:[]),...(val('assets')?[val('assets')]:[])].join('\n'),
+    photoLink:uploaded&&uploaded.photoCount?`${uploaded.url}（已上傳 ${uploaded.photoCount} 張）`+(val('photoLink')?`\n${val('photoLink')}`:''):val('photoLink'),
+    figures:items.map((x,i)=>({no:i+1,caption:x.caption.trim(),photo:x.photo})).filter(x=>x.photo||x.caption),
+    captions:items.map(x=>x.caption.trim()).filter(Boolean),
+    warnings:check().W
+  };
+}
+const esc=s=>String(s??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+function toHTML(d){
+  const row=(k,v)=>v?`<tr><th style="width:150px;text-align:left;background:#f3f5f8">${k}</th><td>${esc(v).replace(/\n/g,'<br>')}</td></tr>`:'';
+  return `<h2 style="text-align:center">國立高雄科技大學 新聞資訊上架申請表</h2>
+<table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:12pt">
+${row('申請項目',d.categories.join('、'))}${row('校外稿理由',d.externalReason)}${row('協助項目',d.staffNeeds)}${row('成果報導類型',d.resultTypes.join('、'))}${row('預定發文日',d.postDate)}
+${row('申請單位',d.unit)}${row('聯絡窗口',`${d.contact.name}／${d.contact.phone}／${d.contact.email}`)}${row('活動或成果名稱',d.eventName)}${row('事件日期',d.eventDate)}${row('事件地點',d.eventPlace)}
+${row('新聞標題',d.title)}${row('事件亮點',d.highlights.map((h,i)=>`${i+1}. ${h}`).join('\n'))}${row('出席貴賓',d.guests)}${row('初稿內文',d.body)}${row('修改授權',d.auth+(d.authNote?'（'+d.authNote+'）':''))}
+${row('活動流程',d.flow)}${row('活動結束時間',d.endTime)}${row('出席貴賓（採訪）',d.guests4)}${row('計畫名稱',d.project)}${row('採訪重點',d.focus.map((h,i)=>`${i+1}. ${h}`).join('\n'))}${row('現場聯絡人',d.site.name?`${d.site.name}／${d.site.phone}`:'')}
+${row('發佈平台',d.platforms.join('、'))}${row('貼文內容',d.postText)}${row('相關連結',d.postLink)}${row('素材',d.assets)}
+${row('照片連結',d.photoLink)}${row('圖說',d.figures.map(f=>`圖${f.no} ${f.caption}`).join('\n'))}
+${row('系統檢核提醒',d.warnings.join('\n'))}
+</table>`;
+}
+
+$('submitBtn').onclick=async()=>{
+  const res=$('result');
+  if(isFast())return runFast(res);
+  if(CONFIG.BACKEND_URL&&filesToUpload().length){
+    $('submitBtn').disabled=true;
+    try{await uploadAll(m=>res.innerHTML=`<div class="notice info">${esc(m)}…請勿關閉頁面</div>`);
+      res.innerHTML=`<div class="up-ok">✓ 檔案已上傳至公關中心雲端（照片 ${uploaded.photoCount} 張、素材 ${uploaded.assetCount} 個）</div>`}
+    catch(err){res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再按一次，或移除檔案改填雲端連結。</div>`;$('submitBtn').disabled=false;return}
+    $('submitBtn').disabled=false;
+  }
+  meSave();
+  const d=collect();
+  if(CONFIG.SUBMIT_URL){
+    $('submitBtn').disabled=true;res.innerHTML='<div class="notice info">送出中…</div>';
+    try{
+      const r=await fetch(CONFIG.SUBMIT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...d,html:toHTML(d)})});
+      const j=await r.json();
+      if(j.ok)res.innerHTML=`<div class="notice info">已送出，申請編號 <b>${esc(j.id)}</b>。確認信已寄至 ${esc(d.contact.email)}，公關中心將於 1–3 個工作日內回覆評估結果。</div>`;
+      else throw new Error(j.error||'未知錯誤');
+    }catch(err){res.innerHTML=`<div class="notice err">送出失敗：${esc(err.message)}。請改用下方方式寄送。</div>`;fallback(d,res,true)}
+    $('submitBtn').disabled=false;
+  }else fallback(d,res,!!uploaded);
+};
+async function runFast(res){
+  const caps=items.map((x,i)=>x.photo?`圖${i+1}：${x.caption.trim()||'（未填圖說）'}`:'').filter(Boolean);
+  const meta={action:'folder',unit:val('ftUnit'),eventName:'補件_'+val('ftEvent'),eventDate:val('ftDate'),contact:`${val('ftName')}（${val('ftPhone')}）`,email:val('ftEmail'),
+    note:['【補傳照片】',`原申請項目：${ftKinds().map(k=>k==='news'?'新聞':'官方 FB／IG').join('、')}`,val('ftNote')?`補充說明：${val('ftNote')}`:'','',...caps].filter(x=>x!=='').join('\n')};
+  $('submitBtn').disabled=true;
+  try{await uploadAll(m=>res.innerHTML=`<div class="notice info">${esc(m)}…請勿關閉頁面</div>`,meta)}
+  catch(err){res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再試，或改以 Email 寄送照片。</div>`;$('submitBtn').disabled=false;return}
+  $('submitBtn').disabled=false;
+  const subj=`【補傳照片】${val('ftUnit')}－${val('ftEvent')}`;
+  const body=[`公關中心您好：`,``,`「${val('ftEvent')}」已透過線上申請系統補傳照片 ${uploaded.photoCount} 張至公關中心雲端：`,uploaded.url,``,...caps,``,val('ftNote')?`補充說明：${val('ftNote')}`:'',`聯絡人：${val('ftName')}　${val('ftPhone')}　${val('ftEmail')}`].join('\n');
+  let h=`<div class="up-ok">✓ 已上傳 ${uploaded.photoCount} 張至公關中心雲端</div><div class="notice info">最後一步：請寄信通知承辦人，信件內容已自動填好。`;
+  for(const k of ftKinds()){const R=CONFIG.ROUTES[k];
+    h+=`<a href="mailto:${R.to.join(',')}?${R.cc.length?'cc='+R.cc.join(',')+'&':''}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}">✉ 通知公關中心：${R.label}</a>`}
+  res.innerHTML=h+'</div>';
+}
+async function fallback(d,res,append){
+  const name=`新聞資訊上架申請表_${d.unit}_${d.eventName}`.replace(/[\\/:*?"<>|]/g,'');
+  let h='';
+  try{
+    const blob=await buildDocx(d);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove();
+    h=`<div class="notice info">申請表已下載。請將申請表寄送至以下信箱${uploaded?'（照片已上傳，不必另附）':'，並附上照片或照片連結'}：<a href="${url}" download="${name}.docx">⬇ 重新下載申請表（Word）</a>`;
+  }catch(err){h=`<div class="notice err">申請表產生失敗：${esc(err.message)}，請重新整理頁面後再試。`}
+  for(const g of d.groups){const R=CONFIG.ROUTES[g];
+    const href=`mailto:${R.to.join(',')}?${R.cc.length?'cc='+R.cc.join(',')+'&':''}subject=${encodeURIComponent(`【新聞資訊上架申請】${d.unit}－${d.eventName}`)}&body=${encodeURIComponent('申請表如附件，照片連結：'+(d.photoLink||'（另檔寄送）'))}`;
+    h+=`<a href="${href}">✉ 開啟郵件：${R.label}（請記得附上申請表）</a>`}
+  h+='</div>';res.innerHTML=append?res.innerHTML+h:h;
+}
+
+/* ===== 套用正式表單產生 .docx ===== */
+const TEMPLATE_B64='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';
+const WNS='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const kids=(el,n)=>[...el.childNodes].filter(x=>x.nodeType===1&&x.localName===n);
+const wtext=el=>[...el.getElementsByTagNameNS(WNS,'t')].map(t=>t.textContent).join('');
+const roc=s=>{if(!s)return '';const [y,m,dd]=s.split('-').map(Number);return `${y-1911}年${m}月${dd}日`};
+function setCell(tc,lines){
+  const ps=kids(tc,'p'),p0=ps[0],pPr=p0&&kids(p0,'pPr')[0];
+  const runs=p0?kids(p0,'r'):[];const lastRun=runs[runs.length-1];
+  let rPr=lastRun?kids(lastRun,'rPr')[0]:(pPr?kids(pPr,'rPr')[0]:null);
+  rPr=rPr?rPr.cloneNode(true):null;
+  const doc=tc.ownerDocument;
+  if(!rPr)rPr=doc.createElementNS(WNS,'w:rPr');
+  kids(rPr,'color').forEach(c=>rPr.removeChild(c));
+  ['sz','szCs'].forEach(n=>{kids(rPr,n).forEach(x=>rPr.removeChild(x));const e=doc.createElementNS(WNS,'w:'+n);e.setAttributeNS(WNS,'w:val','19');rPr.appendChild(e)});
+  const tr=tc.parentNode,trPr=tr&&kids(tr,'trPr')[0];
+  if(trPr)[...kids(trPr,'trHeight'),...kids(trPr,'cantSplit')].forEach(x=>trPr.removeChild(x));
+  ps.forEach(p=>tc.removeChild(p));
+  (lines.length?lines:['']).forEach(line=>{
+    const p=doc.createElementNS(WNS,'w:p');if(pPr)p.appendChild(pPr.cloneNode(true));
+    const r=doc.createElementNS(WNS,'w:r');if(rPr)r.appendChild(rPr.cloneNode(true));
+    const t=doc.createElementNS(WNS,'w:t');t.setAttributeNS('http://www.w3.org/XML/1998/namespace','xml:space','preserve');t.textContent=line;
+    r.appendChild(t);p.appendChild(r);tc.appendChild(p)});
+}
+const lines=s=>String(s||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+let PIC_SEQ=0, PIC_FILES=[];
+function addPicture(tc,th,label){
+  const doc=tc.ownerDocument,id=++PIC_SEQ,rid='rIdNkPic'+id,name=`nkpic${id}.jpg`;
+  PIC_FILES.push({rid,name,buf:th.buf});
+  const wEmu=Math.round(914400*Math.min(2.6,1.9*th.w/th.h)),hEmu=Math.round(wEmu*th.h/th.w);
+  const x=`<w:r xmlns:w="${WNS}" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${wEmu}" cy="${hEmu}"/><wp:docPr id="${9000+id}" name="${label}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="${9000+id}" name="${name}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${wEmu}" cy="${hEmu}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`;
+  const run=doc.importNode(new DOMParser().parseFromString(x,'application/xml').documentElement,true);
+  const p=kids(tc,'p')[0];const pPr=p&&kids(p,'pPr')[0];
+  const np=doc.createElementNS(WNS,'w:p');if(pPr)np.appendChild(pPr.cloneNode(true));np.appendChild(run);
+  tc.insertBefore(np,p||null);
+}
+async function finishPictures(zip){
+  if(!PIC_FILES.length)return;
+  let rels=await zip.file('word/_rels/document.xml.rels').async('string');
+  PIC_FILES.forEach(f=>{zip.file('word/media/'+f.name,f.buf);
+    rels=rels.replace('</Relationships>',`<Relationship Id="${f.rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${f.name}"/></Relationships>`)});
+  zip.file('word/_rels/document.xml.rels',rels);
+  let ct=await zip.file('[Content_Types].xml').async('string');
+  if(!/Extension="jpg"/i.test(ct))ct=ct.replace('<Default Extension="xml"','<Default Extension="jpg" ContentType="image/jpeg"/><Default Extension="xml"');
+  zip.file('[Content_Types].xml',ct);
+}
+async function buildDocx(d){
+  PIC_SEQ=0;PIC_FILES=[];
+  const zip=await JSZip.loadAsync(TEMPLATE_B64,{base64:true});
+  const xml=await zip.file('word/document.xml').async('string');
+  const doc=new DOMParser().parseFromString(xml,'application/xml');
+  const body=doc.getElementsByTagNameNS(WNS,'body')[0];
+  const c=d.cats;
+  const KEYS=['寄送方式','一、','二、','三、','四、','五、','六、','七、'];
+  const all=[...body.childNodes].filter(n=>n.nodeType===1);
+  const sec={};let cur=null;
+  for(const el of all){
+    if(el.localName==='p'){const t=wtext(el).trim();const k=KEYS.find(k=>t.startsWith(k));if(k){cur=k;sec[k]={els:[]}}}
+    if(el.localName==='sectPr')cur=null;
+    if(cur){sec[cur].els.push(el);if(el.localName==='tbl'&&!sec[cur].tbl)sec[cur].tbl=el}
+  }
+  const rows=k=>kids(sec[k].tbl,'tr'), cells=tr=>kids(tr,'tc');
+  const drop=el=>el&&el.parentNode&&el.parentNode.removeChild(el);
+  const dropSection=k=>{if(sec[k])sec[k].els.forEach(drop);delete sec[k]};
+  const has=k=>c.includes(k);
+  const isNews=c.some(x=>NEWS_CATS.includes(x)),isSocial=c.some(x=>SOCIAL_CATS.includes(x));
+
+  // 寄送方式
+  {const r=rows('寄送方式');if(!isNews)drop(r[1]);if(!isSocial)drop(r[2])}
+
+  // 一、申請項目
+  {const r=rows('一、');
+    if(has('internal')){setCell(cells(r[1])[1],['■ 申請']);setCell(cells(r[1])[2],['事件日前 10 日'])}else drop(r[1]);
+    if(has('external')){setCell(cells(r[2])[1],[`■ 申請（理由：${d.externalReason}）`]);setCell(cells(r[2])[2],['事件日前 14 日'])}else drop(r[2]);
+    if(has('notice')||has('staff')){const a=[],b=[];
+      if(has('notice')){a.push('■ 採訪通知');b.push('事件日前 14 日')}
+      if(has('staff')){a.push(`■ 請公關中心協助（協助項目：${d.staffNeeds}）`);b.push('事件日前 21 日')}
+      setCell(cells(r[3])[1],a);setCell(cells(r[3])[2],b)}else drop(r[3]);
+    if(has('result')){setCell(cells(r[4])[1],[d.resultTypes.map(x=>'■ '+x).join('　')]);setCell(cells(r[4])[2],['隨時提供'])}else drop(r[4]);
+    if(isSocial){const a=[],b=[];
+      if(has('fbPre')){a.push(`■ 活動預告（預定發文日：${roc(d.postDate)}）`);b.push('預定發文日前 3 日')}
+      if(has('fbPost')){a.push('■ 活動花絮、成果');b.push('事件日後 1 日內')}
+      if(has('fbBig')){a.push('■ 大型企劃（直播、短影音、抽獎、系列宣傳）');b.push('事件日前 30 日')}
+      setCell(cells(r[5])[1],a);setCell(cells(r[5])[2],b)}else drop(r[5]);
+  }
+
+  // 二、基本資料
+  {const r=rows('二、');
+    setCell(cells(r[0])[1],[d.unit]);
+    setCell(cells(r[0])[3],[`姓名：${d.contact.name}`,`分機／手機：${d.contact.phone}`,`Email：${d.contact.email}`]);
+    setCell(cells(r[1])[1],[d.eventName]);
+    setCell(cells(r[2])[1],[d.eventDate?roc(d.eventDate):'無預定日期']);
+    setCell(cells(r[2])[3],[d.eventPlace||'—']);
+  }
+
+  // 三、新聞稿
+  if(c.some(x=>NEWS_CATS.includes(x))){const r=rows('三、');
+    setCell(cells(r[0])[1],[d.title]);
+    setCell(cells(r[1])[1],d.highlights.map((h,i)=>`${i+1}. ${h}`));
+    if(d.guests)setCell(cells(r[2])[1],lines(d.guests));else drop(r[2]);
+    setCell(cells(r[3])[1],lines(d.body));
+    setCell(cells(r[4])[1],[d.auth==='照刊'?`■ 無須修改，請依原文照刊（說明：${d.authNote}）`:'■ 可修改，修改後請回傳申請單位確認']);
+  }else dropSection('三、');
+
+  // 四、邀請媒體到校採訪
+  if(has('notice')||has('staff')){const r=rows('四、');
+    setCell(cells(r[0])[1],[...lines(d.flow),...(d.endTime?[`（活動結束時間：${d.endTime}）`]:[])]);
+    if(d.guests4)setCell(cells(r[1])[1],lines(d.guests4));else drop(r[1]);
+    if(d.project)setCell(cells(r[2])[1],[d.project]);else drop(r[2]);
+    setCell(cells(r[3])[1],d.focus.map((h,i)=>`${i+1}. ${h}`));
+    setCell(cells(r[4])[1],[`姓名：${d.site.name}　手機：${d.site.phone}`]);
+  }else dropSection('四、');
+
+  // 五、社群素材
+  if(isSocial){const r=rows('五、');
+    setCell(cells(r[0])[1],[`發佈平台：${['Facebook','Instagram'].map(p=>(d.platforms.includes(p)?'■ ':'□ ')+p).join('　')}`,...lines(d.postText)]);
+    if(d.postLink)setCell(cells(r[1])[1],[d.postLink]);else drop(r[1]);
+    if(d.assets)setCell(cells(r[2])[1],[d.assets]);else drop(r[2]);
+  }else dropSection('五、');
+
+  // 六、照片及圖說（每列：圖號＋縮圖｜圖說）
+  if(isNews||has('fbPost')){const t=sec['六、'].tbl,r=rows('六、');
+    setCell(cells(r[0])[0],['照片連結']);setCell(cells(r[0])[1],lines(d.photoLink).length?lines(d.photoLink):['—']);
+    const figs=d.figures,slots=r.slice(2);
+    if(!figs.length){slots.forEach(drop);drop(r[1])}
+    else{
+      while(slots.length<figs.length){const n=slots[slots.length-1].cloneNode(true);t.appendChild(n);slots.push(n)}
+      for(let i=0;i<slots.length;i++){const tr=slots[i];
+        if(i>=figs.length){drop(tr);continue}
+        const f=figs[i];
+        setCell(cells(tr)[1],[`圖${f.no}`]);setCell(cells(tr)[2],[f.caption||'（未填圖說）']);
+        if(f.photo){const th=await thumb(f.photo);
+          if(th)addPicture(cells(tr)[1],th,`圖${f.no}`);else setCell(cells(tr)[1],[`圖${f.no}`,f.photo.name])}
+      }
+    }
+  }else dropSection('六、');
+
+  // 七、公關中心評估意見（保留空白，只刪除不適用的列）
+  {const r=rows('七、');if(!has('external'))drop(r[2]);if(!has('staff'))drop(r[3])}
+
+  // 取消原表單的強制換頁，讓刪減後的內容連續排列
+  [...body.getElementsByTagNameNS(WNS,'br')].filter(b=>b.getAttributeNS(WNS,'type')==='page').forEach(drop);
+
+  // 刪除表單上的填寫說明
+  [...body.getElementsByTagNameNS(WNS,'p')].forEach(p=>{const t=wtext(p);if(/得逕行刪除|如不足請自行增列/.test(t))drop(p)});
+
+  // 系統檢核紀錄
+  {const sectPr=kids(body,'sectPr')[0];
+    const note=[`本表由線上申請系統產生（${new Date().toLocaleString('zh-TW',{hour12:false})}）。`,...(c.some(x=>NEWS_CATS.includes(x))?[`新聞稿內文 ${chars(d.body)} 字、標題 ${chars(d.title)} 字。`]:[]),...(d.warnings.length?['系統檢核提醒：',...d.warnings.map(w=>'・'+w)]:['系統檢核：無提醒事項。'])];
+    note.forEach(line=>{const p=doc.createElementNS(WNS,'w:p'),r=doc.createElementNS(WNS,'w:r'),rp=doc.createElementNS(WNS,'w:rPr');
+      const f=doc.createElementNS(WNS,'w:rFonts');['ascii','eastAsia','hAnsi'].forEach(a=>f.setAttributeNS(WNS,'w:'+a,'Microsoft JhengHei'));
+      const col=doc.createElementNS(WNS,'w:color');col.setAttributeNS(WNS,'w:val','808080');
+      const sz=doc.createElementNS(WNS,'w:sz');sz.setAttributeNS(WNS,'w:val','18');
+      rp.append(f,col,sz);const t=doc.createElementNS(WNS,'w:t');t.setAttributeNS('http://www.w3.org/XML/1998/namespace','xml:space','preserve');t.textContent=line;
+      r.append(rp,t);p.appendChild(r);body.insertBefore(p,sectPr)});
+  }
+
+  zip.file('word/document.xml',new XMLSerializer().serializeToString(doc));
+  await finishPictures(zip);
+  return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+
+/* ===== 高科iAI ===== */
+const AI_KEY='nkust-iai-settings';
+const AI_DEFAULT={base:'https://www.iai.nkust.edu.tw/aihub/v1',models:['Furen-large','Furen-max']};
+function aiLoad(){let s={};try{s=JSON.parse(localStorage.getItem(AI_KEY))||{}}catch{}return {base:s.base||AI_DEFAULT.base,model:s.model||AI_DEFAULT.models[0],key:s.key||'',models:s.models||AI_DEFAULT.models}}
+const SHARED=!!CONFIG.BACKEND_URL&&CONFIG.AI_VIA_BACKEND;
+const aiReady=()=>SHARED||!!aiLoad().key;
+async function aiChat(messages,temperature){
+  const s=aiLoad();
+  if(SHARED){const j=await gas({action:'ai',model:s.model,messages,temperature});return j.content}
+  const r=await fetch(s.base+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.key},
+    body:JSON.stringify({model:s.model,messages,temperature})});
+  if(!r.ok)throw new Error(`HTTP ${r.status} ${await r.text()}`);
+  const j=await r.json();return j.choices?.[0]?.message?.content||'';
+}
+const aiErr=err=>SHARED?`AI 暫時無法使用：${err.message}\n\n請稍後再試；若持續發生，請洽公關中心。`
+  :`無法連線至高科iAI：${err.message}\n\n可能原因：(1) API key 有誤或額度用完；(2) 不在校園網路內；(3) iAI 尚未開放從外部網頁直接呼叫（CORS）。`;
+['aiNoteShared','aiNotePersonal','aiBaseRow','aiKeyRow'].forEach(id=>$(id).classList.toggle('hidden',id==='aiNoteShared'?!SHARED:SHARED));
+document.querySelectorAll('.ai-mode-hint').forEach(h=>h.textContent=SHARED?'由公關中心提供高科iAI 服務，不需要自己的 key。':'使用你自己的 iAI API key，扣你自己的額度；key 只存在你的瀏覽器。');
+function normBase(u){u=(u||'').trim().replace(/\/+$/,'').replace(/\/chat\/completions$/,'');if(u&&!/\/v1$/.test(u))u+='/v1';return u}
+function fillModels(list,sel){const m=$('aiModel');m.innerHTML='';[...new Set(list)].forEach(x=>{const o=document.createElement('option');o.value=o.textContent=x;m.appendChild(o)});if(sel&&list.includes(sel))m.value=sel}
+$('aiSet').onclick=()=>{const s=aiLoad();$('aiBase').value=s.base;fillModels(s.models,s.model);$('aiKey').value=s.key;$('aiListMsg').textContent='';$('aiDlg').showModal()};
+$('aiClose').onclick=()=>$('aiDlg').close();
+$('aiDlg').addEventListener('click',e=>{if(e.target===$('aiDlg')){const r=$('aiDlg').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('aiDlg').close()}});
+$('aiSave').onclick=()=>{const models=[...$('aiModel').options].map(o=>o.value);
+  try{localStorage.setItem(AI_KEY,JSON.stringify({base:normBase(val('aiBase')),model:$('aiModel').value,key:val('aiKey'),models}))}catch{}$('aiDlg').close()};
+$('aiClear').onclick=()=>{try{localStorage.removeItem(AI_KEY)}catch{}$('aiBase').value=AI_DEFAULT.base;fillModels(AI_DEFAULT.models);$('aiKey').value='';$('aiListMsg').textContent=''};
+$('aiList').onclick=async()=>{
+  const base=normBase(val('aiBase')),key=val('aiKey'),msg=$('aiListMsg');
+  if(SHARED){msg.textContent='載入中…';
+    try{const j=await gas({action:'models'});fillModels(j.models,$('aiModel').value);msg.textContent=`已載入 ${j.models.length} 個對話模型。`}
+    catch(err){msg.textContent=`無法載入模型列表（${err.message}），可先使用預設的 Furen-large。`}return}
+  if(!key){msg.textContent='請先貼上 API key。';return}
+  msg.textContent='載入中…';
+  try{const r=await fetch(base+'/models',{headers:{'Authorization':'Bearer '+key,'accept':'application/json'}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    const chat=(j.data||[]).map(x=>x.id).filter(id=>!/asr|speaker|embed|rerank|pic|image|whisper|tts/i.test(id));
+    if(!chat.length)throw new Error('沒有可用的對話模型');
+    fillModels(chat,$('aiModel').value);msg.textContent=`已載入 ${chat.length} 個對話模型。`;
+  }catch(err){msg.textContent=`無法載入模型列表（${err.message}），可先使用預設的 Furen-large。`}
+};
+const GUIDE=`你是國立高雄科技大學秘書室公關中心的新聞稿編輯，請依「高科大新聞稿撰寫指引」檢視申請單位的初稿，用繁體中文回覆。
+規範：1.標題20字內，簡單主標題描述重點。2.事件亮點條列3點內。3.內文800至1000字，首段交代人、事、時、地、物。4.校名首次寫「國立高雄科技大學（以下簡稱高科大）」，之後一律稱「高科大」；英文縮寫首次出現應註明中英文全名，例如USR（University Social Responsibility，大學社會責任）。5.引述受訪者發言須經本人確認；姓名、單位、職稱、專有名詞及數據須核實。6.寫作參照中央通訊社新聞稿寫作原則：倒金字塔、客觀陳述、避免宣傳性形容詞堆砌。
+回覆格式：一、整體評估（3句內）；二、逐項檢核（符合／需修正，並說明）；三、建議修改的標題（2個）；四、建議改寫的導言段。不要捏造稿件中沒有的事實；需要申請單位補充的資訊請列為「待補資料」。`;
+$('aiRun').onclick=async()=>{
+  const s=aiLoad(),out=$('aiOut');
+  if(!aiReady()){$('aiSet').click();return}
+  if(chars($('body').value)<50){out.textContent='請先填寫初稿內文。';return}
+  out.textContent='AI 檢視中…';
+  const user=`新聞標題：${val('title')}\n事件亮點：${[val('hl1'),val('hl2'),val('hl3')].filter(Boolean).join('；')}\n出席貴賓：${val('guests3')}\n初稿內文：\n${$('body').value}`;
+  try{
+    out.textContent=await aiChat([{role:'system',content:GUIDE},{role:'user',content:user}],0.3)||'AI 沒有回傳內容，請再試一次。';
+  }catch(err){out.textContent=aiErr(err)}
+};
+
+
+/* ===== AI 協助撰稿 ===== */
+const EXAMPLE=`【範例】
+新聞標題：吳忠信特聘教授接掌高科大 專業領航走向頂尖
+事件亮點：1. 吳忠信特聘教授接任高科大第三任校長就職典禮。2. 教育部次長張廖萬堅、高雄市副市長羅達生等貴賓出席。3. 吳校長任內四大治校藍圖。
+內文首段：全國規模最大的科技大學-國立高雄科技大學（以下簡稱高科大），今（2/1）日於建工校區舉行第三任校長就職典禮。吳忠信特聘教授正式接掌校務，為這所肩負南臺灣發展使命的科技大學，揭開下一個關鍵篇章。
+內文第二段：就職典禮冠蓋雲集，教育部政務次長張廖萬堅、行政院南部聯合服務中心執行長許乃文、高雄市副市長羅達生，以及校友會與產官學界貴賓齊聚觀禮。`;
+const DRAFT_SYS=`你是國立高雄科技大學秘書室公關中心的資深新聞編輯，負責把申請單位提供的零散資訊寫成正式新聞稿。用繁體中文。
+撰寫規範（高科大新聞稿撰寫指引）：
+1. 新聞標題 20 字內，以簡單主標題描述重點，可用全形空格分隔主副句。
+2. 事件亮點條列 3 點內，每點一句。
+3. 內文 800 至 1000 字，倒金字塔結構；首段交代人、事、時、地、物；之後依序為活動內容、貴賓或受訪者引言、意義與後續發展。
+4. 校名首次出現寫「國立高雄科技大學（以下簡稱高科大）」，之後一律稱「高科大」。英文縮寫首次出現註明中英文全名，例如 USR（University Social Responsibility，大學社會責任）。
+5. 人名首次出現寫「單位＋職稱＋姓名」。日期寫法如「今（11/19）日」或「11月19日」。
+6. 參照中央通訊社新聞稿寫作原則：客觀陳述、具體事實，避免堆砌形容詞與宣傳口號。
+7. 【重要】不得捏造資訊中沒有的事實、數據、人名、職稱或引言。資訊不足之處用「○○」標示，並列入「待補」。引言只能使用資訊中提供的說法，可潤飾文句但不可改變原意。
+8. 若資訊不足以寫到 800 字，寧可短一些並在待補中說明缺少哪些資訊，不要用空泛內容灌水。
+9. 若有【參考文件】（議程、企劃書、流程表等），從中擷取活動名稱、時間、地點、出席貴賓、活動內容與亮點；不要照抄企劃書的計畫目標、KPI 或公文語氣，要改寫成新聞報導的寫法。文件與零散資訊衝突時，以零散資訊為準。
+
+${EXAMPLE}
+
+只輸出一個 JSON 物件，不要有其他文字或 Markdown，格式：
+{"title":"新聞標題","highlights":["亮點1","亮點2","亮點3"],"body":"內文，段落之間用\\n\\n分隔","missing":["待補資訊1","待補資訊2"]}`;
+let lastDraft=null;
+/* 寬鬆解析 AI 回傳的 JSON（容許字串內直接換行、前後有說明文字或 ``` 標記） */
+function looseJSON(t){
+  t=String(t||'').replace(/^[\s\S]*?```(?:json)?\s*/i,m=>m.includes('{')?m:'').replace(/```[\s\S]*$/,'');
+  const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<a)throw new Error('AI 回傳格式無法解析');
+  t=t.slice(a,b+1);
+  try{return JSON.parse(t)}catch{}
+  let out='',inStr=false,esc=false;
+  for(const ch of t){
+    if(inStr){if(esc){out+=ch;esc=false;continue}
+      if(ch==='\\'){out+=ch;esc=true;continue}
+      if(ch==='"'){inStr=false;out+=ch;continue}
+      if(ch==='\n'){out+='\\n';continue}if(ch==='\r')continue;if(ch==='\t'){out+='\\t';continue}
+      out+=ch}
+    else{if(ch==='"')inStr=true;out+=ch}}
+  return JSON.parse(out.replace(/,\s*([}\]])/g,'$1'));
+}
+function parseDraft(t){
+  const j=looseJSON(t);if(!j.title||!j.body)throw new Error('AI 回傳內容缺少標題或內文');
+  j.highlights=(j.highlights||[]).slice(0,3);j.missing=j.missing||[];return j;
+}
+$('aiSet2').onclick=()=>$('aiSet').click();
+$('aiDraft').onclick=async()=>{
+  const s=aiLoad(),out=$('draftOut');
+  if(!aiReady()){$('aiSet').click();return}
+  const notes=$('rawNotes').value.trim();
+  $('aiApply').classList.add('hidden');$('draftApplied').textContent='';lastDraft=null;
+  const docText=typeof docsForPrompt==='function'?docsForPrompt():'';
+  if(docs.some(d=>d.loading)){out.textContent='文件還在讀取中，請稍等一下再出動。';return}
+  if(chars(notes)<8&&!docText){out.textContent='媒體超人需要一點線索！請貼上活動資訊，或上傳一份議程／企劃書。';return}
+  const ctx=[`申請單位：${val('unit')||'（未填）'}`,`活動或成果名稱：${val('eventName')||'（未填）'}`,
+    `事件日期：${val('eventDate')?roc(val('eventDate')):'（未填）'}`,`事件地點：${val('eventPlace')||'（未填）'}`,
+    val('guests3')?`出席貴賓：${val('guests3')}`:'',`今天日期：${fmt(today)}`].filter(Boolean).join('\n');
+  let mi=0;out.textContent=HERO_MSGS[0];const tick=setInterval(()=>{out.textContent=HERO_MSGS[++mi%HERO_MSGS.length]},2500);
+  $('draftApplied').textContent='';$('aiApply').classList.add('hidden');$('aiDraft').disabled=true;
+  try{
+    const raw=await aiChat([{role:'system',content:DRAFT_SYS},{role:'user',content:`【基本資料】\n${ctx}`+(notes?`\n\n【申請單位提供的零散資訊】\n${notes}`:'')+(docText?`\n\n${docText}`:'')}],0.4)||'';
+    clearInterval(tick);
+    let d;try{d=parseDraft(raw)}catch(e){
+      if(chars(raw)>=50){lastDraft={title:'',highlights:[],body:raw.trim(),missing:[],rawOnly:true};out.textContent=`（AI 未依格式回覆，以下為原始內容，可套用到內文後自行調整）\n\n${raw}`;$('aiApply').classList.remove('hidden')}
+      else out.textContent=raw||e.message;return}
+    lastDraft=d;
+    out.textContent=`【新聞標題】${d.title}（${chars(d.title)} 字）\n\n【事件亮點】\n${d.highlights.map((h,i)=>`${i+1}. ${h}`).join('\n')}\n\n【內文】（${chars(d.body)} 字）\n${d.body}`+
+      (d.missing.length?`\n\n【待補資訊】\n${d.missing.map(m=>'・'+m).join('\n')}`:'')+
+      `\n\n※ 草稿由 AI 產生，請逐一核對姓名、職稱、數據與引言，並補齊「○○」處。`;
+    $('aiApply').classList.remove('hidden');
+  }catch(err){out.textContent=aiErr(err)}
+  finally{clearInterval(tick);$('aiDraft').disabled=false}
+};
+/* 套用 AI 草稿：直接覆蓋，並保留上一版可復原 */
+function applyWithUndo(ids,values,noteEl,focusId){
+  const prev=ids.map(id=>$(id).value);
+  ids.forEach((id,i)=>{if(values[i]!==undefined&&values[i]!==null)$(id).value=values[i]});
+  check();
+  noteEl.innerHTML='✓ 已套用到下方欄位，可直接修改　<button type="button" class="linkbtn">復原套用前的內容</button>';
+  noteEl.querySelector('button').onclick=()=>{ids.forEach((id,i)=>$(id).value=prev[i]);noteEl.textContent='已復原。';check()};
+  $(focusId).scrollIntoView({behavior:'smooth',block:'center'});
+}
+$('aiApply').onclick=()=>{
+  if(!lastDraft)return;
+  const d=lastDraft;
+  applyWithUndo(['title','hl1','hl2','hl3','body'],
+    d.rawOnly?[null,null,null,null,d.body]:[d.title,d.highlights[0]||'',d.highlights[1]||'',d.highlights[2]||'',d.body.replace(/\\n/g,'\n')],
+    $('draftApplied'),d.rawOnly?'body':'title');
+};
+
+/* ===== AI 協助撰寫社群貼文 ===== */
+const SOCIAL_SYS=`你是國立高雄科技大學（高科大）秘書室公關中心的社群小編，負責經營學校官方 Facebook 與 Instagram。請依申請單位提供的資訊，分別撰寫 FB 與 IG 貼文。用繁體中文（台灣用語）。
+共同原則：
+1. 依貼文類型調整：活動預告重在吸引報名或參加，清楚交代日期、時間、地點、對象與報名方式；活動花絮或成果重在呈現現場亮點與成果，用過去式描述；大型企劃可製造期待感。
+2. 適度使用 emoji 增加可讀性，常用於段落開頭或資訊條列（如 📅 日期、📍 地點、🔗 報名），但不要每句都放，也不要連續堆疊。
+3. 【重要】不得捏造資訊中沒有的日期、時間、地點、數據、獎品、人名或引言。資訊不足之處用「○○」標示，並列入待補。
+4. 有報名或相關連結時放在文末；沒有提供連結就不要編造。\n5. 若有提供【新聞稿】，以新聞稿為主要依據濃縮改寫成社群貼文：挑出最吸引人的一兩個亮點，不要逐段摘要，也不要沿用新聞稿的正式語氣；【補充資訊】中的社群專屬內容（如報名方式、抽獎）要一併放入。不得加入新聞稿與補充資訊以外的事實。
+Facebook 版：
+- 對象為校內外大眾、家長、校友與合作夥伴，語氣親切但正式。
+- 約 150 至 300 字：一句吸睛開頭，接著說明活動內容與重點，活動資訊條列，最後行動呼籲。
+- 文末 hashtag 1 至 3 個，固定包含 #高科大。
+Instagram 版：
+- 對象以學生為主，語氣輕鬆活潑、口語化，可以用學生熟悉的說法，但不要過度網路流行語或不雅用語。
+- 內文精簡，約 50 至 120 字，短句、多分行，第一行就要抓住注意力。
+- 重點資訊用 emoji 條列。
+- 文末另起一行放 hashtag 5 至 8 個，包含 #高科大 #NKUST，其餘依活動主題。
+只輸出一個 JSON 物件，不要有其他文字或 Markdown，格式：
+{"fb":"FB 貼文全文（含 hashtag，分行用\\n）","ig":"IG 貼文全文（含 hashtag，分行用\\n）","missing":["待補資訊"]}
+只撰寫【發佈平台】指定的平台；未指定的平台，該欄位填空字串。`;
+let lastSocial=null;
+$('aiSet3').onclick=()=>$('aiSet').click();
+function newsForSocial(){
+  if($('sec3').classList.contains('hidden'))return '';
+  const b=$('body').value.trim();if(chars(b)<50)return '';
+  return [`標題：${val('title')}`,`事件亮點：${[val('hl1'),val('hl2'),val('hl3')].filter(Boolean).join('；')}`,`內文：\n${b}`].join('\n');
+}
+$('aiSocial').onclick=async()=>{
+  const s=aiLoad(),out=$('socialOut');
+  if(!aiReady()){$('aiSet').click();return}
+  const plats=platforms();
+  $('aiSocialApply').classList.add('hidden');$('socialApplied').textContent='';lastSocial=null;
+  if(!plats.length){out.textContent='請先勾選發佈平台（Facebook／Instagram）。';return}
+  const wantFb=plats.includes('Facebook'),wantIg=plats.includes('Instagram');
+  const notes=$('socialNotes').value.trim()||val('postText');
+  const news=newsForSocial();
+  if(!news&&chars(notes)<10){out.textContent='請先輸入一些活動重點（至少一兩句）。';return}
+  const c=cats();const types=[c.includes('fbPre')?'活動預告':'',c.includes('fbPost')?'活動花絮、成果':'',c.includes('fbBig')?'大型企劃':''].filter(Boolean).join('、')||'（未勾選）';
+  const ctx=[`發佈平台：${plats.join('、')}`,`貼文類型：${types}`,`申請單位：${val('unit')||'（未填）'}`,`活動或成果名稱：${val('eventName')||'（未填）'}`,
+    `事件日期：${val('eventDate')?roc(val('eventDate')):'（未填）'}`,`事件地點：${val('eventPlace')||'（未填）'}`,
+    val('postDate')?`預定發文日：${roc(val('postDate'))}`:'',val('postLink')?`相關連結：${val('postLink')}`:'相關連結：（無）',`今天日期：${fmt(today)}`].filter(Boolean).join('\n');
+  out.textContent='AI 撰寫中…';$('socialApplied').textContent='';$('aiSocialApply').classList.add('hidden');$('aiSocial').disabled=true;
+  try{
+    const raw=(await aiChat([{role:'system',content:SOCIAL_SYS},{role:'user',content:`【基本資料】\n${ctx}`+(news?`\n\n【新聞稿】\n${news}`:'')+(notes?`\n\n【${news?'補充資訊':'申請單位提供的活動重點'}】\n${notes}`:'')}],0.7)||'').replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'');
+    let d;try{d=looseJSON(raw);if((wantFb&&!d.fb)||(wantIg&&!d.ig))throw 0}catch{out.textContent=raw||'AI 回傳格式無法解析，請再試一次。';return}
+    d.fb=wantFb?String(d.fb).replace(/\\n/g,'\n'):'';d.ig=wantIg?String(d.ig).replace(/\\n/g,'\n'):'';d.missing=d.missing||[];lastSocial=d;
+    out.textContent=[d.fb?`【Facebook 版】（${chars(d.fb)} 字）\n${d.fb}`:'',d.ig?`【Instagram 版】（${chars(d.ig)} 字）\n${d.ig}`:''].filter(Boolean).join('\n\n')+(d.missing.length?`\n\n【待補資訊】\n${d.missing.map(m=>'・'+m).join('\n')}`:'');
+    $('aiSocialApply').classList.remove('hidden');
+  }catch(err){out.textContent=aiErr(err)}
+  finally{$('aiSocial').disabled=false}
+};
+$('aiSocialApply').onclick=()=>{
+  if(!lastSocial)return;
+  applyWithUndo(['postText'],[[lastSocial.fb?`【Facebook】\n${lastSocial.fb}`:'',lastSocial.ig?`【Instagram】\n${lastSocial.ig}`:''].filter(Boolean).join('\n\n')],$('socialApplied'),'postText');
+};
+
+/* ===== 記住申請人資訊（瀏覽器 localStorage） ===== */
+const ME_KEY='nkust-pr-applicant';
+const ME_FIELDS=['unit','cName','cPhone','cEmail'];
+function meSave(){if(!$('rememberMe').checked)return;
+  try{localStorage.setItem(ME_KEY,JSON.stringify(Object.fromEntries(ME_FIELDS.map(k=>[k,val(k)]))));$('forgetMe').classList.remove('hidden')}catch{}}
+function meForget(){try{localStorage.removeItem(ME_KEY)}catch{}$('forgetMe').classList.add('hidden')}
+(function meLoad(){let m=null;try{m=JSON.parse(localStorage.getItem(ME_KEY))}catch{}
+  if(m&&typeof m==='object'){ME_FIELDS.forEach(k=>{if(m[k]&&!val(k))$(k).value=m[k]});$('rememberMe').checked=true;$('forgetMe').classList.remove('hidden');$('rememberMsg').textContent='已帶入上次儲存的資料。'}})();
+ME_FIELDS.forEach(k=>$(k).addEventListener('change',meSave));
+$('rememberMe').addEventListener('change',()=>{if($('rememberMe').checked){meSave();$('rememberMsg').textContent='已儲存。'}else{meForget();$('rememberMsg').textContent='已清除，下次不會自動帶入。'}});
+$('forgetMe').onclick=()=>{meForget();$('rememberMe').checked=false;ME_FIELDS.forEach(k=>$(k).value='');$('rememberMsg').textContent='已清除。';check()};
+
+/* ===== 媒體超人：讀取參考文件（docx / pdf / txt） ===== */
+let docs=[];  // {name,size,text,error}
+const DOC_LIMIT=8000;
+const loadScript=src=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${src}"]`))return res();const sc=document.createElement('script');sc.src=src;sc.onload=res;sc.onerror=()=>rej(new Error('無法載入文件讀取元件，請確認網路連線'));document.head.appendChild(sc)});
+async function readDoc(f){
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  if(ext==='doc')throw new Error('舊版 .doc 無法讀取，請另存為 .docx 或 PDF');
+  if(ext==='txt'||ext==='md'||f.type.startsWith('text/'))return await f.text();
+  if(ext==='docx'){
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+    const r=await window.mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});return r.value}
+  if(ext==='pdf'||f.type==='application/pdf'){
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    const lib=window.pdfjsLib;lib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf=await lib.getDocument({data:await f.arrayBuffer()}).promise;let out='';
+    for(let i=1;i<=Math.min(pdf.numPages,30);i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();out+=tc.items.map(x=>x.str+(x.hasEOL?'\n':'')).join('')+'\n'}
+    if(!out.trim())throw new Error('這份 PDF 讀不到文字（可能是掃描圖檔）');
+    return out}
+  throw new Error('不支援的檔案格式');
+}
+function renderDocs(){
+  $('docList').innerHTML='';
+  docs.forEach((d,i)=>{const el=document.createElement('div');el.className='doc-item'+(d.error?' fail':'');
+    el.innerHTML=`📄 <span>${esc(d.name)}</span><span class="hint">${d.loading?'讀取中…':d.error?'！'+esc(d.error):`已讀取 ${chars(d.text).toLocaleString()} 字`}</span><button type="button" class="x-btn" aria-label="移除">×</button>`;
+    el.querySelector('.x-btn').onclick=()=>{docs.splice(i,1);renderDocs()};$('docList').appendChild(el)});
+}
+$('docFiles').addEventListener('change',async e=>{
+  const fs=[...e.target.files];e.target.value='';
+  for(const f of fs){const d={name:f.name,size:f.size,text:'',loading:true};docs.push(d);renderDocs();
+    try{d.text=String(await readDoc(f)).replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim()}catch(err){d.error=err.message}
+    d.loading=false;renderDocs()}
+});
+function docsForPrompt(){
+  const ok=docs.filter(d=>d.text);if(!ok.length)return '';
+  const per=Math.floor(DOC_LIMIT/ok.length);
+  return ok.map(d=>`【參考文件：${d.name}】\n${d.text.length>per?d.text.slice(0,per)+'\n（以下略）':d.text}`).join('\n\n');
+}
+const HERO_MSGS=['媒體超人正在閱讀你的資料…','正在把厚厚的企劃書濃縮成一篇新聞稿…','正在幫你想一個讓記者想點開的標題…','披風整理中，馬上就好…','檢查校名有沒有寫全稱…'];
+
+/* ===== 紅框標示需修正的欄位 ===== */
+var touched=new Set(),showAll=false;
+const box=el=>el?.closest('td')||el;
+const MARKS=[
+  [/原申請項目/,()=>[box(document.querySelector('[name=ftKind]'))]],
+  [/^請填申請單位/,()=>[isFast()?$('ftUnit'):$('unit')]],
+  [/聯絡窗口姓名/,()=>[isFast()?$('ftName'):$('cName')]],
+  [/聯絡窗口分機/,()=>[$('cPhone')]],
+  [/聯絡窗口 Email|Email 格式/,()=>[isFast()?$('ftEmail'):$('cEmail')]],
+  [/原申請活動名稱/,()=>[$('ftEvent')]],
+  [/選擇要上傳的照片|張超過|照片超過/,()=>[$('capList')]],
+  [/素材超過/,()=>[$('assetList')]],
+  [/事件日期/,()=>[$('eventDate')]],
+  [/預定發文日/,()=>[$('postDate')]],
+  [/我了解，仍要提出申請/,()=>[$('overdueBox')]],
+  [/校外稿請填寫理由/,()=>[$('externalReason')]],
+  [/協助項目/,()=>[$('staffNeeds')]],
+  [/成果報導請勾選類型/,()=>[$('resultTypes')]],
+  [/「其他」請填寫類型/,()=>[$('resultOther')]],
+  [/已公開或經合作單位同意/,()=>[$('resultPublic').closest('label')]],
+  [/活動或成果名稱/,()=>[$('eventName')]],
+  [/新聞標題/,()=>[$('title')]],
+  [/事件亮點/,()=>[$('hl1')]],
+  [/初稿內文/,()=>[$('body')]],
+  [/請勾選修改授權/,()=>[box(document.querySelector('[name=auth]'))]],
+  [/依原文照刊/,()=>[$('authNote')]],
+  [/活動流程/,()=>[$('flow')]],
+  [/採訪重點/,()=>[$('fc1')]],
+  [/現場聯絡人/,()=>[val('siteName')?null:$('siteName'),val('sitePhone')?null:$('sitePhone')].filter(Boolean)],
+  [/發佈平台/,()=>[box(document.querySelector('[name=platform]'))]],
+  [/貼文內容或重點/,()=>[$('postText')]],
+  [/核實新聞稿/,()=>[$('cf-check-w')]],
+  [/肖像授權/,()=>[$('cfPortrait').closest('label')]],
+];
+const targetsFor=msg=>{const m=MARKS.find(([re])=>re.test(msg));return m?m[1]().filter(Boolean):[]};
+const isField=el=>/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+const wasTouched=el=>showAll||touched.has(el)||[...el.querySelectorAll?.('input,textarea,select')||[]].some(x=>touched.has(x));
+function markErrors(E){
+  document.querySelectorAll('.invalid-f,.invalid-b').forEach(el=>el.classList.remove('invalid-f','invalid-b'));
+  E.forEach(msg=>targetsFor(msg).forEach(el=>{if(el.offsetParent===null&&el.id!=='overdueBox')return;
+    if(wasTouched(el))el.classList.add(isField(el)?'invalid-f':'invalid-b')}));
+}
+function gotoError(msg){
+  const el=targetsFor(msg).find(x=>x.offsetParent!==null);if(!el)return;
+  showAll=true;check();
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  const f=isField(el)?el:el.querySelector('input,textarea,select');if(f)setTimeout(()=>f.focus({preventScroll:true}),350);
+}
+$('form').addEventListener('focusout',e=>{if(e.target.matches('input,textarea,select')){touched.add(e.target);check()}});
+$('form').addEventListener('change',e=>{if(e.target.matches('input[type=checkbox],input[type=radio],input[type=date],input[type=file]'))touched.add(e.target)});
+$('checkList').addEventListener('click',e=>{const li=e.target.closest('li.e');if(li)gotoError(li.textContent.replace(/^✗\s*/,''))});
+/* 按鈕停用時點一下：標出所有需修正處並跳到第一個 */
+$('submitBtn').parentElement.addEventListener('click',e=>{
+  if(!$('submitBtn').disabled||!(e.target===$('submitBtn')||e.target.closest('#submitWrap')))return;
+  const first=$('checkList').querySelector('li.e');if(first)gotoError(first.textContent.replace(/^✗\s*/,''))},true);
+
+(function initFast(){
+  let m=null;try{m=JSON.parse(localStorage.getItem('nkust-pr-applicant'))}catch{}
+  if(m){[['ftUnit','unit'],['ftName','cName'],['ftPhone','cPhone'],['ftEmail','cEmail']].forEach(([a,b])=>{if(m[b])$(a).value=m[b]})}
+  document.querySelectorAll('.fast-only input,.fast-only textarea').forEach(el=>el.addEventListener('input',()=>isFast()&&check()));
+  if(/^#(photos|補件)/.test(decodeURIComponent(location.hash))){document.querySelector('[name=mode][value=fast]').checked=true}
+})();
+if(!CONFIG.SUBMIT_URL)$('submitBtn').textContent='產生申請表（Word）';
+setMode();
+</script>
+</body>
+</html>
