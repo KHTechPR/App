@@ -630,9 +630,9 @@ if(!CONFIG.BACKEND_URL)$('uploadOff').classList.remove('hidden');
 const toB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(new Error('讀取檔案失敗'));r.readAsDataURL(f)});
 async function gas(body){
   let r;try{r=await fetch(CONFIG.BACKEND_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})}
-  catch(e){throw new Error('無法連線至後端（Failed to fetch）。請確認 Apps Script 部署的「誰可以存取」為「任何人」')}
+  catch(e){throw new Error('目前無法連線至申請系統，請稍後再試')}
   const t=await r.text();let j;
-  try{j=JSON.parse(t)}catch{throw new Error(`後端回應不是預期格式（HTTP ${r.status}）。可能是部署存取權不是「任何人」，或程式碼尚未發佈新版本`)}
+  try{j=JSON.parse(t)}catch{console.warn('backend HTTP',r.status,t.slice(0,200));throw new Error(`申請系統暫時無法回應（代碼 ${r.status}），請稍後再試`)}
   if(!j.ok)throw new Error(j.error||'上傳失敗');return j}
 function filesToUpload(){
   const out=[];
@@ -706,9 +706,9 @@ $('ftLookupBtn').onclick=async()=>{
     if(!j.list.length){msg.textContent='查不到這個 Email 的申請紀錄。請確認與申請時相同，或改用下方手動填寫。';return}
     msg.textContent=`找到 ${j.list.length} 件申請，請點選要補件的那一件：`;
     j.list.forEach(x=>{const el=document.createElement('div');el.className='ft-item';
-      el.innerHTML=`<span>📁</span><span><b>${esc(x.eventName)}</b><br><span class="hint">${esc(x.unit)}｜${esc(x.categories||'')}｜申請於 ${esc(x.created)}｜編號 ${esc(x.appId)}</span></span>`;
+      el.innerHTML=`<span>📁</span><span><b>${esc(x.eventName)}</b><br><span class="hint">${esc(x.unit)}｜${esc(x.categories||'')}｜申請於 ${esc(x.created)}｜編號 ${esc(x.appId)}${x.status?`｜<b>${esc(x.status)}</b>`:''}</span></span>`;
       el.onclick=()=>{bound=x;uploaded=null;showBound()};$('ftList').appendChild(el)});
-  }catch(e){msg.textContent=`查詢失敗：${e.message}`}
+  }catch(e){msg.innerHTML=`查詢失敗：${esc(e.message)}。<br>也可以直接點選 <b>[上架申請通知]</b> 信件中的「補件／修改連結」。`}
 };
 /* 從通知信的連結進來：#photos=資料夾ID.驗證碼 */
 async function bindFromHash(){
@@ -1043,7 +1043,7 @@ async function deliver(d,blob,res){
     try{await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:'申請資料.json',mimeType:'application/json',data:b64text(JSON.stringify(snapshot()))})}catch(e){}
     // 5. 通知信
     if(CONFIG.AUTO_NOTIFY&&!uploaded.notified){const s5=step('寄送通知信給承辦人');
-      try{const n=await gas({action:'notify',folderId:uploaded.folderId,token:uploaded.token,groups:d.groups,email:d.contact.email,kind:revising?'revise':'new',appId:uploaded.appId||'',unit:d.unit,name:d.contact.name,eventName:d.eventName,categories:d.categories.join('、')});
+      try{const n=await gas({action:'notify',folderId:uploaded.folderId,token:uploaded.token,groups:d.groups,email:d.contact.email,kind:revising?'revise':'new',appId:uploaded.appId||'',unit:d.unit,name:d.contact.name,phone:d.contact.phone,eventDate:d.eventDate||'',eventName:d.eventName,categories:d.categories.join('、')});
         uploaded.notified=n.already?'already':'sent';s5.ok('通知信已寄出')}
       catch(e){s5.err(`通知信寄送失敗：${e.message}`);uploaded.notifyErr=e.message}}
   }catch(e){
@@ -1081,7 +1081,7 @@ async function runFast(res){
   if(CONFIG.AUTO_NOTIFY){
     res.innerHTML=`<div class="notice info">正在寄送通知信給承辦人…</div>`;
     try{const n=await gas({action:'notify',folderId:uploaded.folderId,token:uploaded.token,groups:ftKinds(),email:val('ftEmail'),kind:'fast',
-        unit:val('ftUnit'),name:val('ftName'),eventName:val('ftEvent'),photoCount:uploaded.photoCount});
+        unit:val('ftUnit'),name:val('ftName'),phone:val('ftPhone'),eventDate:val('ftDate'),appId:uploaded.appId||'',eventName:val('ftEvent'),photoCount:uploaded.photoCount});
       res.innerHTML=sentBox(ftKinds(),!!n.already,`照片 ${uploaded.photoCount} 張`,val('ftEmail'));return}
     catch(e){/* 改用手動寄信 */}
   }
@@ -1150,7 +1150,7 @@ async function fallback(d,res,append){
       if(CONFIG.AUTO_NOTIFY){
         const prevHTML=res.innerHTML;res.innerHTML=`<div class="notice info">正在寄送通知信給承辦人…</div>`;
         try{const n=await gas({action:'notify',folderId:uploaded.folderId,token:uploaded.token,docId:uploaded.docId||'',groups:d.groups,email:d.contact.email,kind:revising?'revise':'new',appId:uploaded.appId||'',
-            unit:d.unit,name:d.contact.name,eventName:d.eventName,categories:d.categories.join('、')});
+            unit:d.unit,name:d.contact.name,phone:d.contact.phone,eventDate:d.eventDate||'',eventName:d.eventName,categories:d.categories.join('、')});
           uploaded.notified=n.already?'already':'sent'}
         catch(e){uploaded.notified='';uploaded.notifyErr=e.message}
         res.innerHTML=prevHTML;
