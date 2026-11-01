@@ -216,10 +216,10 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
   <h2>已提送申請：補照片或修改內容</h2>
   <div class="body">
     <div id="ftFind">
-      <p class="hint" style="margin-top:0"><b>步驟 1｜找到你的原申請。</b>輸入申請時填的高科大 Email 查詢，或輸入通知信裡的申請編號。</p>
+      <p class="hint" style="margin-top:0"><b>步驟 1｜找到你的原申請。</b>最快的方式是點<b>通知信裡的「補件／修改連結」</b>。沒有通知信的話：填入申請時的 Email＋申請編號可立即連結；只填 Email，系統會把你的申請清單和連結寄到你的信箱。</p>
       <div class="find-row">
         <input type="email" id="ftLookupEmail" placeholder="申請時填的 Email（@nkust.edu.tw）">
-        <input type="text" id="ftLookupId" placeholder="或申請編號（如 1101-AB3K）" style="max-width:200px">
+        <input type="text" id="ftLookupId" placeholder="申請編號（選填，如 1101-AB3K）" style="max-width:220px">
         <button type="button" class="small" id="ftLookupBtn">🔍 查詢我的申請</button>
       </div>
       <div class="hint" id="ftLookupMsg" style="margin-top:6px"></div>
@@ -241,7 +241,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
           <label class="chk"><input type="checkbox" name="ftKind" value="news">新聞（校內稿、校外稿、到校採訪、成果報導）</label><br>
           <label class="chk"><input type="checkbox" name="ftKind" value="social">官方 Facebook／Instagram</label></td></tr>
         <tr><th>* 申請單位</th><td><input type="text" id="ftUnit"></td></tr>
-        <tr><th>* 聯絡窗口</th><td><div class="row3"><input type="text" id="ftName" placeholder="姓名"><input type="tel" id="ftPhone" placeholder="分機／手機"><input type="email" id="ftEmail" placeholder="Email"></div></td></tr>
+        <tr><th>* 聯絡窗口</th><td><div class="row3"><input type="text" id="ftName" placeholder="姓名"><input type="tel" id="ftPhone" placeholder="分機／手機"><input type="email" id="ftEmail" placeholder="Email（@nkust.edu.tw）"></div></td></tr>
         <tr><th>* 原申請活動名稱</th><td><input type="text" id="ftEvent"></td></tr>
         <tr><th>事件日期</th><td><input type="date" id="ftDate"></td></tr>
       </table>
@@ -313,7 +313,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
       <tr><th>* 聯絡窗口</th><td><div class="row3">
         <input type="text" id="cName" placeholder="姓名">
         <input type="tel" id="cPhone" placeholder="分機／手機">
-        <input type="email" id="cEmail" placeholder="Email"></div>
+        <input type="email" id="cEmail" placeholder="Email（@nkust.edu.tw）"></div>
         <div class="remember">
           <label class="chk"><input type="checkbox" id="rememberMe">記住申請單位與聯絡窗口，下次自動帶入</label>
           <span class="hint">（只存在這台電腦的瀏覽器；公用電腦請勿勾選）</span>
@@ -501,7 +501,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
   <button type="button" class="dlg-x" id="aiClose" aria-label="關閉">×</button>
   <h3 style="margin-top:0">高科iAI 設定</h3>
   <p class="hint" id="aiNoteShared">本系統已內建公關中心的高科iAI 帳號，不需要自己的 API key，只要選擇模型即可。</p>
-  <p class="hint" id="aiNotePersonal">本系統已內建公關中心的高科iAI 帳號，<b>直接選擇模型即可使用</b>，API key 欄位留空就好。若想改用自己的額度，可在下方貼上你自己的 key（<a href="https://www.iai.nkust.edu.tw/apply" target="_blank" rel="noopener">高科iAI 申請頁</a>），按「清除」即恢復使用公關中心帳號。設定只存在這台電腦的瀏覽器。</p>
+  <p class="hint" id="aiNotePersonal">本系統已內建高科iAI 帳號，<b>直接選擇模型即可使用</b>。若想改用自己的金鑰，可在下方貼上你的 API key（<a href="https://www.iai.nkust.edu.tw/apply" target="_blank" rel="noopener">高科iAI 申請頁</a>），按「清除」即恢復使用內建帳號。如需改接其他相容的 AI 服務，也可以修改「API 網址（Base URL）」，但須搭配該服務的 API key。你更改的設定只會存在這台電腦的瀏覽器。</p>
   <div id="aiBaseRow"><label>API 網址（Base URL）<input type="url" id="aiBase"></label><br><br></div>
   <label>模型名稱
     <div style="display:flex;gap:6px"><select id="aiModel"></select><button type="button" class="small" id="aiList" style="white-space:nowrap">載入可用模型</button></div>
@@ -547,6 +547,7 @@ const CONFIG = {
   PHOTO_MAX_MB: 25,
   // 產生申請表後，由後端（bcoffice03）自動寄通知信給承辦人，申請人為副本
   AUTO_NOTIFY: true,
+  EMAIL_DOMAIN: 'nkust.edu.tw',   // 申請人 Email 限校內信箱,
   // 寄出後提醒申請人致電確認的聯絡方式
   PHONES: {
     news:   '楊豐榮資深經理（分機 31021）',
@@ -681,6 +682,8 @@ function setMode(){
 }
 document.querySelectorAll('[name=mode]').forEach(r=>r.addEventListener('change',setMode));
 /* ===== 已提送申請：找到原申請 ===== */
+function isSchoolEmail(e){return new RegExp('^[^@\\s]+@([a-z0-9-]+\\.)*'+CONFIG.EMAIL_DOMAIN.replace(/\./g,'\\.')+'$','i').test(String(e||'').trim())}
+const SCHOOL_MSG='Email 須為校內信箱（@'+'nkust.edu.tw）';
 let bound=null;     // 補件模式連結的原申請 {appId,folderId,token,url,unit,contact,email,eventName,categories}
 let revising=null;  // 正在修改的原申請（同上）
 const kindsOf=cs=>{const t=String(cs||'');const k=[];if(/校內稿|校外稿|採訪|請公關中心協助|成果報導/.test(t))k.push('news');if(/FB|IG|Facebook|Instagram/.test(t))k.push('social');return k.length?k:['news']};
@@ -694,11 +697,13 @@ function showBound(){
 }
 $('ftLookupBtn').onclick=async()=>{
   const email=val('ftLookupEmail'),appId=val('ftLookupId'),msg=$('ftLookupMsg');$('ftList').innerHTML='';
-  if(!email&&!appId){msg.textContent='請輸入 Email 或申請編號。';return}
+  if(!email){msg.textContent='請輸入申請時填寫的 Email。';return}
+  if(!isSchoolEmail(email)){msg.textContent=SCHOOL_MSG+'。';return}
   if(!CONFIG.BACKEND_URL){msg.textContent='查詢功能尚未啟用，請使用下方手動填寫。';return}
   msg.textContent='查詢中…';
   try{const j=await gas({action:'lookup',email,appId});
-    if(!j.list.length){msg.textContent='查不到申請紀錄。請確認 Email 與申請時相同，或改用下方手動填寫。';return}
+    if(j.mailed){msg.innerHTML=`📧 已把你的 ${j.count} 件申請清單與補件連結寄到 <b>${esc(email)}</b>，請到信箱點選連結。（若有申請編號，也可以填在旁邊直接連結）`;return}
+    if(!j.list.length){msg.textContent='查不到這個 Email 的申請紀錄。請確認與申請時相同，或改用下方手動填寫。';return}
     msg.textContent=`找到 ${j.list.length} 件申請，請點選要補件的那一件：`;
     j.list.forEach(x=>{const el=document.createElement('div');el.className='ft-item';
       el.innerHTML=`<span>📁</span><span><b>${esc(x.eventName)}</b><br><span class="hint">${esc(x.unit)}｜${esc(x.categories||'')}｜申請於 ${esc(x.created)}｜編號 ${esc(x.appId)}</span></span>`;
@@ -752,7 +757,7 @@ function checkFast(){
   if(manual){
     if(!ftKinds().length)E.push('請勾選原申請項目');
     [['ftUnit','申請單位'],['ftName','聯絡窗口姓名'],['ftEmail','聯絡窗口 Email'],['ftEvent','原申請活動名稱']].forEach(([id,n])=>{if(!val(id))E.push(`請填${n}`)});
-    if(val('ftEmail')&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val('ftEmail')))E.push('Email 格式不正確');
+    if(val('ftEmail')&&!isSchoolEmail(val('ftEmail')))E.push(SCHOOL_MSG);
   }
   $('sec6').classList.toggle('ft-hide',!!bound&&act==='revise');
   $('submitBtn').textContent=bound&&act==='revise'?'載入原申請內容':'上傳照片至公關中心';
@@ -829,7 +834,7 @@ function check(){
 
   /* 基本資料 */
   [['unit','申請單位'],['cName','聯絡窗口姓名'],['cPhone','聯絡窗口分機／手機'],['cEmail','聯絡窗口 Email'],['eventName','活動或成果名稱']].forEach(([id,n])=>{if(c.length&&!val(id))E.push(`請填${n}`)});
-  if(val('cEmail')&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val('cEmail')))E.push('Email 格式不正確');
+  if(val('cEmail')&&!isSchoolEmail(val('cEmail')))E.push(SCHOOL_MSG);
 
   /* 三、新聞稿 */
   if(needS3){
@@ -1332,9 +1337,10 @@ async function buildDocx(d){
 /* ===== 高科iAI ===== */
 const AI_KEY='nkust-iai-settings';
 const AI_DEFAULT={base:'https://www.iai.nkust.edu.tw/aihub/v1',models:['Furen-large','Furen-max']};
+const isDefBase=b=>!b||normBase(b)===normBase(AI_DEFAULT.base);
 const BUILTIN_KEY=(()=>{const v=String(CONFIG.AI_BUILTIN||'').trim();if(!v)return '';if(/^sk-/.test(v))return v;try{return atob(v).split('').reverse().join('')}catch{return ''}})();
 function aiLoad(){let s={};try{s=JSON.parse(localStorage.getItem(AI_KEY))||{}}catch{}
-  return {base:s.base||AI_DEFAULT.base,model:s.model||AI_DEFAULT.models[0],ownKey:s.key||'',key:s.key||BUILTIN_KEY,builtin:!s.key&&!!BUILTIN_KEY,models:s.models||AI_DEFAULT.models}}
+  return {base:s.base||AI_DEFAULT.base,model:s.model||AI_DEFAULT.models[0],ownKey:s.key||'',key:s.key||(isDefBase(s.base)?BUILTIN_KEY:''),builtin:!s.key&&!!BUILTIN_KEY&&isDefBase(s.base),models:s.models||AI_DEFAULT.models}}
 const SHARED=!!CONFIG.BACKEND_URL&&CONFIG.AI_VIA_BACKEND;
 const aiReady=()=>SHARED||!!aiLoad().key;
 async function aiChat(messages,temperature){
@@ -1363,8 +1369,8 @@ $('aiList').onclick=async()=>{
   if(SHARED){msg.textContent='載入中…';
     try{const j=await gas({action:'models'});fillModels(j.models,$('aiModel').value);msg.textContent=`已載入 ${j.models.length} 個對話模型。`}
     catch(err){msg.textContent=`無法載入模型列表（${err.message}），可先使用預設的 Furen-large。`}return}
-  const useKey=key||BUILTIN_KEY;
-  if(!useKey){msg.textContent='請先貼上 API key。';return}
+  const useKey=key||(isDefBase(base)?BUILTIN_KEY:'');
+  if(!useKey){msg.textContent=isDefBase(base)?'請先貼上 API key。':'改接其他 AI 服務時，請貼上該服務的 API key（內建帳號只能用於高科iAI）。';return}
   msg.textContent='載入中…';
   try{const r=await fetch(base+'/models',{headers:{'Authorization':'Bearer '+useKey,'accept':'application/json'}});
     if(!r.ok)throw new Error('HTTP '+r.status);
@@ -1640,7 +1646,7 @@ const MARKS=[
   [/^請填申請單位/,()=>[isFast()?$('ftUnit'):$('unit')]],
   [/聯絡窗口姓名/,()=>[isFast()?$('ftName'):$('cName')]],
   [/聯絡窗口分機/,()=>[$('cPhone')]],
-  [/聯絡窗口 Email|Email 格式/,()=>[isFast()?$('ftEmail'):$('cEmail')]],
+  [/聯絡窗口 Email|Email 格式|校內信箱/,()=>[isFast()?$('ftEmail'):$('cEmail')]],
   [/原申請活動名稱/,()=>[$('ftEvent')]],
   [/選擇要上傳的照片|張超過|照片超過/,()=>[$('capList')]],
   [/素材超過/,()=>[$('assetList')]],
