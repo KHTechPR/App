@@ -115,6 +115,8 @@ button.small{padding:5px 10px;font-size:14px}
 body.fast .fast-only{display:block}
 body.fast .main-only{display:none!important}
 body.fast #sec6{display:block!important}
+body.fast #sec6.ft-hide{display:none!important}
+.revise-banner.hidden{display:none!important}
 .invalid-f{border-color:var(--err)!important;box-shadow:0 0 0 3px rgba(179,38,30,.15)!important}
 .invalid-b{outline:2px solid var(--err);outline-offset:3px;border-radius:6px}
 .side li.e{cursor:pointer}.side li.e:hover{filter:brightness(.96)}
@@ -139,8 +141,20 @@ body.fast #sec6{display:block!important}
 .result a.mail-btn:hover{filter:brightness(1.1)}
 .result a.mail-alt{display:inline-block;font-size:12.5px;margin-top:3px}
 .sent-box{background:var(--ok-soft);border:1px solid #b9dfc8;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.6}
+.sent-box .appid{margin:4px 0;font-size:14px}.sent-box .appid b{font-size:16px;letter-spacing:.05em;color:var(--brand)}
 .sent-box b{color:var(--ok);font-size:15px}
 .sent-box .call{margin-top:6px;background:#fff;border-radius:6px;padding:6px 8px;color:var(--ink);font-weight:600}
+.find-row{display:flex;gap:8px;flex-wrap:wrap}.find-row input{flex:1;min-width:180px}
+.ft-list{display:grid;gap:8px;margin-top:8px}
+.ft-item{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 11px;cursor:pointer;background:#fff;font-size:14px}
+.ft-item:hover{border-color:var(--brand);background:var(--brand-soft)}
+.ft-item b{color:var(--brand)}
+.bound-box{background:var(--ok-soft);border:1px solid #b9dfc8;border-radius:8px;padding:10px 12px;font-size:14.5px}
+.bound-box .linkbtn{margin-left:6px}
+.manual-box{margin-top:14px;font-size:14px}.manual-box summary{cursor:pointer;color:var(--muted)}
+.revise-banner{background:#fff7ee;border:2px solid var(--accent)!important;padding:12px 16px;font-size:14.5px}
+.revise-banner b{color:var(--accent)}
+.cloud-pic{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;font-size:13px;color:var(--muted);text-align:center;padding:8px}
 .up-ok{background:var(--ok-soft);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:14px}
 .photo-res div{padding:5px 8px;border-radius:6px;margin-bottom:4px}
 .photo-res .pass{background:var(--ok-soft)}.photo-res .fail{background:var(--err-soft)}
@@ -181,27 +195,50 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
 <section class="card mode-card">
   <div class="body mode-pick">
     <label class="mode-opt"><input type="radio" name="mode" value="new" checked><span><b>新申請</b><br><span class="hint">新聞稿、邀請媒體、社群貼文等上架申請</span></span></label>
-    <label class="mode-opt"><input type="radio" name="mode" value="fast"><span><b>已提送申請，補照片或圖片</b><br><span class="hint">稿件已送出，活動結束後補傳照片（直接上傳，免填其他欄位）</span></span></label>
+    <label class="mode-opt"><input type="radio" name="mode" value="fast"><span><b>已提送申請：補照片或修改內容</b><br><span class="hint">活動結束後補傳照片，或修改已送出的新聞稿、貼文</span></span></label>
   </div>
 </section>
 
 <!-- 補件 -->
 <section class="card fast-only">
-  <h2>補傳照片或圖片</h2>
+  <h2>已提送申請：補照片或修改內容</h2>
   <div class="body">
-    <p class="hint" style="margin-top:0">請填寫原申請的基本資料，以便公關中心對應。照片上傳至公關中心雲端後，請按「通知公關中心」寄信告知。</p>
-    <table class="form">
-      <tr><th>* 原申請項目</th><td>
-        <label class="chk"><input type="checkbox" name="ftKind" value="news">新聞（校內稿、校外稿、到校採訪、成果報導）</label><br>
-        <label class="chk"><input type="checkbox" name="ftKind" value="social">官方 Facebook／Instagram</label></td></tr>
-      <tr><th>* 申請單位</th><td><input type="text" id="ftUnit"></td></tr>
-      <tr><th>* 聯絡窗口</th><td><div class="row3"><input type="text" id="ftName" placeholder="姓名"><input type="tel" id="ftPhone" placeholder="分機／手機"><input type="email" id="ftEmail" placeholder="Email"></div></td></tr>
-      <tr><th>* 原申請活動名稱<span class="hint">與原申請表相同</span></th><td><input type="text" id="ftEvent"></td></tr>
-      <tr><th>事件日期</th><td><input type="date" id="ftDate"></td></tr>
-      <tr><th>補充說明</th><td><textarea id="ftNote" style="min-height:60px" placeholder="例如：原申請於 11/10 寄出，新聞稿已確認；本次補 5 張活動照片"></textarea></td></tr>
-    </table>
+    <div id="ftFind">
+      <p class="hint" style="margin-top:0"><b>步驟 1｜找到你的原申請。</b>輸入申請時填的高科大 Email 查詢，或輸入通知信裡的申請編號。</p>
+      <div class="find-row">
+        <input type="email" id="ftLookupEmail" placeholder="申請時填的 Email（@nkust.edu.tw）">
+        <input type="text" id="ftLookupId" placeholder="或申請編號（如 1101-AB3K）" style="max-width:200px">
+        <button type="button" class="small" id="ftLookupBtn">🔍 查詢我的申請</button>
+      </div>
+      <div class="hint" id="ftLookupMsg" style="margin-top:6px"></div>
+      <div id="ftList" class="ft-list"></div>
+    </div>
+    <div id="ftBound" class="bound-box hidden"></div>
+    <div id="ftNext" class="hidden" style="margin-top:12px">
+      <p class="hint" style="margin:0 0 6px"><b>步驟 2｜你要做什麼？</b></p>
+      <div class="mode-pick">
+        <label class="mode-opt"><input type="radio" name="ftAction" value="photos" checked><span><b>補傳照片／圖片</b><br><span class="hint">照片會放進原申請的同一個雲端資料夾</span></span></label>
+        <label class="mode-opt"><input type="radio" name="ftAction" value="revise"><span><b>修改原申請內容</b><br><span class="hint">載入原本填寫的新聞稿、貼文等內容，修改後重新送出</span></span></label>
+      </div>
+      <table class="form" style="margin-top:10px" id="ftNoteRow"><tr><th>補充說明</th><td><textarea id="ftNote" style="min-height:60px" placeholder="例如：本次補 5 張活動照片"></textarea></td></tr></table>
+    </div>
+    <details id="ftManualBox" class="manual-box">
+      <summary>找不到原申請？改為手動填寫（會另建一個資料夾）</summary>
+      <table class="form" style="margin-top:8px">
+        <tr><th>* 原申請項目</th><td>
+          <label class="chk"><input type="checkbox" name="ftKind" value="news">新聞（校內稿、校外稿、到校採訪、成果報導）</label><br>
+          <label class="chk"><input type="checkbox" name="ftKind" value="social">官方 Facebook／Instagram</label></td></tr>
+        <tr><th>* 申請單位</th><td><input type="text" id="ftUnit"></td></tr>
+        <tr><th>* 聯絡窗口</th><td><div class="row3"><input type="text" id="ftName" placeholder="姓名"><input type="tel" id="ftPhone" placeholder="分機／手機"><input type="email" id="ftEmail" placeholder="Email"></div></td></tr>
+        <tr><th>* 原申請活動名稱</th><td><input type="text" id="ftEvent"></td></tr>
+        <tr><th>事件日期</th><td><input type="date" id="ftDate"></td></tr>
+      </table>
+    </details>
   </div>
 </section>
+
+<!-- 修改原申請的提示 -->
+<section class="card revise-banner hidden" id="reviseBanner"></section>
 
 
 
@@ -537,6 +574,7 @@ function renderItems(){
   items.forEach((it,i)=>{
     const row=document.createElement('div');row.className='cap-row';
     const pic=it.photo?`<img alt="圖${i+1}" src="${it.photo.url}"><div class="meta ${it.photo.problems.length?'fail':'pass'}">${esc(it.photo.name)}<br>${metaText(it.photo)}</div>`
+      :it.cloud?`<div class="cloud-pic">☁️ 已在雲端<br>${esc(it.cloud)}</div>`
       :`<label class="small pick-btn"><input type="file" accept="image/*" hidden>＋ 加入照片</label><div class="hint" style="margin-top:4px">未附照片</div>`;
     row.innerHTML=`<div class="no">圖${i+1}</div><div class="pic">${pic}</div><div class="txt"><textarea class="cap" placeholder="圖${i+1} 圖說，例如：校長吳忠信（左二）與企業代表簽署合作備忘錄"></textarea><div class="counter"></div></div><button type="button" class="x-btn" title="刪除這張照片與圖說" aria-label="刪除">×</button>`;
     const ta=row.querySelector('textarea');ta.value=it.caption;ta.addEventListener('input',()=>{it.caption=ta.value;check()});
@@ -596,10 +634,13 @@ function uploadNote(){
 async function uploadAll(progress,meta){
   if(uploaded&&uploaded.sig===fileSig()+(meta?'F':''))return uploaded;
   const list=filesToUpload();
-  const f=await gas(meta||{action:'folder',unit:val('unit'),eventName:val('eventName'),eventDate:val('eventDate'),contact:`${val('cName')}（${val('cPhone')}）`,email:val('cEmail'),note:uploadNote()});
+  const f=revising&&!meta?{folderId:revising.folderId,token:revising.token,url:revising.url||'',appId:revising.appId||''}
+    :await gas(meta||{action:'folder',unit:val('unit'),eventName:val('eventName'),eventDate:val('eventDate'),contact:`${val('cName')}（${val('cPhone')}）`,contactName:val('cName'),email:val('cEmail'),categories:cats().map(k=>CAT_NAME[k]).join('、'),note:uploadNote()});
+  const pre=revising&&!meta?'修訂'+new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'')+'_':'';
   for(let i=0;i<list.length;i++){const {p,prefix}=list[i];progress(`上傳檔案 ${i+1}／${list.length}：${p.name}`);
-    await gas({action:'file',folderId:f.folderId,token:f.token,name:prefix+p.name,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)})}
-  uploaded={sig:fileSig()+(meta?'F':''),url:f.url,folderId:f.folderId,token:f.token,photoCount:list.filter(x=>x.prefix.startsWith('圖')).length,assetCount:list.filter(x=>x.prefix.startsWith('素材')).length};
+    await gas({action:'file',folderId:f.folderId,token:f.token,name:pre+prefix+p.name,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)})}
+  list.forEach(({p,prefix})=>{const it=items.find(x=>x.photo===p);if(it)it.cloud=pre+prefix+p.name});
+  uploaded={sig:fileSig()+(meta?'F':''),url:f.url,folderId:f.folderId,token:f.token,appId:f.appId||'',photoCount:list.filter(x=>x.prefix.startsWith('圖')).length,assetCount:list.filter(x=>x.prefix.startsWith('素材')).length};
   return uploaded}
 
 /* Word 用縮圖 */
@@ -617,18 +658,89 @@ const isFast=()=>document.querySelector('[name=mode]:checked')?.value==='fast';
 const ftKinds=()=>[...document.querySelectorAll('[name=ftKind]:checked')].map(x=>x.value);
 function setMode(){
   const f=isFast();document.body.classList.toggle('fast',f);
-  $('submitBtn').textContent=f?'上傳照片至公關中心':(CONFIG.SUBMIT_URL?'送出申請':'產生申請表（Word）');
+  $('submitBtn').textContent=f?'上傳照片至公關中心':(revising?'產生修訂版申請表':(CONFIG.SUBMIT_URL?'送出申請':'產生申請表（Word）'));
   $('result').innerHTML='';showAll=false;
-  try{history.replaceState(null,'',f?'#photos':location.pathname+location.search)}catch{}
+  try{history.replaceState(null,'',f?(location.hash.startsWith('#photos')?location.hash:'#photos'):location.pathname+location.search)}catch{}
   check();
 }
 document.querySelectorAll('[name=mode]').forEach(r=>r.addEventListener('change',setMode));
+/* ===== 已提送申請：找到原申請 ===== */
+let bound=null;     // 補件模式連結的原申請 {appId,folderId,token,url,unit,contact,email,eventName,categories}
+let revising=null;  // 正在修改的原申請（同上）
+const kindsOf=cs=>{const t=String(cs||'');const k=[];if(/校內稿|校外稿|採訪|請公關中心協助|成果報導/.test(t))k.push('news');if(/FB|IG|Facebook|Instagram/.test(t))k.push('social');return k.length?k:['news']};
+function showBound(){
+  const on=!!bound;
+  $('ftBound').classList.toggle('hidden',!on);$('ftNext').classList.toggle('hidden',!on);
+  $('ftFind').classList.toggle('hidden',on);$('ftManualBox').classList.toggle('hidden',on);
+  if(on)$('ftBound').innerHTML=`✓ 已連結原申請：<b>${esc(bound.eventName)}</b>（${esc(bound.unit)}${bound.appId?'，申請編號 '+esc(bound.appId):''}${bound.created?'，'+esc(bound.created):''}）<button type="button" class="linkbtn" id="ftUnbind">換一件</button>`;
+  if(on)$('ftUnbind').onclick=()=>{bound=null;uploaded=null;showBound();check()};
+  check();
+}
+$('ftLookupBtn').onclick=async()=>{
+  const email=val('ftLookupEmail'),appId=val('ftLookupId'),msg=$('ftLookupMsg');$('ftList').innerHTML='';
+  if(!email&&!appId){msg.textContent='請輸入 Email 或申請編號。';return}
+  if(!CONFIG.BACKEND_URL){msg.textContent='查詢功能尚未啟用，請使用下方手動填寫。';return}
+  msg.textContent='查詢中…';
+  try{const j=await gas({action:'lookup',email,appId});
+    if(!j.list.length){msg.textContent='查不到申請紀錄。請確認 Email 與申請時相同，或改用下方手動填寫。';return}
+    msg.textContent=`找到 ${j.list.length} 件申請，請點選要補件的那一件：`;
+    j.list.forEach(x=>{const el=document.createElement('div');el.className='ft-item';
+      el.innerHTML=`<span>📁</span><span><b>${esc(x.eventName)}</b><br><span class="hint">${esc(x.unit)}｜${esc(x.categories||'')}｜申請於 ${esc(x.created)}｜編號 ${esc(x.appId)}</span></span>`;
+      el.onclick=()=>{bound=x;uploaded=null;showBound()};$('ftList').appendChild(el)});
+  }catch(e){msg.textContent=`查詢失敗：${e.message}`}
+};
+/* 從通知信的連結進來：#photos=資料夾ID.驗證碼 */
+async function bindFromHash(){
+  const m=decodeURIComponent(location.hash).match(/^#photos=([\w-]+)\.([\w=-]+)/);if(!m||!CONFIG.BACKEND_URL)return;
+  bound={folderId:m[1],token:m[2],eventName:'（讀取中…）',unit:'',appId:''};showBound();
+  try{const j=await gas({action:'loaddata',folderId:m[1],token:m[2]});const d=j.data||{};
+    bound={...bound,...(d.meta||{}),folderId:m[1],token:m[2]};}
+  catch(e){bound.eventName='（無法讀取申請名稱，仍可補傳照片）'}
+  showBound();
+}
+/* 表單內容快照：存成 申請資料.json，修改時讀回 */
+function snapshot(){
+  const v={},c={};
+  document.querySelectorAll('#form input,#form textarea,#form select').forEach(el=>{
+    if(el.closest('.fast-only')||el.type==='file'||el.classList.contains('cap'))return;
+    if(el.type==='checkbox'||el.type==='radio'){const k=el.id||(el.dataset.cat?'cat:'+el.dataset.cat:(el.name?el.name+':'+el.value:''));if(k&&k!=='mode:new'&&k!=='mode:fast')c[k]=el.checked}
+    else if(el.id)v[el.id]=el.value});
+  return {v,c,items:items.map(x=>({caption:x.caption,cloud:x.cloud||''})),
+    meta:{appId:(revising||uploaded||{}).appId||'',unit:val('unit'),contact:val('cName'),email:val('cEmail'),eventName:val('eventName'),categories:cats().map(k=>CAT_NAME[k]).join('、')}};
+}
+function restore(d){
+  Object.entries(d.v||{}).forEach(([id,val])=>{const el=$(id);if(el&&el.type!=='file')el.value=val});
+  Object.entries(d.c||{}).forEach(([k,on])=>{let el=$(k);
+    if(!el&&k.startsWith('cat:'))el=document.querySelector(`[data-cat="${k.slice(4)}"]`);
+    if(!el&&k.includes(':')){const [n,...r]=k.split(':');el=document.querySelector(`[name="${n}"][value="${r.join(':')}"]`)}
+    if(el)el.checked=!!on});
+  items=(d.items||[]).map(x=>({photo:null,caption:x.caption||'',cloud:x.cloud||''}));if(!items.length)items=[{photo:null,caption:''}];
+  renderItems();
+}
+async function startRevise(){
+  const res=$('result');res.innerHTML='<div class="notice info">正在載入原申請內容…</div>';
+  try{const j=await gas({action:'loaddata',folderId:bound.folderId,token:bound.token});
+    revising={...bound};restore(j.data);
+    document.querySelector('[name=mode][value=new]').checked=true;setMode();
+    $('reviseBanner').innerHTML=`✏️ <b>正在修改原申請：${esc(revising.eventName)}</b>${revising.appId?'（編號 '+esc(revising.appId)+'）':''}<br>原本的內容已載入，可直接修改。原先上傳的照片已在雲端，不需要重新上傳，也可以再加新照片。改好後按右側「產生修訂版申請表」，系統會存入同一個資料夾並通知承辦人。<button type="button" class="linkbtn" id="reviseCancel">取消修改</button>`;
+    $('reviseBanner').classList.remove('hidden');$('reviseCancel').onclick=()=>location.reload();
+    $('submitBtn').textContent='產生修訂版申請表';res.innerHTML='';window.scrollTo({top:0,behavior:'smooth'});check();
+  }catch(e){res.innerHTML=`<div class="notice err">無法載入原申請：${esc(e.message)}</div>`}
+}
 function checkFast(){
   const E=[],W=[],I=[];
   if(!CONFIG.BACKEND_URL)E.push('照片上傳功能尚未啟用，請改以 Email 寄送照片');
-  if(!ftKinds().length)E.push('請勾選原申請項目');
-  [['ftUnit','申請單位'],['ftName','聯絡窗口姓名'],['ftEmail','聯絡窗口 Email'],['ftEvent','原申請活動名稱']].forEach(([id,n])=>{if(!val(id))E.push(`請填${n}`)});
-  if(val('ftEmail')&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val('ftEmail')))E.push('Email 格式不正確');
+  const manual=!bound&&$('ftManualBox').open;
+  const act=document.querySelector('[name=ftAction]:checked')?.value||'photos';
+  if(!bound&&!manual)E.push('請先查詢並點選你的原申請（或展開下方手動填寫）');
+  if(manual){
+    if(!ftKinds().length)E.push('請勾選原申請項目');
+    [['ftUnit','申請單位'],['ftName','聯絡窗口姓名'],['ftEmail','聯絡窗口 Email'],['ftEvent','原申請活動名稱']].forEach(([id,n])=>{if(!val(id))E.push(`請填${n}`)});
+    if(val('ftEmail')&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val('ftEmail')))E.push('Email 格式不正確');
+  }
+  $('sec6').classList.toggle('ft-hide',!!bound&&act==='revise');
+  $('submitBtn').textContent=bound&&act==='revise'?'載入原申請內容':'上傳照片至公關中心';
+  if(bound&&act==='revise'){$('tE').textContent='0 項必須修正';$('tW').textContent='0 項提醒';$('checkList').innerHTML='<li class="i">按下方按鈕載入原申請內容後即可修改</li>';$('submitBtn').disabled=false;$('submitCatch').classList.add('hidden');return {E:[],W:[]}}
   const withPhoto=items.filter(x=>x.photo);
   if(!withPhoto.length)E.push('請選擇要上傳的照片或圖片');
   document.querySelectorAll('.cap').forEach((inp,i)=>{const s=inp.value.trim(),l=chars(s),ct=inp.nextElementSibling;
@@ -803,7 +915,7 @@ function collect(){
     platforms:platforms(),postText:val('postText'),postLink:val('postLink'),
     assets:[...(assets.length?[`${assets.map((p,i)=>`素材${i+1}：${p.name}`).join('、')}${uploaded&&uploaded.assetCount?`（已上傳：${uploaded.url}）`:''}`]:[]),...(val('assets')?[val('assets')]:[])].join('\n'),
     photoLink:uploaded&&uploaded.photoCount?`${uploaded.url}（已上傳 ${uploaded.photoCount} 張）`+(val('photoLink')?`\n${val('photoLink')}`:''):val('photoLink'),
-    figures:items.map((x,i)=>({no:i+1,caption:x.caption.trim(),photo:x.photo})).filter(x=>x.photo||x.caption),
+    figures:items.map((x,i)=>({no:i+1,caption:x.caption.trim(),photo:x.photo,cloud:x.cloud||''})).filter(x=>x.photo||x.caption||x.cloud),
     captions:items.map(x=>x.caption.trim()).filter(Boolean),
     warnings:check().W
   };
@@ -851,6 +963,8 @@ $('submitBtn').onclick=async()=>{
   }else fallback(d,res,!!uploaded);
 };
 async function runFast(res){
+  if(bound&&document.querySelector('[name=ftAction]:checked')?.value==='revise')return startRevise();
+  if(bound)return runFastBound(res);
   const caps=items.map((x,i)=>x.photo?`圖${i+1}：${x.caption.trim()||'（未填圖說）'}`:'').filter(Boolean);
   const meta={action:'folder',unit:val('ftUnit'),eventName:'補件_'+val('ftEvent'),eventDate:val('ftDate'),contact:`${val('ftName')}（${val('ftPhone')}）`,email:val('ftEmail'),
     note:['【補傳照片】',`原申請項目：${ftKinds().map(k=>k==='news'?'新聞':'官方 FB／IG').join('、')}`,val('ftNote')?`補充說明：${val('ftNote')}`:'','',...caps].filter(x=>x!=='').join('\n')};
@@ -871,6 +985,29 @@ async function runFast(res){
   for(const k of ftKinds())h+=mailLinks(CONFIG.ROUTES[k],subj,body,CONFIG.ROUTES[k].label,val('ftEmail'));
   res.innerHTML=h+'</div>';
 }
+async function runFastBound(res){
+  const stamp=new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'').replace(/^(\d{4})(\d{4})$/,'$1-$2');
+  const caps=items.map((x,i)=>x.photo?`圖${i+1}（${x.photo.name}）：${x.caption.trim()||'（未填圖說）'}`:'').filter(Boolean);
+  const list=items.map((x,i)=>x.photo?{p:x.photo,prefix:`補件${stamp}_圖${i+1}_`}:null).filter(Boolean);
+  $('submitBtn').disabled=true;
+  try{
+    for(let i=0;i<list.length;i++){res.innerHTML=`<div class="notice info">上傳檔案 ${i+1}／${list.length}：${esc(list[i].p.name)}…請勿關閉頁面</div>`;
+      await gas({action:'file',folderId:bound.folderId,token:bound.token,name:list[i].prefix+list[i].p.name,mimeType:list[i].p.file.type||'image/jpeg',data:await toB64(list[i].p.file)})}
+    const note=[`補件時間：${new Date().toLocaleString('zh-TW',{hour12:false})}`,val('ftNote')?`補充說明：${val('ftNote')}`:'','',...caps].filter((x,k,a)=>x!==''||a[k-1]!=='').join('\n');
+    await gas({action:'file',folderId:bound.folderId,token:bound.token,name:`補件${stamp}_圖說.txt`,mimeType:'text/plain',data:b64text(note)});
+    try{const j=await gas({action:'loaddata',folderId:bound.folderId,token:bound.token});const dd=j.data||{};dd.items=(dd.items||[]).filter(x=>x.caption||x.cloud);
+      items.forEach((x,i)=>{if(x.photo)dd.items.push({caption:x.caption,cloud:`補件${stamp}_圖${i+1}_${x.photo.name}`})});
+      await gas({action:'file',folderId:bound.folderId,token:bound.token,name:'申請資料.json',mimeType:'application/json',data:b64text(JSON.stringify(dd))})}catch(e){/* 舊申請沒有內容檔就略過 */}
+  }catch(err){res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再試。</div>`;$('submitBtn').disabled=false;return}
+  $('submitBtn').disabled=false;
+  const groups=kindsOf(bound.categories);
+  res.innerHTML=`<div class="notice info">正在寄送通知信給承辦人…</div>`;
+  try{await gas({action:'notify',kind:'fast',folderId:bound.folderId,token:bound.token,groups,email:bound.email||'',appId:bound.appId||'',
+      unit:bound.unit,name:bound.contact,eventName:bound.eventName,photoCount:list.length,captions:caps});
+    res.innerHTML=sentBox(groups,false,`照片 ${list.length} 張`,bound.email||'');}
+  catch(e){res.innerHTML=`<div class="up-ok">✓ 照片已上傳到原申請的雲端資料夾</div><div class="notice err">通知信寄送失敗：${esc(e.message)}。請直接打電話告知承辦人：${esc(groups.map(g=>CONFIG.PHONES[g]).join('；'))}</div>`}
+}
+const b64text=t=>{const u=new TextEncoder().encode(t);let s='';u.forEach(b=>s+=String.fromCharCode(b));return btoa(s)};
 function notifySummary(d){
   return [['申請單位',d.unit],['聯絡人',`${d.contact.name}　${d.contact.phone}`],['Email',d.contact.email],['活動或成果名稱',d.eventName],
     ['事件日期',d.eventDate?roc(d.eventDate):'無預定日期'],['申請項目',d.categories.join('、')],
@@ -878,9 +1015,9 @@ function notifySummary(d){
     ...(uploaded?[['照片／素材',`照片 ${uploaded.photoCount} 張、素材 ${uploaded.assetCount} 個`]]:[]),
     ...(d.warnings&&d.warnings.length?[['系統檢核提醒',d.warnings.join('\n')]]:[])].filter(r=>r[1]);
 }
-function sentBox(groups,already,what,email){
+function sentBox(groups,already,what,email,appId){
   const who=groups.map(g=>CONFIG.PHONES[g]).filter(Boolean);
-  return `<div class="sent-box"><b>${already?'✓ 通知信先前已寄出':'✓ 已寄送通知信給承辦人'}</b>`+
+  return `<div class="sent-box"><b>${already?'✓ 通知信先前已寄出':'✓ 已寄送通知信給承辦人'}</b>`+(appId?`<div class="appid">申請編號：<b>${esc(appId)}</b>（補件或修改時用得到，通知信裡也有）</div>`:'')+
     `<div>${what?`${what}已上傳至公關中心雲端。`:''}${already?'更新後的申請表已存入同一資料夾。':`副本已寄到你的信箱（${esc(email)}）。`}</div>`+
     `<div class="call">📞 請撥打電話給承辦人，確認是否收到：${esc(who.join('；'))}</div></div>`;
 }
@@ -900,11 +1037,13 @@ async function fallback(d,res,append){
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove();
     if(CONFIG.BACKEND_URL&&uploaded&&uploaded.folderId){
-      try{const r=await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:name+'.docx',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',data:await toB64(blob)});uploaded.docSaved=true;uploaded.docId=r.id}
+      const docName=revising?`${name}_修訂${new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'')}`:name;
+      try{await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:'申請資料.json',mimeType:'application/json',data:b64text(JSON.stringify(snapshot()))})}catch(e){}
+      try{const r=await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:docName+'.docx',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',data:await toB64(blob)});uploaded.docSaved=true;uploaded.docId=r.id}
       catch(e){uploaded.docSaved=false}
       if(CONFIG.AUTO_NOTIFY){
         const prevHTML=res.innerHTML;res.innerHTML=`<div class="notice info">正在寄送通知信給承辦人…</div>`;
-        try{const n=await gas({action:'notify',folderId:uploaded.folderId,token:uploaded.token,docId:uploaded.docId||'',groups:d.groups,email:d.contact.email,kind:'new',
+        try{const n=await gas({action:'notify',folderId:uploaded.folderId,token:uploaded.token,docId:uploaded.docId||'',groups:d.groups,email:d.contact.email,kind:revising?'revise':'new',appId:uploaded.appId||'',
             unit:d.unit,name:d.contact.name,eventName:d.eventName,categories:d.categories.join('、')});
           uploaded.notified=n.already?'already':'sent'}
         catch(e){uploaded.notified='';uploaded.notifyErr=e.message}
@@ -914,7 +1053,7 @@ async function fallback(d,res,append){
     h=`<div class="notice info">✓ 申請表已下載。${uploaded&&uploaded.docSaved?'申請表也已存入公關中心雲端。':''}<a href="${url}" download="${name}.docx">⬇ 重新下載申請表（Word）</a>`;
   }catch(err){h=`<div class="notice err">申請表產生失敗：${esc(err.message)}，請重新整理頁面後再試。`}
   if(uploaded&&uploaded.notified){
-    h+=sentBox(d.groups,uploaded.notified==='already',`${uploaded.docSaved?'申請表':''}${uploaded.photoCount?`${uploaded.docSaved?'與':''}照片 ${uploaded.photoCount} 張`:''}${uploaded.assetCount?`、素材 ${uploaded.assetCount} 個`:''}`,d.contact.email);
+    h+=sentBox(d.groups,uploaded.notified==='already',`${uploaded.docSaved?'申請表':''}${uploaded.photoCount?`${uploaded.docSaved?'與':''}照片 ${uploaded.photoCount} 張`:''}${uploaded.assetCount?`、素材 ${uploaded.assetCount} 個`:''}`,d.contact.email,uploaded.appId);
     h+='</div>';res.innerHTML=append?res.innerHTML+h:h;return;
   }
   const subj=`【新聞資訊上架申請】${d.unit}－${d.eventName}`;
@@ -1057,7 +1196,7 @@ async function buildDocx(d){
       for(let i=0;i<slots.length;i++){const tr=slots[i];
         if(i>=figs.length){drop(tr);continue}
         const f=figs[i];
-        setCell(cells(tr)[1],[`圖${f.no}`]);setCell(cells(tr)[2],[f.caption||'（未填圖說）']);
+        setCell(cells(tr)[1],f.cloud&&!f.photo?[`圖${f.no}`,`（已在雲端：${f.cloud}）`]:[`圖${f.no}`]);setCell(cells(tr)[2],[f.caption||'（未填圖說）']);
         if(f.photo){const th=await thumb(f.photo);
           if(th)addPicture(cells(tr)[1],th,`圖${f.no}`);else setCell(cells(tr)[1],[`圖${f.no}`,f.photo.name])}
       }
@@ -1141,11 +1280,12 @@ $('aiRun').onclick=async()=>{
   const s=aiLoad(),out=$('aiOut');
   if(!aiReady()){$('aiSet').click();return}
   if(chars($('body').value)<50){out.textContent='請先填寫初稿內文。';return}
-  out.textContent='AI 檢視中…';
+  const stopT=startTicker(out,'review');
   const user=`新聞標題：${val('title')}\n事件亮點：${[val('hl1'),val('hl2'),val('hl3')].filter(Boolean).join('；')}\n出席貴賓：${val('guests3')}\n初稿內文：\n${$('body').value}`;
   try{
-    out.textContent=await aiChat([{role:'system',content:GUIDE},{role:'user',content:user}],0.3)||'AI 沒有回傳內容，請再試一次。';
-  }catch(err){out.textContent=aiErr(err)}
+    const r=await aiChat([{role:'system',content:GUIDE},{role:'user',content:user}],0.3);stopT();
+    out.textContent=r||'AI 沒有回傳內容，請再試一次。';
+  }catch(err){stopT();out.textContent=aiErr(err)}
 };
 
 
@@ -1204,11 +1344,11 @@ $('aiDraft').onclick=async()=>{
   const ctx=[`申請單位：${val('unit')||'（未填）'}`,`活動或成果名稱：${val('eventName')||'（未填）'}`,
     `事件日期：${val('eventDate')?roc(val('eventDate')):'（未填）'}`,`事件地點：${val('eventPlace')||'（未填）'}`,
     val('guests3')?`出席貴賓：${val('guests3')}`:'',`今天日期：${fmt(today)}`].filter(Boolean).join('\n');
-  let mi=0;out.textContent=HERO_MSGS[0];const tick=setInterval(()=>{out.textContent=HERO_MSGS[++mi%HERO_MSGS.length]},2500);
+  const stopT=startTicker(out,'news');
   $('draftApplied').textContent='';$('aiApply').classList.add('hidden');$('aiDraft').disabled=true;
   try{
     const raw=await aiChat([{role:'system',content:DRAFT_SYS},{role:'user',content:`【基本資料】\n${ctx}`+(notes?`\n\n【申請單位提供的零散資訊】\n${notes}`:'')+(docText?`\n\n${docText}`:'')}],0.4)||'';
-    clearInterval(tick);
+    stopT();
     let d;try{d=parseDraft(raw)}catch(e){
       if(chars(raw)>=50){lastDraft={title:'',highlights:[],body:raw.trim(),missing:[],rawOnly:true};out.textContent=`（AI 未依格式回覆，以下為原始內容，可套用到內文後自行調整）\n\n${raw}`;$('aiApply').classList.remove('hidden')}
       else out.textContent=raw||e.message;return}
@@ -1218,7 +1358,7 @@ $('aiDraft').onclick=async()=>{
       `\n\n※ 草稿由 AI 產生，請逐一核對姓名、職稱、數據與引言，並補齊「○○」處。`;
     $('aiApply').classList.remove('hidden');
   }catch(err){out.textContent=aiErr(err)}
-  finally{clearInterval(tick);$('aiDraft').disabled=false}
+  finally{stopT();$('aiDraft').disabled=false}
 };
 /* 套用 AI 草稿：直接覆蓋，並保留上一版可復原 */
 function applyWithUndo(ids,values,noteEl,focusId){
@@ -1277,15 +1417,16 @@ $('aiSocial').onclick=async()=>{
   const ctx=[`發佈平台：${plats.join('、')}`,`貼文類型：${types}`,`申請單位：${val('unit')||'（未填）'}`,`活動或成果名稱：${val('eventName')||'（未填）'}`,
     `事件日期：${val('eventDate')?roc(val('eventDate')):'（未填）'}`,`事件地點：${val('eventPlace')||'（未填）'}`,
     val('postDate')?`預定發文日：${roc(val('postDate'))}`:'',val('postLink')?`相關連結：${val('postLink')}`:'相關連結：（無）',`今天日期：${fmt(today)}`].filter(Boolean).join('\n');
-  out.textContent='AI 撰寫中…';$('socialApplied').textContent='';$('aiSocialApply').classList.add('hidden');$('aiSocial').disabled=true;
+  const stopT=startTicker(out,'social');$('socialApplied').textContent='';$('aiSocialApply').classList.add('hidden');$('aiSocial').disabled=true;
   try{
-    const raw=(await aiChat([{role:'system',content:SOCIAL_SYS},{role:'user',content:`【基本資料】\n${ctx}`+(news?`\n\n【新聞稿】\n${news}`:'')+(notes?`\n\n【${news?'補充資訊':'申請單位提供的活動重點'}】\n${notes}`:'')}],0.7)||'').replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'');
+    const raw0=await aiChat([{role:'system',content:SOCIAL_SYS},{role:'user',content:`【基本資料】\n${ctx}`+(news?`\n\n【新聞稿】\n${news}`:'')+(notes?`\n\n【${news?'補充資訊':'申請單位提供的活動重點'}】\n${notes}`:'')}],0.7);stopT();
+    const raw=(raw0||'').replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'');
     let d;try{d=looseJSON(raw);if((wantFb&&!d.fb)||(wantIg&&!d.ig))throw 0}catch{out.textContent=raw||'AI 回傳格式無法解析，請再試一次。';return}
     d.fb=wantFb?String(d.fb).replace(/\\n/g,'\n'):'';d.ig=wantIg?String(d.ig).replace(/\\n/g,'\n'):'';d.missing=d.missing||[];lastSocial=d;
     out.textContent=[d.fb?`【Facebook 版】（${chars(d.fb)} 字）\n${d.fb}`:'',d.ig?`【Instagram 版】（${chars(d.ig)} 字）\n${d.ig}`:''].filter(Boolean).join('\n\n')+(d.missing.length?`\n\n【待補資訊】\n${d.missing.map(m=>'・'+m).join('\n')}`:'');
     $('aiSocialApply').classList.remove('hidden');
-  }catch(err){out.textContent=aiErr(err)}
-  finally{$('aiSocial').disabled=false}
+  }catch(err){stopT();out.textContent=aiErr(err)}
+  finally{stopT();$('aiSocial').disabled=false}
 };
 $('aiSocialApply').onclick=()=>{
   if(!lastSocial)return;
@@ -1341,7 +1482,54 @@ function docsForPrompt(){
   const per=Math.floor(DOC_LIMIT/ok.length);
   return ok.map(d=>`【參考文件：${d.name}】\n${d.text.length>per?d.text.slice(0,per)+'\n（以下略）':d.text}`).join('\n\n');
 }
-const HERO_MSGS=['媒體超人正在閱讀你的資料…','正在把厚厚的企劃書濃縮成一篇新聞稿…','正在幫你想一個讓記者想點開的標題…','披風整理中，馬上就好…','檢查校名有沒有寫全稱…'];
+/* ===== 等待字幕（跑馬燈） =====
+   預設內容如下；若 repository 裡有 ticker.xlsx（或 ticker.csv），會自動讀取並取代。
+   Excel 第一個工作表：A 欄「類別」（新聞稿／社群貼文／檢視初稿／換句秒數）、B 欄「字幕」、C 欄「出現頻率」。
+   出現頻率：空白或 1＝一般；2＝兩倍常出現；小於 1（如 0.2）＝較少出現，且每次等待最多出現一次；0＝暫停不出現。 */
+const T=(text,w=1)=>({text,w});
+const TICKER={
+  news:[T('媒體超人正在閱讀你的資料…'),T('找到彩蛋截圖傳給公關中心主任就送你小禮物…',0.1),T('正在幫你想一個讓記者想點開的標題…'),T('披風整理中，馬上就好…'),T('AI難免頭殼壞去，人工查核戒慎恐懼！')],
+  social:[T('媒體超人正在滑手機找靈感…'),T('正在挑選剛剛好的 emoji…'),T('把新聞稿縮成學生願意看完的長度…'),T('正在想最吸睛的 hashtag…')],
+  review:[T('媒體超人正在逐字閱讀你的初稿…'),T('查證事實，戒慎恐懼！…'),T('核對校名、縮寫與引言寫法…'),T('正在寫修改建議…')],
+  sec:2.5
+};
+const TICKER_KEYS={'新聞稿':'news','新聞':'news','社群貼文':'social','社群':'social','檢視初稿':'review','檢視':'review'};
+function startTicker(out,key){
+  const all=(TICKER[key]||[]).filter(x=>x.w>0);
+  if(!all.length){out.textContent='AI 處理中…';return ()=>{}}
+  const usedRare=new Set();
+  let cur=all.find(x=>x.w>=1)||all[0];
+  out.textContent=cur.text;if(cur.w<1)usedRare.add(cur);
+  const pick=()=>{
+    const pool=all.filter(x=>x!==cur&&!(x.w<1&&usedRare.has(x)));
+    if(!pool.length)return cur;
+    let r=Math.random()*pool.reduce((s,x)=>s+x.w,0);
+    for(const x of pool){r-=x.w;if(r<=0)return x}
+    return pool[pool.length-1];
+  };
+  const t=setInterval(()=>{cur=pick();if(cur.w<1)usedRare.add(cur);out.textContent=cur.text},Math.max(1,Number(TICKER.sec)||2.5)*1000);
+  return ()=>clearInterval(t);
+}
+function applyTickerRows(rows){
+  const got={news:[],social:[],review:[]};
+  rows.forEach(r=>{const k=String(r[0]??'').trim(),v=String(r[1]??'').trim();if(!k||!v)return;
+    if(/秒/.test(k)){const n=parseFloat(v);if(n>0)TICKER.sec=n;return}
+    const key=TICKER_KEYS[k];if(!key)return;
+    const raw=String(r[2]??'').trim();let w=raw===''?1:parseFloat(raw);
+    if(!(w>=0))w=1;
+    got[key].push(T(v,w))});
+  Object.keys(got).forEach(k=>{if(got[k].length)TICKER[k]=got[k]});
+}
+(async function loadTicker(){
+  try{
+    let r=await fetch('ticker.xlsx',{cache:'no-cache'});
+    if(r.ok){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+      const wb=XLSX.read(await r.arrayBuffer(),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];
+      applyTickerRows(XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false}));return}
+    r=await fetch('ticker.csv',{cache:'no-cache'});
+    if(r.ok){const t=(await r.text()).replace(/^﻿/,'');applyTickerRows(t.split(/\r?\n/).map(l=>l.split(',').map(x=>x.replace(/^\s*"|"\s*$/g,'').trim())))}
+  }catch(e){/* 讀不到就用預設字幕 */}
+})();
 
 /* ===== 紅框標示需修正的欄位 ===== */
 var touched=new Set(),showAll=false;
@@ -1403,7 +1591,10 @@ $('submitBtn').parentElement.addEventListener('click',e=>{
   let m=null;try{m=JSON.parse(localStorage.getItem('nkust-pr-applicant'))}catch{}
   if(m){[['ftUnit','unit'],['ftName','cName'],['ftPhone','cPhone'],['ftEmail','cEmail']].forEach(([a,b])=>{if(m[b])$(a).value=m[b]})}
   document.querySelectorAll('.fast-only input,.fast-only textarea').forEach(el=>el.addEventListener('input',()=>isFast()&&check()));
-  if(/^#(photos|補件)/.test(decodeURIComponent(location.hash))){document.querySelector('[name=mode][value=fast]').checked=true}
+  if(m&&m.cEmail)$('ftLookupEmail').value=m.cEmail;
+  document.querySelectorAll('[name=ftAction]').forEach(r=>r.addEventListener('change',()=>check()));
+  $('ftManualBox').addEventListener('toggle',()=>check());
+  if(/^#(photos|補件)/.test(decodeURIComponent(location.hash))){document.querySelector('[name=mode][value=fast]').checked=true;setTimeout(bindFromHash,0)}
 })();
 if(!CONFIG.SUBMIT_URL)$('submitBtn').textContent='產生申請表（Word）';
 setMode();
