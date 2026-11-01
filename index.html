@@ -155,6 +155,18 @@ body.fast #sec6.ft-hide{display:none!important}
 .revise-banner{background:#fff7ee;border:2px solid var(--accent)!important;padding:12px 16px;font-size:14.5px}
 .revise-banner b{color:var(--accent)}
 .cloud-pic{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;font-size:13px;color:var(--muted);text-align:center;padding:8px}
+.pv-dlg{max-width:980px;width:96vw;height:92vh;padding:0;display:none;flex-direction:column}
+.pv-dlg[open]{display:flex}
+.pv-head{display:flex;gap:10px;align-items:center;padding:12px 48px 12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;position:relative}
+.pv-head b{font-size:17px;color:var(--brand)}
+.pv-body{flex:1;overflow:auto;background:#e9ebf0;padding:12px}
+.pv-body .docx-wrapper{background:transparent!important;padding:0!important}
+.pv-body section.docx{box-shadow:0 2px 8px rgba(0,0,0,.15);margin:0 auto 14px!important}
+.pv-foot{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:10px 16px;border-top:1px solid var(--line);flex-wrap:wrap}
+.pv-foot .hint{margin-right:auto}
+.pv-ok{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;font-weight:700}
+.steps{list-style:none;padding:0;margin:6px 0;font-size:14px}
+.steps li{padding:3px 0}.steps li.ok::before{content:"✓ ";color:var(--ok);font-weight:700}.steps li.err::before{content:"✗ ";color:var(--err);font-weight:700}.steps li.run::before{content:"… ";color:var(--muted)}
 .up-ok{background:var(--ok-soft);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:14px}
 .photo-res div{padding:5px 8px;border-radius:6px;margin-bottom:4px}
 .photo-res .pass{background:var(--ok-soft)}.photo-res .fail{background:var(--err-soft)}
@@ -502,6 +514,12 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
   </div>
 </dialog>
 
+<dialog id="pvDlg" class="pv-dlg">
+  <div class="pv-head"><b>申請表預覽</b><span class="hint">這就是公關中心會收到的 Word 申請表，請確認內容無誤再送出。</span><button type="button" class="dlg-x" id="pvClose" aria-label="關閉">×</button></div>
+  <div class="pv-body" id="pvBody"></div>
+  <div class="pv-foot"><span class="hint" id="pvInfo"></span><button type="button" id="pvBack">返回修改</button><button type="button" id="pvOk" class="pv-ok">確認無誤，送出申請</button></div>
+</dialog>
+
 <footer>國立高雄科技大學 秘書室公關中心｜依 BC03 新聞稿發佈及新媒體整合應用作業程序（115.10.28）</footer>
 
 <script>
@@ -584,7 +602,6 @@ function renderItems(){
     box.appendChild(row)});
   const n=items.filter(x=>x.photo).length;
   $('photoCount').textContent=n?`已選 ${n} 張照片`:'';
-  if(uploaded&&!uploaded.sig.startsWith(fileSig()))uploaded=null;
 }
 $('photoFiles').addEventListener('change',async e=>{
   const fs=[...e.target.files];e.target.value='';
@@ -603,7 +620,6 @@ function renderAssets(){
     d.querySelector('.x-btn').onclick=()=>{URL.revokeObjectURL(p.url);assets.splice(i,1);renderAssets();check()};
     box.appendChild(d)});
   $('assetCount').textContent=assets.length?`已選 ${assets.length} 個檔案`:'';
-  if(uploaded&&!uploaded.sig.startsWith(fileSig()))uploaded=null;
 }
 $('assetFiles').addEventListener('change',async e=>{for(const f of [...e.target.files])assets.push(await inspect(f,false));e.target.value='';renderAssets();check()});
 
@@ -938,6 +954,7 @@ ${row('系統檢核提醒',d.warnings.join('\n'))}
 $('submitBtn').onclick=async()=>{
   const res=$('result');
   if(isFast())return runFast(res);
+  if(CONFIG.BACKEND_URL&&!CONFIG.SUBMIT_URL)return submitNew(res);
   if(CONFIG.BACKEND_URL){
     const hasFiles=filesToUpload().length>0;
     $('submitBtn').disabled=true;
@@ -962,6 +979,90 @@ $('submitBtn').onclick=async()=>{
     $('submitBtn').disabled=false;
   }else fallback(d,res,!!uploaded);
 };
+/* ===== 新申請：預覽 → 確認 → 存雲端（申請表優先）→ 通知 ===== */
+function previewDocx(blob,d){
+  return new Promise(async resolve=>{
+    const dlg=$('pvDlg'),box=$('pvBody');box.innerHTML='<p class="hint" style="text-align:center;margin-top:40px">預覽產生中…</p>';
+    const n=filesToUpload().length;
+    $('pvInfo').textContent=CONFIG.BACKEND_URL?`送出後：申請表${n?`與 ${n} 個照片／素材檔`:''}會存入公關中心雲端，並自動通知承辦人。`:'';
+    dlg.showModal();
+    try{await loadScript('https://cdn.jsdelivr.net/npm/docx-preview@0.3.2/dist/docx-preview.min.js');
+      box.innerHTML='';await window.docx.renderAsync(blob,box,null,{inWrapper:true,breakPages:true,ignoreLastRenderedPageBreak:true,experimental:true});}
+    catch(e){box.innerHTML=`<div style="background:#fff;padding:16px;border-radius:8px">${toHTML(d)}</div>`}
+    const done=v=>{dlg.close();resolve(v)};
+    $('pvOk').onclick=()=>done(true);$('pvBack').onclick=()=>done(false);$('pvClose').onclick=()=>done(false);
+    dlg.oncancel=e=>{e.preventDefault();done(false)};
+  });
+}
+async function submitNew(res){
+  meSave();
+  const d=collect();
+  const nFiles=filesToUpload().length;
+  if(!d.photoLink&&nFiles)d.photoLink=`照片／素材 ${nFiles} 個檔案已上傳至公關中心雲端（與本申請表同一資料夾）`;
+  let blob;
+  try{blob=await buildDocx(d)}catch(e){res.innerHTML=`<div class="notice err">申請表產生失敗：${esc(e.message)}，請重新整理頁面後再試。</div>`;return}
+  if(!await previewDocx(blob,d))return;
+  await deliver(d,blob,res);
+}
+async function deliver(d,blob,res){
+  const name=`新聞資訊上架申請表_${d.unit}_${d.eventName}`.replace(/[\\/:*?"<>|]/g,'');
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove();
+  const steps=[];const draw=()=>{res.innerHTML=`<div class="notice info"><b>送出中，請勿關閉頁面…</b><ul class="steps">${steps.map(x=>`<li class="${x.s}">${esc(x.t)}</li>`).join('')}</ul></div>`};
+  const step=t=>{const x={t,s:'run'};steps.push(x);draw();return {ok:(t2)=>{x.s='ok';if(t2)x.t=t2;draw()},err:(t2)=>{x.s='err';x.t=t2;draw()}}};
+  $('submitBtn').disabled=true;
+  const stamp=()=>new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'');
+  let docOk=uploaded&&uploaded.docSaved&&uploaded.docBlob===blob;
+  try{
+    // 1. 資料夾
+    if(!uploaded||!uploaded.folderId){const s1=step('建立雲端資料夾');
+      const f=revising?{folderId:revising.folderId,token:revising.token,url:revising.url||'',appId:revising.appId||''}
+        :await gas({action:'folder',unit:d.unit,eventName:d.eventName,eventDate:d.eventDate,contact:`${d.contact.name}（${d.contact.phone}）`,contactName:d.contact.name,email:d.contact.email,categories:d.categories.join('、'),note:uploadNote()});
+      uploaded={sig:'',url:f.url,folderId:f.folderId,token:f.token,appId:f.appId||'',photoCount:0,assetCount:0};s1.ok(revising?'使用原申請的雲端資料夾':'建立雲端資料夾')}
+    // 2. 申請表（最重要，先傳，失敗重試一次）
+    if(!docOk){const s2=step('上傳申請表（Word）');
+      const docName=revising?`${name}_修訂${stamp()}`:name;
+      let r=null,err=null;
+      for(let k=0;k<2&&!r;k++){try{r=await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:docName+'.docx',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',data:await toB64(blob)})}catch(e){err=e}}
+      if(!r){s2.err(`申請表上傳失敗：${err&&err.message}`);throw Object.assign(new Error('DOC'),{doc:true,msg:err&&err.message})}
+      uploaded.docSaved=true;uploaded.docId=r.id;uploaded.docBlob=blob;docOk=true;s2.ok('申請表已存入雲端')}
+    // 3. 照片／素材
+    const list=filesToUpload().filter(x=>!x.p.cloudDone);
+    if(list.length){const s3=step(`上傳照片／素材 0／${list.length}`);const pre=revising?'修訂'+stamp()+'_':'';
+      for(let i=0;i<list.length;i++){const {p,prefix}=list[i];s3.ok(`上傳照片／素材 ${i+1}／${list.length}：${p.name}`);steps[steps.length-1].s='run';draw();
+        await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:pre+prefix+p.name,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)});
+        p.cloudDone=true;const it=items.find(x=>x.photo===p);if(it)it.cloud=pre+prefix+p.name;
+        if(prefix.startsWith('圖'))uploaded.photoCount++;else uploaded.assetCount++}
+      s3.ok(`照片／素材 ${list.length} 個檔案已存入雲端`)}
+    // 4. 申請資料（供日後修改）
+    try{await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:'申請資料.json',mimeType:'application/json',data:b64text(JSON.stringify(snapshot()))})}catch(e){}
+    // 5. 通知信
+    if(CONFIG.AUTO_NOTIFY&&!uploaded.notified){const s5=step('寄送通知信給承辦人');
+      try{const n=await gas({action:'notify',folderId:uploaded.folderId,token:uploaded.token,groups:d.groups,email:d.contact.email,kind:revising?'revise':'new',appId:uploaded.appId||'',unit:d.unit,name:d.contact.name,eventName:d.eventName,categories:d.categories.join('、')});
+        uploaded.notified=n.already?'already':'sent';s5.ok('通知信已寄出')}
+      catch(e){s5.err(`通知信寄送失敗：${e.message}`);uploaded.notifyErr=e.message}}
+  }catch(e){
+    $('submitBtn').disabled=false;
+    const who=d.groups.map(g=>CONFIG.PHONES[g]).join('；');
+    res.innerHTML=res.innerHTML.replace('<b>送出中，請勿關閉頁面…</b>','<b>送出未完成</b>')+
+      `<div class="notice err">${e.doc?'申請表沒有成功存入公關中心雲端。':'上傳過程發生錯誤：'+esc(e.message)+'。'}請按「重新送出」再試一次（已完成的部分不會重複上傳）。若持續失敗，請把剛下載的 Word 申請表寄給承辦人，並電話告知：${esc(who)}
+       <div style="margin-top:8px"><button type="button" class="small" id="retryBtn">重新送出</button> <a href="${url}" download="${name}.docx">⬇ 重新下載申請表</a></div></div>`;
+    $('retryBtn').onclick=()=>deliver(d,blob,res);
+    for(const g of d.groups)res.innerHTML+=mailLinks(CONFIG.ROUTES[g],`【新聞資訊上架申請】${d.unit}－${d.eventName}`,`公關中心您好：\n\n${d.unit}申請「${d.eventName}」新聞資訊上架，申請表 Word 檔如附件。\n\n聯絡人：${d.contact.name}　${d.contact.phone}`,CONFIG.ROUTES[g].label,d.contact.email);
+    if($('retryBtn'))$('retryBtn').onclick=()=>deliver(d,blob,res);
+    return;
+  }
+  $('submitBtn').disabled=false;
+  let h=`<div class="notice info">✓ 申請表已下載，並已存入公關中心雲端。<a href="${url}" download="${name}.docx">⬇ 重新下載申請表（Word）</a></div>`;
+  if(uploaded.notified){
+    const what=`申請表${uploaded.photoCount?`與照片 ${uploaded.photoCount} 張`:''}${uploaded.assetCount?`、素材 ${uploaded.assetCount} 個`:''}`;
+    h+=sentBox(d.groups,uploaded.notified==='already',what,d.contact.email,uploaded.appId);
+  }else{
+    h+=`<div class="notice err">自動通知信未能寄出${uploaded.notifyErr?`（${esc(uploaded.notifyErr)}）`:''}，請改用下方按鈕寄信，並電話告知承辦人。</div>`;
+    for(const g of d.groups)h+=mailLinks(CONFIG.ROUTES[g],`【新聞資訊上架申請】${d.unit}－${d.eventName}`,`公關中心您好：\n\n${d.unit}申請「${d.eventName}」新聞資訊上架，申請表與照片已存入公關中心雲端：\n${uploaded.url}\n\n聯絡人：${d.contact.name}　${d.contact.phone}　${d.contact.email}`,CONFIG.ROUTES[g].label,d.contact.email);
+  }
+  res.innerHTML=h;
+}
 async function runFast(res){
   if(bound&&document.querySelector('[name=ftAction]:checked')?.value==='revise')return startRevise();
   if(bound)return runFastBound(res);
