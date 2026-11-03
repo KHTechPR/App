@@ -186,6 +186,22 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
 @media print{header,.side,.ai-box,button{display:none!important}.layout{display:block}body{background:#fff}}
 .auth-social{background:#fff8e1;border:1px solid #f2d58a;border-radius:8px;padding:8px 10px;margin-bottom:10px}
 .auth-social .hint{margin:2px 0 0 26px}
+.rv-hidden{display:none!important}
+body.review .layout{display:none!important}
+#reviewApp{max-width:1100px;margin:18px auto;padding:0 16px}
+.rv-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.rv-tabs button{border-radius:16px;padding:6px 14px;font-size:14px;background:var(--brand-soft);border:0;cursor:pointer}
+.rv-tabs button.on{background:var(--brand);color:#fff}
+.rv-item{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line,#d6dbe5);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fff;cursor:pointer}
+.rv-item:hover{border-color:var(--brand)}
+.rv-meta{font-size:13px;color:var(--muted)}
+.rv-badge{font-size:12px;border-radius:10px;padding:2px 9px;font-weight:700;white-space:nowrap;background:#fce8b2;color:#7a5200}
+.rv-badge.s-需補件{background:#fad2cf;color:#8a1c12}.rv-badge.s-已核定{background:#ceead6;color:#1e6b34}.rv-badge.s-不予上架{background:#e0e0e0;color:#555}.rv-badge.s-處理中{background:#d2e3fc;color:#174ea6}
+.rv-opt{display:block;border:1px solid var(--line,#d6dbe5);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer}
+.rv-opt:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}
+.rv-opt input[type=text]{display:inline-block;width:auto;min-width:180px;margin-left:4px}
+.rv-late{color:var(--err)}
+.rv-foot-link{color:inherit;opacity:.75;margin-left:8px}
 </style>
 </head>
 <body>
@@ -202,6 +218,27 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
     <img class="head-mascot" src="SuperNorth-header.png" alt="" aria-hidden="true" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='SuperNorth.png'}else this.remove()">
   </div>
 </div></header>
+
+<div id="reviewApp" class="rv-hidden">
+  <section class="card"><h2 id="rvTitle">公關中心審核</h2><div class="body">
+    <div id="rvLogin" class="rv-hidden">
+      <p class="hint" style="margin-top:0">此頁僅供公關中心同仁使用。請輸入審核碼（這台瀏覽器會記住，不必每次輸入）。</p>
+      <div style="display:flex;gap:8px;max-width:420px"><input type="password" id="rvPin" placeholder="審核碼" autocomplete="off"><button type="button" class="small" id="rvPinBtn" style="white-space:nowrap">登入</button></div>
+      <div class="hint" id="rvLoginMsg" style="margin-top:6px"></div>
+    </div>
+    <div id="rvListBox" class="rv-hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="rv-tabs" id="rvTabs"></div>
+        <div><button type="button" class="small" id="rvReload">重新整理</button> <button type="button" class="small" id="rvLogout">登出</button></div>
+      </div>
+      <div class="hint" style="margin:-4px 0 10px">已上架的申請不會顯示在清單中（在試算表或審核頁標記「已上架」後自動隱藏）。</div>
+      <div id="rvList"></div>
+    </div>
+    <div id="rvDetail" class="rv-hidden"></div>
+    <div class="hint" id="rvMsg"></div>
+  </div></section>
+  <p style="text-align:center"><a href="./" class="hint">← 回申請表</a></p>
+</div>
 
 <div class="layout">
 <main id="form">
@@ -475,7 +512,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
   <h2>七、公關中心評估意見（公關中心填寫）</h2>
   <div class="body">
     <table class="form grey">
-      <tr><th>收件及上架</th><td>收件、預定上架日期及承辦人由公關中心填寫。上架日遇假日順延。</td></tr>
+      <tr><th>收件及上架</th><td>收件、預定上架日期及承辦人由公關中心填寫。上架日遇假日順延。審核後，公關中心會將評估意見另存一份 Word 檔於同一雲端資料夾，並寄信通知申請人。</td></tr>
       <tr><th>評估結果</th><td>退回或改變刊登方式／補件／潤修／照刊</td></tr>
       <tr><th>校外稿</th><td>同意發送對外媒體群組／改以校內稿刊登</td></tr>
       <tr><th>派員出席</th><td>派員／不派員（活動照片及出席媒體名單由申請單位提供）</td></tr>
@@ -498,7 +535,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
     <ul id="checkList"></ul>
     <div id="submitWrap" style="position:relative"><button class="primary" id="submitBtn" disabled>送出申請</button><span id="submitCatch" style="position:absolute;inset:10px 0 0 0;cursor:not-allowed" class="hidden"></span></div>
     <div class="result" id="result"></div>
-    <p class="hint" style="margin-top:10px">紅色項目須修正才能繼續；黃色項目不擋送出，但可能被通知補件或改變刊登方式。撰寫問題請洽楊豐榮資深經理（分機 31021）。</p>
+    <p class="hint" style="margin-top:10px">紅色項目須修正才能繼續；黃色項目不擋送出，但可能被通知補件或改變刊登方式。操作相關問題請洽林思吟主任（分機 31020／17358）。</p>
   </div>
 </aside>
 </div>
@@ -526,7 +563,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
   <div class="pv-foot"><span class="hint" id="pvInfo"></span><button type="button" id="pvBack">返回修改</button><button type="button" id="pvOk" class="pv-ok">確認無誤，送出申請</button></div>
 </dialog>
 
-<footer>國立高雄科技大學 秘書室公關中心｜依 BC03 新聞稿發佈及新媒體整合應用作業程序（115.10.28）</footer>
+<footer>國立高雄科技大學 秘書室公關中心｜依 BC03 新聞稿發佈及新媒體整合應用作業程序（115.10.28）<a href="#review" class="rv-foot-link" id="rvEntry">🔒 公關中心審核</a></footer>
 
 <script>
 /* ===== 設定區：部署時只需修改這裡 ===== */
@@ -684,7 +721,7 @@ function setMode(){
   const f=isFast();document.body.classList.toggle('fast',f);
   $('submitBtn').textContent=f?'上傳照片至公關中心':(revising?'產生修訂版申請表':(CONFIG.SUBMIT_URL?'送出申請':'產生申請表（Word）'));
   $('result').innerHTML='';showAll=false;
-  try{history.replaceState(null,'',f?(location.hash.startsWith('#photos')?location.hash:'#photos'):location.pathname+location.search)}catch{}
+  if(!location.hash.startsWith('#review'))try{history.replaceState(null,'',f?(location.hash.startsWith('#photos')?location.hash:'#photos'):location.pathname+location.search)}catch{}
   check();
 }
 document.querySelectorAll('[name=mode]').forEach(r=>r.addEventListener('change',setMode));
@@ -1321,8 +1358,8 @@ async function buildDocx(d){
     }
   }else dropSection('六、');
 
-  // 七、公關中心評估意見（保留空白，只刪除不適用的列）
-  {const r=rows('七、');if(!has('external'))drop(r[2]);if(!has('staff'))drop(r[3])}
+  // 七、公關中心評估意見：申請表不含此項，由公關中心在審核頁填寫後另存「公關中心評估意見.docx」
+  dropSection('七、');
 
   // 取消原表單的強制換頁，讓刪減後的內容連續排列
   [...body.getElementsByTagNameNS(WNS,'br')].filter(b=>b.getAttributeNS(WNS,'type')==='page').forEach(drop);
@@ -1717,6 +1754,158 @@ $('submitBtn').parentElement.addEventListener('click',e=>{
 })();
 if(!CONFIG.SUBMIT_URL)$('submitBtn').textContent='產生申請表（Word）';
 setMode();
+
+/* ===== 公關中心審核頁 ===== */
+const RV_KEY='nkust-pr-review-pin', RV_STAFF=['楊豐榮','鄭婷','鄭潔珊'];
+const RV_TABS=[['pending','待審核',x=>!x.status||x.status==='待審核'||x.status==='處理中'],['supp','需補件',x=>x.status==='需補件'],['ok','已核定',x=>x.status==='已核定'],['no','不予上架',x=>x.status==='不予上架'],['all','全部',()=>true]];
+let rvList=[],rvTab='pending',rvCur=null;
+const rvPin=()=>{try{return localStorage.getItem(RV_KEY)||''}catch{return ''}};
+const rvShow=id=>['rvLogin','rvListBox','rvDetail'].forEach(k=>$(k).classList.toggle('rv-hidden',k!==id));
+const rocD=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${+m[1]-1911}/${+m[2]}/${+m[3]}`:''};
+const todayISO=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+async function rvCall(body){
+  try{return await gas({...body,pin:rvPin()})}
+  catch(e){if(/審核碼不正確/.test(e.message)){try{localStorage.removeItem(RV_KEY)}catch{}rvShow('rvLogin');$('rvLoginMsg').textContent='審核碼不正確，請重新輸入。'}throw e}}
+async function rvLoad(){
+  $('rvMsg').textContent='讀取中…';
+  try{const j=await rvCall({action:'reviewlist'});rvList=j.list;$('rvMsg').textContent='';rvShow('rvListBox');rvRender();return true}
+  catch(e){$('rvMsg').textContent='讀取失敗：'+e.message;return false}}
+function rvRender(){
+  $('rvTabs').innerHTML=RV_TABS.map(([k,n,f])=>`<button type="button" data-k="${k}" class="${k===rvTab?'on':''}">${n} ${rvList.filter(f).length}</button>`).join('');
+  $('rvTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{rvTab=b.dataset.k;rvRender()});
+  const f=RV_TABS.find(t=>t[0]===rvTab)[2],L=rvList.filter(f);
+  $('rvList').innerHTML=L.length?'':'<p class="hint">目前沒有申請。</p>';
+  const today=todayISO();
+  L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
+    const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
+    el.innerHTML=`<div><b>${esc(x.eventName)}</b><div class="rv-meta">${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.onclick=()=>rvOpen(x.folderId);$('rvList').appendChild(el)})}
+async function rvOpen(folderId){
+  $('rvMsg').textContent='讀取中…';
+  let j;try{j=await rvCall({action:'reviewget',folderId})}catch(e){$('rvMsg').textContent='讀取失敗：'+e.message;return}
+  $('rvMsg').textContent='';rvCur=j.item;const x=j.item;
+  try{history.replaceState(null,'','#review='+folderId)}catch{}
+  const rk=(x.result||'').startsWith('退回')?'return':(x.result||'').startsWith('補件')?'supplement':(x.result||'').startsWith('潤修')?'edit':(x.result||'').startsWith('照刊')?'asis':'';
+  const opl=(x.opinion||'').split('\n'),firstLine=opl[0]||'';
+  const ext=((opl.find(l=>l.startsWith('校外稿：'))||'').slice(4)),att=((opl.find(l=>l.startsWith('派員出席：'))||'').slice(5));
+  const msg=opl.slice(1).filter(l=>!/^(校外稿|派員出席)：/.test(l)).join('\n');
+  const isExt=/校外稿/.test(x.categories),isStaff=/請公關中心協助/.test(x.categories);
+  const rtxt=rk==='return'?((firstLine.match(/改以(.+?)刊登/)||[])[1]||''):rk==='supplement'?firstLine.replace(/^補件：/,''):'';
+  const opt=(k,html)=>`<label class="rv-opt"><input type="radio" name="rvRes" value="${k}" ${rk===k?'checked':''}> ${html}</label>`;
+  $('rvDetail').innerHTML=`
+  <p style="margin-top:0"><a href="#review" id="rvBack">← 回清單</a></p>
+  <h3 style="margin:0 0 8px">${esc(x.appId)}　${esc(x.eventName)} <span class="rv-badge s-${esc(x.status)}">${esc(x.status)}</span></h3>
+  <table class="form" style="margin-bottom:12px">
+    <tr><th>申請單位</th><td>${esc(x.unit)}　${esc(x.contact)}　<a href="mailto:${esc(x.email)}">${esc(x.email)}</a></td></tr>
+    <tr><th>申請項目</th><td>${esc(x.categories)}</td></tr>
+    <tr><th>事件日期</th><td>${esc(rocD(x.eventDate))||'—'}　<span class="hint">申請送出：${esc(rocD(x.created))}${x.follow?`；補件／修改 ${x.follow} 次`:''}</span></td></tr>
+    <tr><th>資料</th><td><a href="${esc(x.url)}" target="_blank" rel="noopener">📁 雲端資料夾</a>${j.docs.map(d=>`　<a href="${esc(d.url)}" target="_blank" rel="noopener">📄 ${esc(d.name)}</a>`).join('')}${j.photoCount?`<span class="hint">　照片 ${j.photoCount} 張</span>`:''}</td></tr>
+  </table>
+  <h3 style="margin:14px 0 8px">七、公關中心評估意見</h3>
+  <table class="form">
+    <tr><th>收件</th><td><input type="date" id="rvRecv" value="${esc(x.received||x.created||todayISO())}" style="max-width:200px"></td></tr>
+    <tr><th>預定上架</th><td><input type="date" id="rvPlan" value="${esc(x.planned)}" style="max-width:200px"></td></tr>
+    <tr><th>承辦人</th><td><input type="text" id="rvStaff" list="rvStaffList" value="${esc(x.staff)}" placeholder="點選或自行輸入" style="max-width:220px" autocomplete="off">
+      <datalist id="rvStaffList">${RV_STAFF.map(n=>`<option value="${n}">`).join('')}</datalist>
+      <div class="hint">可從選單點選，或直接輸入其他承辦人姓名。</div></td></tr>
+    <tr><th>* 評估結果</th><td>
+      ${opt('return',`退回或改變刊登方式：逾申請期限或已逾新聞時效，改以<input type="text" id="rvRet" value="${rk==='return'?esc(rtxt):''}" placeholder="刊登方式（如 FB 貼文）">刊登。`)}
+      ${opt('supplement',`補件：<input type="text" id="rvSup" value="${rk==='supplement'?esc(rtxt):''}" placeholder="需補充的資料">`)}
+      ${opt('edit','潤修：由公關中心潤修，回傳申請單位確認。')}
+      ${opt('asis','照刊：依申請單位提供內容刊登。')}
+      <div class="hint">「退回」未填刊登方式時，處理狀態記為「不予上架」；有填則記為「已核定」。</div></td></tr>
+    ${isExt?`<tr><th>校外稿</th><td><label class="chk"><input type="radio" name="rvExt" value="同意發送對外媒體群組" ${ext==='同意發送對外媒體群組'?'checked':''}>同意發送對外媒體群組</label>　<label class="chk"><input type="radio" name="rvExt" value="改以校內稿刊登" ${ext==='改以校內稿刊登'?'checked':''}>改以校內稿刊登</label></td></tr>`:''}
+    ${isStaff?`<tr><th>派員出席</th><td><label class="chk"><input type="radio" name="rvAtt" value="yes" ${att.startsWith('派員')?'checked':''}>派員</label><input type="text" id="rvAttWho" value="${esc((att.match(/^派員（(.*)）$/)||[])[1]||'')}" placeholder="出席同仁" style="display:inline-block;width:auto;min-width:140px;margin:0 12px 0 4px">
+      <label class="chk"><input type="radio" name="rvAtt" value="no" ${att.startsWith('不派員')?'checked':''}>不派員（活動照片及出席媒體名單由申請單位提供）</label></td></tr>`:''}
+    <tr><th>給申請人的說明</th><td><textarea id="rvMsgTxt" style="min-height:70px" placeholder="選填；會寫在通知信中">${esc(msg)}</textarea></td></tr>
+    <tr><th>內部備註</th><td><input type="text" id="rvNote" value="${esc(x.note)}" placeholder="申請人看不到"></td></tr>
+  </table>
+  <label class="chk" style="margin:10px 0"><input type="checkbox" id="rvNotify" checked>寄信通知申請人審核結果（${esc(x.email)}）</label><br>
+  <button type="button" class="primary" id="rvSave" style="max-width:240px">送出審核結果</button>
+  <div id="rvSaveMsg" style="margin-top:8px"></div>
+  <details style="margin-top:18px"><summary>已上架？標記後會從清單隱藏</summary>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><input type="url" id="rvPubLink" value="${esc(x.pubLink)}" placeholder="上架連結（選填）" style="flex:1;min-width:220px"><button type="button" class="small" id="rvPub">標記為已上架</button></div>
+    <div class="hint" id="rvPubMsg"></div></details>`;
+  rvShow('rvDetail');window.scrollTo(0,0);
+  $('rvBack').onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()};
+  $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
+  $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
+  $('rvSave').onclick=rvSave;$('rvPub').onclick=rvPublish}
+async function rvSave(){
+  const r=(document.querySelector('[name=rvRes]:checked')||{}).value,m=$('rvSaveMsg');
+  if(!r){m.innerHTML='<div class="notice err">請選擇評估結果。</div>';return}
+  if(r==='supplement'&&!val('rvSup')){m.innerHTML='<div class="notice err">請填寫需補充的資料。</div>';$('rvSup').focus();return}
+  const extras=[];const ex=document.querySelector('[name=rvExt]:checked'),at=document.querySelector('[name=rvAtt]:checked');
+  if(ex)extras.push(['校外稿',ex.value]);
+  if(at)extras.push(['派員出席',at.value==='yes'?`派員（${val('rvAttWho')||'＿＿'}）`:'不派員（活動照片及出席媒體名單由申請單位提供）']);
+  $('rvSave').disabled=true;m.innerHTML='<div class="notice info">送出中…</div>';
+  try{const j=await rvCall({action:'reviewsave',folderId:rvCur.folderId,received:val('rvRecv'),planned:val('rvPlan'),staff:val('rvStaff'),
+      result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,message:$('rvMsgTxt').value.trim(),note:val('rvNote'),notify:$('rvNotify').checked});
+    const i=rvList.findIndex(x=>x.folderId===rvCur.folderId);if(i>=0)rvList[i]=j.item;rvCur=j.item;
+    let docMsg='並在資料夾存一份「公關中心評估意見.docx」。';
+    try{m.innerHTML='<div class="notice info">產生評估意見 Word 檔…</div>';
+      const blob=await buildReviewDocx(j.item,{received:val('rvRecv'),planned:val('rvPlan'),staff:val('rvStaff'),result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,message:$('rvMsgTxt').value.trim()});
+      await rvCall({action:'reviewfile',folderId:rvCur.folderId,data:await toB64(blob)})}
+    catch(e){docMsg=`<br>⚠ 評估意見 Word 檔未能存入資料夾（${esc(e.message)}），請再按一次「送出審核結果」。`}
+    m.innerHTML=`<div class="notice ok">✓ 已儲存，處理狀態：<b>${esc(j.item.status)}</b>。已寫入申請紀錄試算表，${docMsg}${j.mailed?`已寄信通知申請人（${esc(j.item.email)}）。`:$('rvNotify').checked?'（未寄信：申請人 Email 不是校內信箱或今日信件已達上限）':''}</div>`}
+  catch(e){m.innerHTML=`<div class="notice err">儲存失敗：${esc(e.message)}</div>`}
+  $('rvSave').disabled=false}
+async function rvPublish(){
+  const m=$('rvPubMsg');m.textContent='處理中…';
+  try{await rvCall({action:'reviewpub',folderId:rvCur.folderId,link:val('rvPubLink')});
+    rvList=rvList.filter(x=>x.folderId!==rvCur.folderId);m.textContent='✓ 已標記為已上架，已從清單隱藏。';
+    setTimeout(()=>{try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()},900)}
+  catch(e){m.textContent='失敗：'+e.message}}
+async function buildReviewDocx(x,f){
+  const zip=await JSZip.loadAsync(TEMPLATE_B64,{base64:true});
+  const doc=new DOMParser().parseFromString(await zip.file('word/document.xml').async('string'),'application/xml');
+  const body=doc.getElementsByTagNameNS(WNS,'body')[0];
+  const all=[...body.childNodes].filter(n=>n.nodeType===1);
+  const drop=el=>el&&el.parentNode&&el.parentNode.removeChild(el);
+  let i7=all.findIndex(el=>el.localName==='p'&&wtext(el).trim().startsWith('七、'));
+  const iSend=all.findIndex(el=>el.localName==='p'&&wtext(el).trim().startsWith('寄送方式'));
+  if(i7<0)throw new Error('範本缺少第七項');
+  all.forEach((el,k)=>{if(el.localName==='sectPr')return;if(k>=iSend&&k<i7)drop(el)});
+  const tbl=all.slice(i7).find(el=>el.localName==='tbl'),r=kids(tbl,'tr'),cells=tr=>kids(tr,'tc');
+  // 標題下方加上申請資訊
+  const mkP=(text,{bold=false,sz=22,color=''}={})=>{const p=doc.createElementNS(WNS,'w:p'),rr=doc.createElementNS(WNS,'w:r'),rp=doc.createElementNS(WNS,'w:rPr');
+    const fo=doc.createElementNS(WNS,'w:rFonts');['ascii','eastAsia','hAnsi'].forEach(a=>fo.setAttributeNS(WNS,'w:'+a,'標楷體'));rp.appendChild(fo);
+    if(bold)rp.appendChild(doc.createElementNS(WNS,'w:b'));if(color){const c=doc.createElementNS(WNS,'w:color');c.setAttributeNS(WNS,'w:val',color);rp.appendChild(c)}
+    const z=doc.createElementNS(WNS,'w:sz');z.setAttributeNS(WNS,'w:val',String(sz));rp.appendChild(z);
+    const t=doc.createElementNS(WNS,'w:t');t.setAttributeNS('http://www.w3.org/XML/1998/namespace','xml:space','preserve');t.textContent=String(text);
+    rr.append(rp,t);p.appendChild(rr);return p};
+  const h7=all[i7];
+  [['申請編號',x.appId],['申請單位',`${x.unit}　${x.contact}`],['活動或成果名稱',x.eventName],['事件日期',roc(x.eventDate)||'—'],['申請項目',x.categories]]
+    .forEach(([k,v])=>body.insertBefore(mkP(`${k}：${v}`),h7));
+  body.insertBefore(mkP(''),h7);
+  const box=(on,t)=>(on?'■ ':'□ ')+t, rt=f.resultText||'＿＿＿＿';
+  setCell(cells(r[0])[1],[`收件：${roc(f.received)||'＿＿年＿＿月＿＿日'}`,`預定上架：${roc(f.planned)||'＿＿年＿＿月＿＿日'}　　承辦人：${f.staff||'＿＿＿＿'}`]);
+  setCell(cells(r[1])[1],[box(f.result==='return',`退回或改變刊登方式：逾申請期限或已逾新聞時效，改以${f.result==='return'?rt:'＿＿＿＿'}刊登。`),
+    box(f.result==='supplement',`補件：${f.result==='supplement'?rt:'＿＿＿＿＿＿＿＿'}`),box(f.result==='edit','潤修：由公關中心潤修，回傳申請單位確認。'),box(f.result==='asis','照刊：依申請單位提供內容刊登。')]);
+  const ex=(f.extras||[]).find(e=>e[0]==='校外稿'),at=(f.extras||[]).find(e=>e[0]==='派員出席');
+  if(/校外稿/.test(x.categories))setCell(cells(r[2])[1],[`${box(ex&&ex[1].startsWith('同意'),'同意發送對外媒體群組')}　${box(ex&&ex[1].startsWith('改以'),'改以校內稿刊登')}`]);else drop(r[2]);
+  if(/請公關中心協助/.test(x.categories))setCell(cells(r[3])[1],[at&&at[1].startsWith('派員')?`■ ${at[1]}`:'□ 派員（＿＿＿＿）',box(at&&at[1].startsWith('不派員'),'不派員（活動照片及出席媒體名單由申請單位提供）')]);else drop(r[3]);
+  const sectPr=kids(body,'sectPr')[0];
+  if(f.message){body.insertBefore(mkP(''),sectPr);body.insertBefore(mkP('說明：',{bold:true}),sectPr);lines(f.message).forEach(l=>body.insertBefore(mkP(l),sectPr))}
+  body.insertBefore(mkP(''),sectPr);
+  body.insertBefore(mkP(`本評估意見由公關中心審核頁產生（${new Date().toLocaleString('zh-TW',{hour12:false})}），處理狀態：${x.status}。`,{sz:18,color:'808080'}),sectPr);
+  [...body.getElementsByTagNameNS(WNS,'br')].filter(b=>b.getAttributeNS(WNS,'type')==='page').forEach(drop);
+  zip.file('word/document.xml',new XMLSerializer().serializeToString(doc));
+  return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+async function initReview(){
+  document.body.classList.add('review');$('reviewApp').classList.remove('rv-hidden');document.title='公關中心審核｜新聞資訊上架申請';
+  $('rvPinBtn').onclick=async()=>{const p=val('rvPin');if(!p)return;try{localStorage.setItem(RV_KEY,p)}catch{}$('rvLoginMsg').textContent='登入中…';
+    if(await rvLoad()){$('rvLoginMsg').textContent='';const m=decodeURIComponent(location.hash).match(/^#review=([\w-]+)/);if(m)rvOpen(m[1])}else if(rvPin())$('rvLoginMsg').textContent=$('rvMsg').textContent};
+  $('rvPin').onkeydown=e=>{if(e.key==='Enter')$('rvPinBtn').click()};
+  $('rvReload').onclick=rvLoad;
+  $('rvLogout').onclick=()=>{try{localStorage.removeItem(RV_KEY)}catch{}rvList=[];$('rvPin').value='';rvShow('rvLogin')};
+  if(!CONFIG.BACKEND_URL){$('rvMsg').textContent='後端尚未設定。';return}
+  if(!rvPin()){rvShow('rvLogin');return}
+  if(await rvLoad()){const m=decodeURIComponent(location.hash).match(/^#review=([\w-]+)/);if(m)rvOpen(m[1])}}
+$('rvEntry').onclick=e=>{e.preventDefault();location.hash='#review';location.reload()};
+if(/^#review/.test(location.hash))initReview();
+
 </script>
 </body>
 </html>
