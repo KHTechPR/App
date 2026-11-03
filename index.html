@@ -56,6 +56,7 @@ label.chk input{margin-top:5px}
 .counter.bad{color:var(--err)}.counter.ok{color:var(--ok)}
 .notice{border-radius:8px;padding:10px 12px;margin:8px 0;font-size:14.5px}
 .notice.info{background:var(--brand-soft)}
+.notice.ok{background:#e6f4ea;color:#1e6b34}
 .notice.warn{background:var(--warn-soft);color:#5c3b00}
 .notice.err{background:var(--err-soft);color:#6d1712}
 .hidden{display:none!important}
@@ -183,6 +184,8 @@ dialog::backdrop{background:rgba(10,20,40,.35)}
 .result a{display:block;margin-top:6px}
 footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
 @media print{header,.side,.ai-box,button{display:none!important}.layout{display:block}body{background:#fff}}
+.auth-social{background:#fff8e1;border:1px solid #f2d58a;border-radius:8px;padding:8px 10px;margin-bottom:10px}
+.auth-social .hint{margin:2px 0 0 26px}
 </style>
 </head>
 <body>
@@ -287,7 +290,9 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
           </div>
           <div class="hint">隨時提供，由公關中心依排程安排上架日</div></td></tr>
       <tr><th>本校官方 Facebook／Instagram</th>
-        <td><label class="chk"><input type="checkbox" data-cat="fbPre">活動預告（報名、宣傳）</label>
+        <td><div class="auth-social"><label class="chk"><input type="checkbox" id="authSocial">授權公關中心依新聞稿內容撰寫社群貼文</label>
+            <div class="hint">適用已申請校內稿、校外稿或成果報導者；勾選後第五項的貼文內容可免填，由公關中心依新聞稿與照片撰寫。</div></div>
+          <label class="chk"><input type="checkbox" data-cat="fbPre">活動預告（報名、宣傳）</label>
           <input type="date" id="postDate" class="inline-in" title="預定發文日">
           <span class="hint">預定發文日前 3 日　<span class="status" id="st-fbPre"></span></span><br>
           <label class="chk"><input type="checkbox" data-cat="fbPost">活動花絮、成果</label>
@@ -404,13 +409,14 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
   <h2>五、社群素材（申請 Facebook／Instagram 者填寫）</h2>
   <div class="body">
     <table class="form" style="margin-bottom:14px">
-      <tr><th>* 發佈平台<span class="hint">可複選</span></th>
+      <tr><th><span id="platReq">* </span>發佈平台<span class="hint">可複選</span></th>
         <td><label class="chk"><input type="checkbox" name="platform" value="Facebook">Facebook</label>
           <label class="chk"><input type="checkbox" name="platform" value="Instagram">Instagram</label>
           <div class="hint">※ Instagram 以學生事務及校內宣傳為主，其他訊息請選 Facebook。</div></td></tr>
     </table>
     <div class="ai-box" style="margin:0 0 14px">
       <b>AI 協助撰寫貼文（高科iAI）</b> <span class="hint">輸入活動重點，AI 會依勾選的發佈平台產生貼文：FB 版資訊完整，IG 版針對學生族群、簡短活潑並附 hashtag。上方基本資料、預定發文日與相關連結會一併提供給 AI。</span>
+      <div class="notice ok hidden" id="authNote5" style="margin-top:8px">✓ 已授權公關中心依新聞稿內容撰寫社群貼文，<b>下方貼文內容可免填</b>。如有社群專屬資訊（報名連結、抽獎辦法等），可補充在貼文內容。</div>
       <div class="notice info hidden" id="socialFromNews" style="margin-top:8px">✓ 已偵測到第三項新聞稿內容，AI 會以新聞稿為主濃縮改寫成貼文。下方可留空，或補充社群專屬資訊（如報名連結、抽獎辦法、集合時間）。</div>
       <textarea id="socialNotes" style="margin-top:8px;min-height:110px" placeholder="例如：&#10;- 11/20 職涯博覽會，燕巢校區活動中心 10:00–16:00&#10;- 80 家企業、超過 1,000 個職缺&#10;- 現場有履歷健診、模擬面試&#10;- 集點可抽 AirPods"></textarea>
       <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
@@ -423,7 +429,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:20px}
       <div class="hint" style="margin-top:6px">※ 套用後可在「貼文內容」欄直接修改，也可以只複製需要的版本。公關中心仍會依各平台調整文案；活動資訊、日期與連結請再次核對。</div>
     </div>
     <table class="form">
-      <tr><th>* 貼文內容</th><td><textarea id="postText" style="min-height:200px" placeholder="提供貼文文案或重點；含活動名稱、日期、地點等，由公關中心依平台改寫"></textarea></td></tr>
+      <tr><th><span id="postReq">* </span>貼文內容</th><td><textarea id="postText" style="min-height:200px" placeholder="提供貼文文案或重點；含活動名稱、日期、地點等，由公關中心依平台改寫"></textarea></td></tr>
       <tr><th>相關連結</th><td><input type="url" id="postLink" placeholder="如報名網址；無則免填"></td></tr>
       <tr><th>素材<span class="hint">活動預告附確認版圖卡；花絮、成果附照片</span></th>
         <td><label class="small pick-btn"><input type="file" id="assetFiles" accept="image/*" multiple hidden>＋ 選擇圖片</label>
@@ -566,6 +572,7 @@ function parseDate(s){if(!s)return null;const [y,m,d]=s.split('-').map(Number);r
 function diffDays(a,b){return Math.round((a-b)/86400000)}
 const chars=s=>s.replace(/\s/g,'').length;
 function platforms(){return [...document.querySelectorAll('[name=platform]:checked')].map(x=>x.value)}
+function catNames(c){c=c||cats();return [...c.map(k=>CAT_NAME[k]),...($('authSocial')&&$('authSocial').checked?['授權撰寫社群貼文']:[])]}
 function cats(){return [...document.querySelectorAll('[data-cat]')].filter(c=>c.checked).map(c=>c.dataset.cat)}
 
 let items=[];      // 第六項：{photo:info|null, caption:''}
@@ -645,14 +652,14 @@ function uploadNote(){
   const c=cats(),plat=platforms();
   const caps=items.map((x,i)=>x.photo||x.caption.trim()?`圖${i+1}${x.photo?`（${x.photo.name}）`:''}：${x.caption.trim()||'（未填圖說）'}`:'').filter(Boolean);
   const as=assets.map((p,i)=>`素材${i+1}：${p.name}`);
-  return ['【新申請】',`申請項目：${c.map(k=>CAT_NAME[k]).join('、')||'（未勾選）'}`,plat.length?`發佈平台：${plat.join('、')}`:'',
+  return ['【新申請】',`申請項目：${catNames(c).join('、')||'（未勾選）'}`,plat.length?`發佈平台：${plat.join('、')}`:'',
     val('title')?`新聞標題：${val('title')}`:'','',caps.length?'【照片與圖說】':'',...caps,as.length?'':'',as.length?'【社群素材】':'',...as].filter((x,i,a)=>x!==''||(a[i-1]&&a[i-1]!=='')).join('\n').trim();
 }
 async function uploadAll(progress,meta){
   if(uploaded&&uploaded.sig===fileSig()+(meta?'F':''))return uploaded;
   const list=filesToUpload();
   const f=revising&&!meta?{folderId:revising.folderId,token:revising.token,url:revising.url||'',appId:revising.appId||''}
-    :await gas(meta||{action:'folder',unit:val('unit'),eventName:val('eventName'),eventDate:val('eventDate'),contact:`${val('cName')}（${val('cPhone')}）`,contactName:val('cName'),email:val('cEmail'),categories:cats().map(k=>CAT_NAME[k]).join('、'),note:uploadNote()});
+    :await gas(meta||{action:'folder',unit:val('unit'),eventName:val('eventName'),eventDate:val('eventDate'),contact:`${val('cName')}（${val('cPhone')}）`,contactName:val('cName'),email:val('cEmail'),categories:catNames().join('、'),note:uploadNote()});
   const pre=revising&&!meta?'修訂'+new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'')+'_':'';
   for(let i=0;i<list.length;i++){const {p,prefix}=list[i];progress(`上傳檔案 ${i+1}／${list.length}：${p.name}`);
     await gas({action:'file',folderId:f.folderId,token:f.token,name:pre+prefix+p.name,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)})}
@@ -727,7 +734,7 @@ function snapshot(){
     if(el.type==='checkbox'||el.type==='radio'){const k=el.id||(el.dataset.cat?'cat:'+el.dataset.cat:(el.name?el.name+':'+el.value:''));if(k&&k!=='mode:new'&&k!=='mode:fast')c[k]=el.checked}
     else if(el.id)v[el.id]=el.value});
   return {v,c,items:items.map(x=>({caption:x.caption,cloud:x.cloud||''})),
-    meta:{appId:(revising||uploaded||{}).appId||'',unit:val('unit'),contact:val('cName'),email:val('cEmail'),eventName:val('eventName'),categories:cats().map(k=>CAT_NAME[k]).join('、')}};
+    meta:{appId:(revising||uploaded||{}).appId||'',unit:val('unit'),contact:val('cName'),email:val('cEmail'),eventName:val('eventName'),categories:catNames().join('、')}};
 }
 function restore(d){
   Object.entries(d.v||{}).forEach(([id,val])=>{const el=$(id);if(el&&el.type!=='file')el.value=val});
@@ -786,7 +793,9 @@ function check(){
   const needS4=c.includes('notice')||c.includes('staff');
   $('sec3').classList.toggle('hidden',!needS3);
   $('sec4').classList.toggle('hidden',!needS4);
-  $('sec5').classList.toggle('hidden',!isSocial);
+  const authS=$('authSocial').checked;
+  $('sec5').classList.toggle('hidden',!(isSocial||authS));
+  $('authNote5').classList.toggle('hidden',!authS);$('postReq').classList.toggle('hidden',authS);$('platReq').classList.toggle('hidden',!isSocial);
   $('socialFromNews').classList.toggle('hidden',!(isSocial&&needS3&&chars($('body').value)>=50));
   $('sec6').classList.toggle('hidden',!(isNews||c.includes('fbPost')));
   $('secConfirm').classList.toggle('hidden',!c.length);
@@ -872,8 +881,9 @@ function check(){
   }
 
   /* 五、社群 */
+  if(authS&&!c.some(x=>NEWS_CATS.includes(x)))E.push('授權公關中心撰寫社群貼文，需同時申請校內稿、校外稿或成果報導');
   if(isSocial&&!platforms().length)E.push('請勾選發佈平台（Facebook／Instagram）');
-  if(isSocial&&!val('postText'))E.push('請填貼文內容或重點');
+  if(isSocial&&!authS&&!val('postText'))E.push('請填貼文內容或重點');
   if(isSocial&&/○○/.test(val('postText')))W.push('貼文內容仍有「○○」待補資訊');
 
   /* 六、照片圖說 */
@@ -922,7 +932,7 @@ function collect(){
   const c=cats();
   return {
     submittedAt:new Date().toISOString(),cats:c,
-    categories:c.map(k=>CAT_NAME[k]),
+    categories:catNames(c),authSocial:$('authSocial').checked,
     groups:[...(c.some(x=>NEWS_CATS.includes(x))?['news']:[]),...(c.some(x=>SOCIAL_CATS.includes(x))?['social']:[])],
     externalReason:val('externalReason'),staffNeeds:val('staffNeeds'),
     resultTypes:[...document.querySelectorAll('[name=resultType]:checked')].map(x=>x.value==='其他'?'其他：'+val('resultOther'):x.value),
@@ -950,7 +960,7 @@ ${row('申請項目',d.categories.join('、'))}${row('校外稿理由',d.externa
 ${row('申請單位',d.unit)}${row('聯絡窗口',`${d.contact.name}／${d.contact.phone}／${d.contact.email}`)}${row('活動或成果名稱',d.eventName)}${row('事件日期',d.eventDate)}${row('事件地點',d.eventPlace)}
 ${row('新聞標題',d.title)}${row('事件亮點',d.highlights.map((h,i)=>`${i+1}. ${h}`).join('\n'))}${row('出席貴賓',d.guests)}${row('初稿內文',d.body)}${row('修改授權',d.auth+(d.authNote?'（'+d.authNote+'）':''))}
 ${row('活動流程',d.flow)}${row('活動結束時間',d.endTime)}${row('出席貴賓（採訪）',d.guests4)}${row('計畫名稱',d.project)}${row('採訪重點',d.focus.map((h,i)=>`${i+1}. ${h}`).join('\n'))}${row('現場聯絡人',d.site.name?`${d.site.name}／${d.site.phone}`:'')}
-${row('發佈平台',d.platforms.join('、'))}${row('貼文內容',d.postText)}${row('相關連結',d.postLink)}${row('素材',d.assets)}
+${row('社群貼文',d.authSocial?'授權公關中心依新聞稿內容撰寫':'')}${row('發佈平台',d.platforms.join('、'))}${row('貼文內容',d.postText)}${row('相關連結',d.postLink)}${row('素材',d.assets)}
 ${row('照片連結',d.photoLink)}${row('圖說',d.figures.map(f=>`圖${f.no} ${f.caption}`).join('\n'))}
 ${row('系統檢核提醒',d.warnings.join('\n'))}
 </table>`;
@@ -1237,7 +1247,7 @@ async function buildDocx(d){
   const drop=el=>el&&el.parentNode&&el.parentNode.removeChild(el);
   const dropSection=k=>{if(sec[k])sec[k].els.forEach(drop);delete sec[k]};
   const has=k=>c.includes(k);
-  const isNews=c.some(x=>NEWS_CATS.includes(x)),isSocial=c.some(x=>SOCIAL_CATS.includes(x));
+  const isNews=c.some(x=>NEWS_CATS.includes(x)),isSocial=c.some(x=>SOCIAL_CATS.includes(x)),authS=!!d.authSocial;
 
   // 寄送方式
   {const r=rows('寄送方式');if(!isNews)drop(r[1]);if(!isSocial)drop(r[2])}
@@ -1251,7 +1261,8 @@ async function buildDocx(d){
       if(has('staff')){a.push(`■ 請公關中心協助（協助項目：${d.staffNeeds}）`);b.push('事件日前 21 日')}
       setCell(cells(r[3])[1],a);setCell(cells(r[3])[2],b)}else drop(r[3]);
     if(has('result')){setCell(cells(r[4])[1],[d.resultTypes.map(x=>'■ '+x).join('　')]);setCell(cells(r[4])[2],['隨時提供'])}else drop(r[4]);
-    if(isSocial){const a=[],b=[];
+    if(isSocial||authS){const a=[],b=[];
+      if(authS){a.push('■ 授權公關中心依新聞稿內容撰寫社群貼文');b.push('隨新聞稿')}
       if(has('fbPre')){a.push(`■ 活動預告（預定發文日：${roc(d.postDate)}）`);b.push('預定發文日前 3 日')}
       if(has('fbPost')){a.push('■ 活動花絮、成果');b.push('事件日後 1 日內')}
       if(has('fbBig')){a.push('■ 大型企劃（直播、短影音、抽獎、系列宣傳）');b.push('事件日前 30 日')}
@@ -1286,8 +1297,9 @@ async function buildDocx(d){
   }else dropSection('四、');
 
   // 五、社群素材
-  if(isSocial){const r=rows('五、');
-    setCell(cells(r[0])[1],[`發佈平台：${['Facebook','Instagram'].map(p=>(d.platforms.includes(p)?'■ ':'□ ')+p).join('　')}`,...lines(d.postText)]);
+  if(isSocial||authS){const r=rows('五、');
+    setCell(cells(r[0])[1],[...(authS?['■ 授權公關中心依新聞稿內容撰寫社群貼文（素材使用第六項照片）']:[]),
+      ...(isSocial||d.platforms.length?[`發佈平台：${['Facebook','Instagram'].map(p=>(d.platforms.includes(p)?'■ ':'□ ')+p).join('　')}`]:[]),...lines(d.postText)]);
     if(d.postLink)setCell(cells(r[1])[1],[d.postLink]);else drop(r[1]);
     if(d.assets)setCell(cells(r[2])[1],[d.assets]);else drop(r[2]);
   }else dropSection('五、');
