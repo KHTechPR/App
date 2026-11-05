@@ -206,6 +206,17 @@ body.review .layout{display:none!important}
 #submitBtn.sent{background:#e6f4ea!important;color:#1e6b34!important;border:1px solid #a8d5b5!important;opacity:1!important;cursor:default}
 .next-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .next-acts button{background:#fff;border:1px solid var(--brand);color:var(--brand);border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer}
+.ed-dlg{max-width:860px}
+.ed-tabs{display:flex;gap:6px;align-items:center;padding:10px 16px 0}
+.ed-tabs button{border-radius:16px;padding:6px 14px;font-size:14px;background:var(--brand-soft);border:0;cursor:pointer}
+.ed-tabs button.on{background:var(--brand);color:#fff}.ed-tabs .hint{margin-left:auto}
+.ed-body{background:#fff}.ed-body label{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
+.ed-body textarea.ed-main{min-height:300px;line-height:1.8}
+.ed-sec{font-size:13px;color:var(--muted);margin:14px 0 4px}.ed-sec:first-child{margin-top:0}
+.ed-txt{white-space:pre-wrap;line-height:1.9;font-size:15px;border:1px solid var(--line,#e5e7eb);border-radius:8px;padding:8px 10px}
+.ed-txt del{color:#b42318;background:#fde8e6}.ed-txt ins{color:#0d5c32;background:#dcf3e4;text-decoration:underline}
+.ed-note{background:var(--brand-soft);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14px}
+.q-left{font-weight:700;color:var(--brand)}.q-left.out{color:var(--err)}
 </style>
 </head>
 <body>
@@ -243,6 +254,15 @@ body.review .layout{display:none!important}
   </div></section>
   <p style="text-align:center"><a href="./" class="hint">← 回申請表</a></p>
 </div>
+<dialog id="edDlg" class="pv-dlg ed-dlg">
+  <div class="pv-head"><b>✏️ 修改稿件</b><span class="hint" id="edTitle"></span><button type="button" class="dlg-x" id="edClose" aria-label="關閉">×</button></div>
+  <div class="ed-tabs"><button type="button" data-v="edit" class="on">編輯</button><button type="button" data-v="diff">修訂對照</button><span class="hint" id="edCount"></span></div>
+  <div class="pv-body ed-body">
+    <div id="edEdit"></div>
+    <div id="edDiff" class="hidden"></div>
+  </div>
+  <div class="pv-foot"><span class="hint">修訂者：<b id="edWho"></b>　紅色刪除線＝刪除、綠色底線＝新增</span><button type="button" id="edReset" class="small">還原成原稿</button><button type="button" id="edCancel">取消</button><button type="button" id="edSave" class="pv-ok">儲存修訂稿</button></div>
+</dialog>
 
 <div class="layout">
 <main id="form">
@@ -273,8 +293,8 @@ body.review .layout{display:none!important}
     <div id="ftNext" class="hidden" style="margin-top:12px">
       <p class="hint" style="margin:0 0 6px"><b>步驟 2｜你要做什麼？</b></p>
       <div class="mode-pick">
-        <label class="mode-opt"><input type="radio" name="ftAction" value="photos" checked><span><b>補傳照片／圖片</b><br><span class="hint">照片會放進原申請的同一個雲端資料夾</span></span></label>
-        <label class="mode-opt"><input type="radio" name="ftAction" value="revise"><span><b>修改原申請內容</b><br><span class="hint">載入原本填寫的新聞稿、貼文等內容，修改後重新送出</span></span></label>
+        <label class="mode-opt"><input type="radio" name="ftAction" value="photos" checked><span><b>補傳照片／圖片</b><br><span class="hint">照片會放進原申請的同一個雲端資料夾</span><br><span class="hint q-left" id="qPhoto"></span></span></label>
+        <label class="mode-opt"><input type="radio" name="ftAction" value="revise"><span><b>修改原申請內容</b><br><span class="hint">載入原本填寫的新聞稿、貼文等內容，修改後重新送出</span><br><span class="hint q-left" id="qRevise"></span></span></label>
       </div>
       <table class="form" style="margin-top:10px" id="ftNoteRow"><tr><th>補充說明</th><td><textarea id="ftNote" style="min-height:60px" placeholder="例如：本次補 5 張活動照片"></textarea></td></tr></table>
     </div>
@@ -737,12 +757,20 @@ let SENT=null;
 let bound=null;     // 補件模式連結的原申請 {appId,folderId,token,url,unit,contact,email,eventName,categories}
 let revising=null;  // 正在修改的原申請（同上）
 const kindsOf=cs=>{const t=String(cs||'');const k=[];if(/校內稿|校外稿|採訪|請公關中心協助|成果報導/.test(t))k.push('news');if(/FB|IG|Facebook|Instagram/.test(t))k.push('social');return k.length?k:['news']};
+async function loadQuota(){
+  const b=bound;['qPhoto','qRevise'].forEach(k=>{$(k).textContent='';$(k).classList.remove('out')});
+  try{const j=await gas({action:'quota',folderId:b.folderId,token:b.token});if(bound!==b)return;const q=j.quota;bound.quota=q;
+    const set=(id,used,max,val)=>{const left=Math.max(0,max-used),el=$(id),inp=document.querySelector(`[name=ftAction][value=${val}]`);
+      el.textContent=left?`可再${val==='revise'?'修改':'補傳'} ${left} 次（共 ${max} 次）`:`已用完 ${max} 次，如需再${val==='revise'?'修改':'補件'}請聯絡承辦人`;el.classList.toggle('out',!left);
+      inp.disabled=!left;if(!left&&inp.checked){const o=document.querySelector(`[name=ftAction]:not([value=${val}])`);if(o&&!o.disabled)o.checked=true}};
+    set('qPhoto',q.photo,q.photoMax,'photos');set('qRevise',q.revise,q.reviseMax,'revise');check()}catch(e){}}
 function showBound(){
   const on=!!bound;
   $('ftBound').classList.toggle('hidden',!on);$('ftNext').classList.toggle('hidden',!on);
   $('ftFind').classList.toggle('hidden',on);$('ftManualBox').classList.toggle('hidden',on);
   if(on)$('ftBound').innerHTML=`✓ 已連結原申請：<b>${esc(bound.eventName)}</b>（${esc(bound.unit)}${bound.appId?'，申請編號 '+esc(bound.appId):''}${bound.created?'，'+esc(bound.created):''}）<button type="button" class="linkbtn" id="ftUnbind">換一件</button>`;
   if(on)$('ftUnbind').onclick=()=>{bound=null;uploaded=null;showBound();check()};
+  if(on&&bound.token)loadQuota();
 
   check();
 }
@@ -792,7 +820,7 @@ function restore(d){
 }
 async function startRevise(){
   const res=$('result');res.innerHTML='<div class="notice info">正在載入原申請內容…</div>';
-  try{const j=await gas({action:'loaddata',folderId:bound.folderId,token:bound.token});
+  try{const j=await gas({action:'loaddata',folderId:bound.folderId,token:bound.token,purpose:'revise'});
     revising={...bound};restore(j.data);
     document.querySelector('[name=mode][value=new]').checked=true;setMode();
     $('reviseBanner').innerHTML=`✏️ <b>正在修改原申請：${esc(revising.eventName)}</b>${revising.appId?'（編號 '+esc(revising.appId)+'）':''}<br>原本的內容已載入，可直接修改。原先上傳的照片已在雲端，不需要重新上傳，也可以再加新照片。改好後按右側「送出修訂版申請」，系統會存入同一個資料夾並通知承辦人。<button type="button" class="linkbtn" id="reviseCancel">取消修改</button>`;
@@ -806,6 +834,7 @@ function checkFast(){
   const manual=!bound&&$('ftManualBox').open;
   const act=document.querySelector('[name=ftAction]:checked')?.value||'photos';
   if(!bound&&!manual)E.push('請先查詢並點選你的原申請（或展開下方手動填寫）');
+  if(bound&&bound.quota){const q=bound.quota;if(act==='photos'&&q.photo>=q.photoMax)E.push('補傳照片次數已用完，請聯絡承辦人');if(act==='revise'&&q.revise>=q.reviseMax)E.push('修改次數已用完，請聯絡承辦人')}
   if(manual){
     if(!ftKinds().length)E.push('請勾選原申請項目');
     [['ftUnit','申請單位'],['ftName','聯絡窗口姓名'],['ftEmail','聯絡窗口 Email'],['ftEvent','原申請活動名稱']].forEach(([id,n])=>{if(!val(id))E.push(`請填${n}`)});
@@ -1816,6 +1845,8 @@ async function rvOpen(folderId){
     <tr><th>申請項目</th><td>${esc(x.categories)}</td></tr>
     <tr><th>事件日期</th><td>${esc(rocD(x.eventDate))||'—'}　<span class="hint">申請送出：${esc(rocD(x.created))}${x.follow?`；補件／修改 ${x.follow} 次`:''}</span></td></tr>
     <tr><th>資料</th><td><a href="${esc(x.url)}" target="_blank" rel="noopener">📁 雲端資料夾</a>${j.docs.map(d=>`　<a href="${esc(d.url)}" target="_blank" rel="noopener">📄 ${esc(d.name)}</a>`).join('')}${j.photoCount?`<span class="hint">　照片 ${j.photoCount} 張</span>`:''}</td></tr>
+    <tr><th>申請人補件／修改</th><td id="rvQuota">${rvQuotaHtml(j.quota)}</td></tr>
+    <tr><th>稿件</th><td><button type="button" class="small" id="rvEditBtn">✏️ 修改稿件（追蹤修訂）</button><div id="rvEditInfo" class="hint" style="margin-top:6px"></div></td></tr>
   </table>
   <h3 style="margin:14px 0 8px">七、公關中心評估意見</h3>
   <table class="form">
@@ -1837,6 +1868,7 @@ async function rvOpen(folderId){
     <tr><th>內部備註</th><td><input type="text" id="rvNote" value="${esc(x.note)}" placeholder="申請人看不到"></td></tr>
   </table>
   <label class="chk" style="margin:10px 0"><input type="checkbox" id="rvNotify" checked>寄信通知申請人審核結果（${esc(x.email)}）</label><br>
+  <label class="chk hidden" id="rvAttachWrap" style="margin:0 0 10px 24px"><input type="checkbox" id="rvAttach" checked>信件附上修訂稿（追蹤修訂版＋修訂後定稿）</label>
   <button type="button" class="primary" id="rvSave" style="max-width:240px">送出審核結果</button>
   <div id="rvSaveMsg" style="margin-top:8px"></div>
   <div style="border-top:1px solid var(--line,#e5e7eb);margin:20px 0 12px"></div>
@@ -1848,7 +1880,8 @@ async function rvOpen(folderId){
   $('rvBack').onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()};
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
   $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
-  $('rvSave').onclick=rvSave;$('rvPub').onclick=rvPublish}
+  $('rvSave').onclick=rvSave;$('rvPub').onclick=rvPublish;
+  $('rvEditBtn').onclick=edOpen;edLoad(folderId);rvQuotaBind()}
 async function rvSave(){
   const r=(document.querySelector('[name=rvRes]:checked')||{}).value,m=$('rvSaveMsg');
   if(!r){m.innerHTML='<div class="notice err">請選擇評估結果。</div>';return}
@@ -1858,7 +1891,7 @@ async function rvSave(){
   if(at)extras.push(['派員出席',at.value==='yes'?`派員（${val('rvAttWho')||'＿＿'}）`:'不派員（活動照片及出席媒體名單由申請單位提供）']);
   $('rvSave').disabled=true;m.innerHTML='<div class="notice info">送出中…</div>';
   try{const j=await rvCall({action:'reviewsave',folderId:rvCur.folderId,received:val('rvRecv'),planned:val('rvPlan'),staff:val('rvStaff'),
-      result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,message:$('rvMsgTxt').value.trim(),note:val('rvNote'),notify:$('rvNotify').checked});
+      result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,attachEdits:!!(ED.saved&&$('rvAttach').checked),message:$('rvMsgTxt').value.trim(),note:val('rvNote'),notify:$('rvNotify').checked});
     const i=rvList.findIndex(x=>x.folderId===rvCur.folderId);if(i>=0)rvList[i]=j.item;rvCur=j.item;
     let docMsg='並在資料夾存一份「公關中心評估意見.docx」。';
     try{m.innerHTML='<div class="notice info">產生評估意見 Word 檔…</div>';
@@ -1912,6 +1945,115 @@ async function buildReviewDocx(x,f){
   zip.file('word/document.xml',new XMLSerializer().serializeToString(doc));
   return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
 }
+/* ===== 修改稿件（追蹤修訂） ===== */
+const ED={orig:null,edits:null,saved:null,view:'edit',folderId:''};
+const ED_FIELDS=[['title','新聞標題'],['hl1','重點 1'],['hl2','重點 2'],['hl3','重點 3'],['body','內文']];
+function edFromData(d){const v=(d&&d.v)||{};const o={};ED_FIELDS.forEach(([k])=>o[k]=String(v[k]||''));o.caps=((d&&d.items)||[]).map(x=>String(x.caption||''));return o}
+async function edLoad(folderId){
+  ED.orig=null;ED.edits=null;ED.saved=null;ED.folderId=folderId;$('rvEditInfo').textContent='讀取稿件中…';
+  try{const j=await rvCall({action:'reviewdata',folderId});
+    ED.orig=j.data?edFromData(j.data):null;ED.edits=j.edits&&j.edits.text?j.edits:null;
+    if(ED.edits){ED.saved=ED.edits;if(!ED.orig&&ED.edits.orig)ED.orig=ED.edits.orig}
+    edInfo()}catch(e){$('rvEditInfo').textContent='稿件讀取失敗：'+e.message}}
+function edInfo(){
+  const el=$('rvEditInfo');if(!el)return;
+  if(!ED.orig)el.textContent='這件申請沒有線上稿件內容（可能是舊版或補件），可開啟後自行貼上稿件再修改。';
+  else if(ED.saved){el.innerHTML=`📝 已存修訂稿：${ED.saved.changes} 處修改（${esc(ED.saved.by||'')}，${esc(ED.saved.at||'')}）。資料夾內有「追蹤修訂」與「修訂後定稿」兩個 Word 檔。`}
+  else el.textContent=ED.orig.body||ED.orig.title?'可直接修改申請人的標題、重點、內文與圖說，儲存後產生追蹤修訂 Word 檔。':'這件申請沒有新聞稿內容（可能只申請社群貼文）。';
+  $('rvAttachWrap').classList.toggle('hidden',!ED.saved)}
+function edCur(){const o={};ED_FIELDS.forEach(([k])=>o[k]=($('ed_'+k)||{}).value||'');o.caps=[...document.querySelectorAll('.ed-cap')].map(x=>x.value);return o}
+function edOpen(){
+  const base=ED.orig||{title:'',hl1:'',hl2:'',hl3:'',body:'',caps:[]};const cur=(ED.saved&&ED.saved.text)||base;
+  $('edTitle').textContent=`${rvCur.appId}　${rvCur.eventName}`;$('edWho').textContent=edAuthor();
+  $('edEdit').innerHTML=(ED.orig?'':'<div class="ed-note">這件申請沒有線上稿件。請先把原稿貼進下方並按「儲存修訂稿」，再重新開啟進行修改，系統才能比對出追蹤修訂。</div>')+
+    ED_FIELDS.map(([k,n])=>`<label>${n}</label>${k==='body'?`<textarea id="ed_${k}" class="ed-main">${esc(cur[k]||'')}</textarea>`:`<input type="text" id="ed_${k}" value="${esc(cur[k]||'')}">`}`).join('')+
+    ((cur.caps||[]).length?`<label>圖說</label>`+cur.caps.map((c,i)=>`<input type="text" class="ed-cap" data-i="${i}" value="${esc(c)}" placeholder="圖${i+1}" style="margin-bottom:6px">`).join(''):'')+
+    `<label>修改說明（選填，會放進給申請人的說明）</label><input type="text" id="ed_note" value="${esc((ED.saved&&ED.saved.note)||'')}" placeholder="例如：標題精簡、補上合作期程">`;
+  ED.view='edit';edTab();$('edDlg').showModal();
+  $('edEdit').oninput=()=>edCount()}
+function edAuthor(){return '公關中心'+(val('rvStaff')?' '+val('rvStaff'):'')}
+function edTab(){document.querySelectorAll('.ed-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===ED.view));
+  $('edEdit').classList.toggle('hidden',ED.view!=='edit');$('edDiff').classList.toggle('hidden',ED.view!=='diff');
+  if(ED.view==='diff')edRenderDiff();edCount()}
+function edOrigBase(){return ED.orig||(ED.saved&&ED.saved.orig)||null}
+function edPairs(){const a=edOrigBase(),b=edCur();const o=a||b;
+  const P=ED_FIELDS.map(([k,n])=>[n,o[k]||'',b[k]||'']);(b.caps||[]).forEach((c,i)=>P.push([`圖${i+1} 圖說`,(o.caps||[])[i]||'',c]));return P}
+function edCount(){const n=edPairs().reduce((s,[,a,b])=>s+diffText(a,b).filter(x=>x[0]!==0).length,0);$('edCount').textContent=n?`已修改 ${n} 處`:'尚未修改';return n}
+function edRenderDiff(){
+  $('edDiff').innerHTML=edPairs().filter(([,a,b])=>a||b).map(([n,a,b])=>`<div class="ed-sec">${esc(n)}</div><div class="ed-txt">${diffText(a,b).map(([t,x])=>t===0?esc(x):t<0?`<del>${esc(x)}</del>`:`<ins>${esc(x)}</ins>`).join('')}</div>`).join('')||'<p class="hint">沒有內容。</p>'}
+/* 字元層級 diff（Myers），再合併零碎片段 */
+function diffText(a,b){
+  a=String(a||'');b=String(b||'');if(a===b)return a?[[0,a]]:[];
+  let p=0;while(p<a.length&&p<b.length&&a[p]===b[p])p++;
+  let q=0;while(q<a.length-p&&q<b.length-p&&a[a.length-1-q]===b[b.length-1-q])q++;
+  const A=[...a.slice(p,a.length-q)],B=[...b.slice(p,b.length-q)],N=A.length,M=B.length,MAX=N+M,V={1:0},trace=[];
+  let done=false;
+  if(N*M>4e6||(N+M)>12000){const r=[];if(p)r.push([0,a.slice(0,p)]);if(N)r.push([-1,A.join('')]);if(M)r.push([1,B.join('')]);if(q)r.push([0,a.slice(a.length-q)]);return r}
+  for(let d=0;d<=MAX&&!done;d++){if(d>1500){const r=[];if(p)r.push([0,a.slice(0,p)]);if(N)r.push([-1,A.join('')]);if(M)r.push([1,B.join('')]);if(q)r.push([0,a.slice(a.length-q)]);return r}trace.push({...V});
+    for(let k=-d;k<=d;k+=2){let x=(k===-d||(k!==d&&V[k-1]<V[k+1]))?V[k+1]:V[k-1]+1,y=x-k;
+      while(x<N&&y<M&&A[x]===B[y]){x++;y++}V[k]=x;if(x>=N&&y>=M){done=true;break}}}
+  const ops=[];let x=N,y=M;
+  for(let d=trace.length-1;d>=0;d--){const Vd=trace[d],k=x-y;
+    const pk=(k===-d||(k!==d&&Vd[k-1]<Vd[k+1]))?k+1:k-1,px=Vd[pk]===undefined?0:Vd[pk],py=px-pk;
+    while(x>px&&y>py){ops.push([0,A[x-1]]);x--;y--}
+    if(d>0){if(x===px)ops.push([1,B[y-1]]);else ops.push([-1,A[x-1]])}x=px;y=py}
+  ops.reverse();
+  let segs=[];if(p)segs.push([0,a.slice(0,p)]);
+  ops.forEach(([t,c])=>{const L=segs[segs.length-1];if(L&&L[0]===t)L[1]+=c;else segs.push([t,c])});
+  if(q){const L=segs[segs.length-1];if(L&&L[0]===0)L[1]+=a.slice(a.length-q);else segs.push([0,a.slice(a.length-q)])}
+  // 夾在兩段修改中間、只有 1–2 個字的相同片段併入修改，讀起來比較像人工修訂
+  for(let i=1;i<segs.length-1;i++){if(segs[i][0]===0&&segs[i][1].length<=2&&!/\n/.test(segs[i][1])&&segs[i-1][0]!==0&&segs[i+1][0]!==0){
+    const e=segs[i][1];segs.splice(i,1,[-1,e],[1,e]);i++}}
+  const out=[];let del='',ins='';const flush=()=>{if(del)out.push([-1,del]);if(ins)out.push([1,ins]);del='';ins=''};
+  segs.forEach(([t,c])=>{if(t===0){flush();const L=out[out.length-1];if(L&&L[0]===0)L[1]+=c;else out.push([0,c])}else if(t<0)del+=c;else ins+=c});flush();
+  return out}
+/* 產生 Word：追蹤修訂版（w:ins／w:del）或定稿 */
+function edDocx(mode){
+  const X=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const who=X(edAuthor()),when=new Date().toISOString().replace(/\.\d+Z$/,'Z');let rid=1;
+  const rpr=(b,sz)=>`<w:rPr><w:rFonts w:ascii="標楷體" w:eastAsia="標楷體" w:hAnsi="標楷體"/>${b?'<w:b/>':''}<w:sz w:val="${sz||24}"/></w:rPr>`;
+  const run=(t,kind)=>{if(!t)return '';const r=`<w:r>${rpr()}<w:${kind===-1?'delText':'t'} xml:space="preserve">${X(t)}</w:${kind===-1?'delText':'t'}></w:r>`;
+    return kind===1?`<w:ins w:id="${rid++}" w:author="${who}" w:date="${when}">${r}</w:ins>`:kind===-1?`<w:del w:id="${rid++}" w:author="${who}" w:date="${when}">${r.replace('<w:r>','<w:r>')}</w:del>`:r};
+  const para=(inner,mark)=>`<w:p><w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/>${mark?`<w:rPr><w:${mark===1?'ins':'del'} w:id="${rid++}" w:author="${who}" w:date="${when}"/></w:rPr>`:''}</w:pPr>${inner}</w:p>`;
+  const plain=(t,b,sz)=>`<w:p><w:pPr><w:spacing w:after="80"/></w:pPr><w:r>${rpr(b,sz)}<w:t xml:space="preserve">${X(t)}</w:t></w:r></w:p>`;
+  const tracked=segs=>{let out='',cur='';segs.forEach(([t,c])=>{const parts=c.split('\n');parts.forEach((pt,i)=>{cur+=run(pt,t);if(i<parts.length-1){out+=para(cur,t===0?0:t);cur=''}})});return out+para(cur,0)};
+  const clean=t=>String(t).split('\n').map(l=>para(run(l,0),0)).join('');
+  let body=plain(mode==='tracked'?'新聞稿修訂稿（追蹤修訂）':'新聞稿修訂後定稿',true,32)+
+    plain(`申請編號：${rvCur.appId}　活動或成果名稱：${rvCur.eventName}`,false,20)+plain(`申請單位：${rvCur.unit}　修訂：${edAuthor()}　${new Date().toLocaleDateString('zh-TW')}`,false,20)+
+    (mode==='tracked'?plain('（請用 Word 開啟，於「校閱」→「接受／拒絕」逐條確認修改。）',false,18):'')+plain('',false,20);
+  edPairs().filter(([,a,b])=>a||b).forEach(([n,a,b])=>{body+=plain(n,true,24)+(mode==='tracked'?tracked(diffText(a,b)):clean(b))});
+  const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="851" w:footer="992" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const z=new JSZip();
+  z.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>');
+  z.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  z.file('word/_rels/document.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>');
+  z.file('word/settings.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">${mode==='tracked'?'<w:trackRevisions/>':''}</w:settings>`);
+  z.file('word/document.xml',doc);
+  return z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'})}
+async function edSave(){
+  const btn=$('edSave');const n=edCount();
+  if(!ED.orig){const c=edCur();ED.orig=c}   // 沒有線上稿件：貼上的內容當原稿
+  btn.disabled=true;btn.textContent='儲存中…';
+  try{const text=edCur(),note=val('ed_note');
+    const rec={orig:edOrigBase(),text,note,changes:edCount(),by:edAuthor(),at:new Date().toLocaleString('zh-TW',{hour12:false})};
+    await rvCall({action:'reviewfile',folderId:ED.folderId,name:'新聞稿_修訂稿（追蹤修訂）.docx',data:await toB64(await edDocx('tracked'))});
+    await rvCall({action:'reviewfile',folderId:ED.folderId,name:'新聞稿_修訂後定稿.docx',data:await toB64(await edDocx('clean'))});
+    await rvCall({action:'reviewfile',folderId:ED.folderId,name:'公關修訂稿.json',data:b64text(JSON.stringify(rec))});
+    ED.saved=rec;edInfo();$('edDlg').close();
+    if(rec.changes){const e=document.querySelector('[name=rvRes][value=edit]');if(e&&!document.querySelector('[name=rvRes]:checked'))e.checked=true}
+    if(note&&!$('rvMsgTxt').value.includes(note))$('rvMsgTxt').value=($('rvMsgTxt').value?$('rvMsgTxt').value+'\n':'')+note;
+    $('rvSaveMsg').innerHTML='<div class="notice ok">✓ 修訂稿已存入資料夾。完成評估後按「送出審核結果」，通知信會附上修訂稿。</div>'}
+  catch(e){alertBox('儲存失敗：'+e.message)}
+  btn.disabled=false;btn.textContent='儲存修訂稿'}
+function alertBox(m){$('edCount').textContent=m}
+document.querySelectorAll('.ed-tabs button').forEach(b=>b.onclick=()=>{ED.view=b.dataset.v;edTab()});
+$('edSave').onclick=edSave;$('edCancel').onclick=$('edClose').onclick=()=>$('edDlg').close();
+$('edReset').onclick=()=>{const o=edOrigBase();if(!o)return;ED_FIELDS.forEach(([k])=>{const el=$('ed_'+k);if(el)el.value=o[k]||''});document.querySelectorAll('.ed-cap').forEach((el,i)=>el.value=(o.caps||[])[i]||'');edTab()};
+function rvQuotaHtml(q){if(!q)return '—';
+  const f=(u,m,n,k)=>`${n} <b>${u}／${m}</b> 次${u>=m?' <span style="color:var(--err)">（已用完）</span>':''} <button type="button" class="linkbtn rv-q" data-k="${k}">再開放一次</button>`;
+  return `${f(q.revise,q.reviseMax,'修改內容','revise')}　｜　${f(q.photo,q.photoMax,'補傳照片','photo')}<div class="hint">送出「補件」結果時，系統會自動各多開放一次。</div>`}
+function rvQuotaBind(){document.querySelectorAll('.rv-q').forEach(b=>b.onclick=async()=>{b.disabled=true;
+  try{const j=await rvCall({action:'reviewquota',folderId:rvCur.folderId,kind:b.dataset.k});$('rvQuota').innerHTML=rvQuotaHtml(j.quota);rvQuotaBind()}catch(e){b.textContent='失敗：'+e.message}})}
 async function initReview(){
   document.body.classList.add('review');$('reviewApp').classList.remove('rv-hidden');document.title='公關中心審核｜新聞資訊上架申請';
   $('rvPinBtn').onclick=async()=>{const p=val('rvPin');if(!p)return;try{localStorage.setItem(RV_KEY,p)}catch{}$('rvLoginMsg').textContent='登入中…';
