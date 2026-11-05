@@ -196,12 +196,16 @@ body.review .layout{display:none!important}
 .rv-item:hover{border-color:var(--brand)}
 .rv-meta{font-size:13px;color:var(--muted)}
 .rv-badge{font-size:12px;border-radius:10px;padding:2px 9px;font-weight:700;white-space:nowrap;background:#fce8b2;color:#7a5200}
+.rv-badge.s-已上架{background:#b7e1cd;color:#0d5c32}.rv-pub-btn{background:#1e6b34!important}
 .rv-badge.s-需補件{background:#fad2cf;color:#8a1c12}.rv-badge.s-已核定{background:#ceead6;color:#1e6b34}.rv-badge.s-不予上架{background:#e0e0e0;color:#555}.rv-badge.s-處理中{background:#d2e3fc;color:#174ea6}
 .rv-opt{display:block;border:1px solid var(--line,#d6dbe5);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer}
 .rv-opt:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}
 .rv-opt input[type=text]{display:inline-block;width:auto;min-width:180px;margin-left:4px}
 .rv-late{color:var(--err)}
 .rv-foot-link{color:inherit;opacity:.75;margin-left:8px}
+#submitBtn.sent{background:#e6f4ea!important;color:#1e6b34!important;border:1px solid #a8d5b5!important;opacity:1!important;cursor:default}
+.next-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.next-acts button{background:#fff;border:1px solid var(--brand);color:var(--brand);border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -231,7 +235,7 @@ body.review .layout{display:none!important}
         <div class="rv-tabs" id="rvTabs"></div>
         <div><button type="button" class="small" id="rvReload">重新整理</button> <button type="button" class="small" id="rvLogout">登出</button></div>
       </div>
-      <div class="hint" style="margin:-4px 0 10px">已上架的申請不會顯示在清單中（在試算表或審核頁標記「已上架」後自動隱藏）。</div>
+      <div class="hint" style="margin:-4px 0 10px">已上架的申請只顯示在「已上架」分頁，雲端資料夾會自動移到「已上架／年-月」歸檔。</div>
       <div id="rvList"></div>
     </div>
     <div id="rvDetail" class="rv-hidden"></div>
@@ -256,7 +260,7 @@ body.review .layout{display:none!important}
   <h2>已提送申請：補照片或修改內容</h2>
   <div class="body">
     <div id="ftFind">
-      <p class="hint" style="margin-top:0"><b>步驟 1｜找到你的原申請。</b>最快的方式是點<b>通知信裡的「補件／修改連結」</b>。沒有通知信的話：填入申請時的 Email＋申請編號可立即連結；只填 Email，系統會把你的申請清單和連結寄到你的信箱。</p>
+      <p class="hint" style="margin-top:0"><b>步驟 1｜找到你的原申請。</b>最快的方式是點<b>通知信裡的「補件／修改連結」</b>。沒有通知信的話：填入申請時的 Email＋申請編號可立即連結；只填 Email，系統會把你<b>尚未結案</b>的申請清單和連結寄到你的信箱。</p>
       <div class="find-row">
         <input type="email" id="ftLookupEmail" placeholder="申請時填的 Email（@nkust.edu.tw）">
         <input type="text" id="ftLookupId" placeholder="申請編號（選填，如 1101-AB3K）" style="max-width:220px">
@@ -534,6 +538,7 @@ body.review .layout{display:none!important}
     <div class="tally"><span style="background:var(--err-soft)" id="tE">0 項必須修正</span><span style="background:var(--warn-soft)" id="tW">0 項提醒</span></div>
     <ul id="checkList"></ul>
     <div id="submitWrap" style="position:relative"><button class="primary" id="submitBtn" disabled>送出申請</button><span id="submitCatch" style="position:absolute;inset:10px 0 0 0;cursor:not-allowed" class="hidden"></span></div>
+    <p class="hint main-only" id="submitHint" style="margin:6px 0 0">按下後會先預覽申請表，確認無誤才會送出給公關中心。</p>
     <div class="result" id="result"></div>
     <p class="hint" style="margin-top:10px">紅色項目須修正才能繼續；黃色項目不擋送出，但可能被通知補件或改變刊登方式。操作相關問題請洽林思吟主任（分機 31020／17358）。</p>
   </div>
@@ -560,7 +565,7 @@ body.review .layout{display:none!important}
 <dialog id="pvDlg" class="pv-dlg">
   <div class="pv-head"><b>申請表預覽</b><span class="hint">這就是公關中心會收到的 Word 申請表，請確認內容無誤再送出。</span><button type="button" class="dlg-x" id="pvClose" aria-label="關閉">×</button></div>
   <div class="pv-body" id="pvBody"></div>
-  <div class="pv-foot"><span class="hint" id="pvInfo"></span><button type="button" id="pvBack">返回修改</button><button type="button" id="pvOk" class="pv-ok">確認無誤，送出申請</button></div>
+  <div class="pv-foot"><span class="hint" id="pvInfo"></span><button type="button" id="pvBack">返回修改</button><button type="button" id="pvOk" class="pv-ok">確認送出</button></div>
 </dialog>
 
 <footer>國立高雄科技大學 秘書室公關中心｜依 BC03 新聞稿發佈及新媒體整合應用作業程序（115.10.28）<a href="#review" class="rv-foot-link" id="rvEntry">🔒 公關中心審核</a></footer>
@@ -719,7 +724,7 @@ const isFast=()=>document.querySelector('[name=mode]:checked')?.value==='fast';
 const ftKinds=()=>[...document.querySelectorAll('[name=ftKind]:checked')].map(x=>x.value);
 function setMode(){
   const f=isFast();document.body.classList.toggle('fast',f);
-  $('submitBtn').textContent=f?'上傳照片至公關中心':(revising?'產生修訂版申請表':(CONFIG.SUBMIT_URL?'送出申請':'產生申請表（Word）'));
+  $('submitBtn').textContent=f?'上傳照片至公關中心':(revising?'送出修訂版申請':'送出申請');
   $('result').innerHTML='';showAll=false;
   if(!location.hash.startsWith('#review'))try{history.replaceState(null,'',f?(location.hash.startsWith('#photos')?location.hash:'#photos'):location.pathname+location.search)}catch{}
   check();
@@ -728,6 +733,7 @@ document.querySelectorAll('[name=mode]').forEach(r=>r.addEventListener('change',
 /* ===== 已提送申請：找到原申請 ===== */
 function isSchoolEmail(e){return new RegExp('^[^@\\s]+@([a-z0-9-]+\\.)*'+CONFIG.EMAIL_DOMAIN.replace(/\./g,'\\.')+'$','i').test(String(e||'').trim())}
 const SCHOOL_MSG='Email 須為校內信箱（@'+'nkust.edu.tw）';
+let SENT=null;
 let bound=null;     // 補件模式連結的原申請 {appId,folderId,token,url,unit,contact,email,eventName,categories}
 let revising=null;  // 正在修改的原申請（同上）
 const kindsOf=cs=>{const t=String(cs||'');const k=[];if(/校內稿|校外稿|採訪|請公關中心協助|成果報導/.test(t))k.push('news');if(/FB|IG|Facebook|Instagram/.test(t))k.push('social');return k.length?k:['news']};
@@ -737,6 +743,7 @@ function showBound(){
   $('ftFind').classList.toggle('hidden',on);$('ftManualBox').classList.toggle('hidden',on);
   if(on)$('ftBound').innerHTML=`✓ 已連結原申請：<b>${esc(bound.eventName)}</b>（${esc(bound.unit)}${bound.appId?'，申請編號 '+esc(bound.appId):''}${bound.created?'，'+esc(bound.created):''}）<button type="button" class="linkbtn" id="ftUnbind">換一件</button>`;
   if(on)$('ftUnbind').onclick=()=>{bound=null;uploaded=null;showBound();check()};
+
   check();
 }
 $('ftLookupBtn').onclick=async()=>{
@@ -746,7 +753,8 @@ $('ftLookupBtn').onclick=async()=>{
   if(!CONFIG.BACKEND_URL){msg.textContent='查詢功能尚未啟用，請使用下方手動填寫。';return}
   msg.textContent='查詢中…';
   try{const j=await gas({action:'lookup',email,appId});
-    if(j.mailed){msg.innerHTML=`📧 已把你的 ${j.count} 件申請清單與補件連結寄到 <b>${esc(email)}</b>，請到信箱點選連結。（若有申請編號，也可以填在旁邊直接連結）`;return}
+    if(j.mailed){msg.innerHTML=`📧 已把你 ${j.count} 件尚未結案的申請清單與補件連結寄到 <b>${esc(email)}</b>，請到信箱點選連結。（若有申請編號，也可以填在旁邊直接連結）`;return}
+    if(j.noOpen){msg.textContent='這個 Email 目前沒有尚未結案的申請（已上架或不予上架的不會列出）。如需處理已結案的申請，請填入申請編號，或直接聯絡公關中心。';return}
     if(!j.list.length){msg.textContent='查不到這個 Email 的申請紀錄。請確認與申請時相同，或改用下方手動填寫。';return}
     msg.textContent=`找到 ${j.list.length} 件申請，請點選要補件的那一件：`;
     j.list.forEach(x=>{const el=document.createElement('div');el.className='ft-item';
@@ -787,9 +795,9 @@ async function startRevise(){
   try{const j=await gas({action:'loaddata',folderId:bound.folderId,token:bound.token});
     revising={...bound};restore(j.data);
     document.querySelector('[name=mode][value=new]').checked=true;setMode();
-    $('reviseBanner').innerHTML=`✏️ <b>正在修改原申請：${esc(revising.eventName)}</b>${revising.appId?'（編號 '+esc(revising.appId)+'）':''}<br>原本的內容已載入，可直接修改。原先上傳的照片已在雲端，不需要重新上傳，也可以再加新照片。改好後按右側「產生修訂版申請表」，系統會存入同一個資料夾並通知承辦人。<button type="button" class="linkbtn" id="reviseCancel">取消修改</button>`;
+    $('reviseBanner').innerHTML=`✏️ <b>正在修改原申請：${esc(revising.eventName)}</b>${revising.appId?'（編號 '+esc(revising.appId)+'）':''}<br>原本的內容已載入，可直接修改。原先上傳的照片已在雲端，不需要重新上傳，也可以再加新照片。改好後按右側「送出修訂版申請」，系統會存入同一個資料夾並通知承辦人。<button type="button" class="linkbtn" id="reviseCancel">取消修改</button>`;
     $('reviseBanner').classList.remove('hidden');$('reviseCancel').onclick=()=>location.reload();
-    $('submitBtn').textContent='產生修訂版申請表';res.innerHTML='';window.scrollTo({top:0,behavior:'smooth'});check();
+    $('submitBtn').textContent='送出修訂版申請';res.innerHTML='';window.scrollTo({top:0,behavior:'smooth'});check();
   }catch(e){res.innerHTML=`<div class="notice err">無法載入原申請：${esc(e.message)}</div>`}
 }
 function checkFast(){
@@ -957,6 +965,7 @@ function render(E,W,I){
   $('tE').textContent=`${E.length} 項必須修正`;$('tW').textContent=`${W.length} 項提醒`;
   const ok=cats().length&&!E.length;
   $('checkList').innerHTML=[...E.map(t=>`<li class="e">✗ ${t}</li>`),...W.map(t=>`<li class="w">！${t}</li>`),...I.map(t=>`<li class="i">${t}</li>`),...(ok&&!W.length?['<li class="k">✓ 檢核通過</li>']:[])].join('');
+  if(SENT){$('submitBtn').disabled=true;$('submitCatch').classList.add('hidden');return {E,W}}
   $('submitBtn').disabled=!ok;$('submitCatch').classList.toggle('hidden',!!ok);
   if(typeof markErrors==='function')markErrors(E);
 }
@@ -1059,7 +1068,8 @@ async function submitNew(res){
 async function deliver(d,blob,res){
   const name=`新聞資訊上架申請表_${d.unit}_${d.eventName}`.replace(/[\\/:*?"<>|]/g,'');
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove();
+  // 自動下載一份給申請人留存（瀏覽器會詢問是否儲存，不想存可以取消）
+  {const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove()}
   const steps=[];const draw=()=>{res.innerHTML=`<div class="notice info"><b>送出中，請勿關閉頁面…</b><ul class="steps">${steps.map(x=>`<li class="${x.s}">${esc(x.t)}</li>`).join('')}</ul></div>`};
   const step=t=>{const x={t,s:'run'};steps.push(x);draw();return {ok:(t2)=>{x.s='ok';if(t2)x.t=t2;draw()},err:(t2)=>{x.s='err';x.t=t2;draw()}}};
   $('submitBtn').disabled=true;
@@ -1104,8 +1114,10 @@ async function deliver(d,blob,res){
     if($('retryBtn'))$('retryBtn').onclick=()=>deliver(d,blob,res);
     return;
   }
-  $('submitBtn').disabled=false;
-  let h=`<div class="notice info">✓ 申請表已下載，並已存入公關中心雲端。<a href="${url}" download="${name}.docx">⬇ 重新下載申請表（Word）</a></div>`;
+  SENT={...uploaded,eventName:d.eventName,unit:d.unit};
+  const me={folderId:uploaded.folderId,token:uploaded.token,appId:uploaded.appId||'',eventName:d.eventName,unit:d.unit,contact:d.contact.name,email:d.contact.email,categories:d.categories.join('、')};
+  const sb=$('submitBtn');sb.disabled=true;sb.classList.add('sent');sb.textContent=`✓ ${revising?'修訂版已送出':'已送出'}${uploaded.appId?`（${uploaded.appId}）`:''}`;$('submitHint').classList.add('hidden');
+  let h=`<div class="notice ok">✓ 申請已送達公關中心，申請表${uploaded.photoCount?'與照片':''}已存入雲端資料夾。</div>`;
   if(uploaded.notified){
     const what=`申請表${uploaded.photoCount?`與照片 ${uploaded.photoCount} 張`:''}${uploaded.assetCount?`、素材 ${uploaded.assetCount} 個`:''}`;
     h+=sentBox(d.groups,uploaded.notified==='already',what,d.contact.email,uploaded.appId);
@@ -1113,7 +1125,12 @@ async function deliver(d,blob,res){
     h+=`<div class="notice err">自動通知信未能寄出${uploaded.notifyErr?`（${esc(uploaded.notifyErr)}）`:''}，請改用下方按鈕寄信，並電話告知承辦人。</div>`;
     for(const g of d.groups)h+=mailLinks(CONFIG.ROUTES[g],`【新聞資訊上架申請】${d.unit}－${d.eventName}`,`公關中心您好：\n\n${d.unit}申請「${d.eventName}」新聞資訊上架，申請表與照片已存入公關中心雲端：\n${uploaded.url}\n\n聯絡人：${d.contact.name}　${d.contact.phone}　${d.contact.email}`,CONFIG.ROUTES[g].label,d.contact.email);
   }
+  h+=`<div class="next-acts"><button type="button" id="naRevise">✏️ 修改這份申請</button><button type="button" id="naPhotos">📷 補傳照片</button><button type="button" id="naNew">＋ 填寫新的申請</button></div>
+    <p class="hint" style="margin-top:8px">已自動下載一份申請表供你留存；沒有看到的話，可 <a href="${url}" download="${name}.docx">⬇ 重新下載申請表（Word）</a></p>`;
   res.innerHTML=h;
+  $('naRevise').onclick=()=>{bound=me;uploaded=null;SENT=null;revising=null;sb.classList.remove('sent');$('submitHint').classList.remove('hidden');startRevise()};
+  $('naPhotos').onclick=()=>{location.hash='#photos='+me.folderId+'.'+me.token;location.reload()};
+  $('naNew').onclick=()=>{location.href=location.pathname+location.search};
 }
 async function runFast(res){
   if(bound&&document.querySelector('[name=ftAction]:checked')?.value==='revise')return startRevise();
@@ -1752,12 +1769,11 @@ $('submitBtn').parentElement.addEventListener('click',e=>{
   $('ftManualBox').addEventListener('toggle',()=>check());
   if(/^#(photos|補件)/.test(decodeURIComponent(location.hash))){document.querySelector('[name=mode][value=fast]').checked=true;setTimeout(bindFromHash,0)}
 })();
-if(!CONFIG.SUBMIT_URL)$('submitBtn').textContent='產生申請表（Word）';
 setMode();
 
 /* ===== 公關中心審核頁 ===== */
 const RV_KEY='nkust-pr-review-pin', RV_STAFF=['楊豐榮','鄭婷','鄭潔珊'];
-const RV_TABS=[['pending','待審核',x=>!x.status||x.status==='待審核'||x.status==='處理中'],['supp','需補件',x=>x.status==='需補件'],['ok','已核定',x=>x.status==='已核定'],['no','不予上架',x=>x.status==='不予上架'],['all','全部',()=>true]];
+const RV_TABS=[['pending','待審核',x=>!x.status||x.status==='待審核'||x.status==='處理中'],['supp','需補件',x=>x.status==='需補件'],['ok','已核定',x=>x.status==='已核定'],['no','不予上架',x=>x.status==='不予上架'],['pub','已上架',x=>x.status==='已上架'],['all','全部',x=>x.status!=='已上架']];
 let rvList=[],rvTab='pending',rvCur=null;
 const rvPin=()=>{try{return localStorage.getItem(RV_KEY)||''}catch{return ''}};
 const rvShow=id=>['rvLogin','rvListBox','rvDetail'].forEach(k=>$(k).classList.toggle('rv-hidden',k!==id));
@@ -1778,7 +1794,7 @@ function rvRender(){
   const today=todayISO();
   L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
     const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
-    el.innerHTML=`<div><b>${esc(x.eventName)}</b><div class="rv-meta">${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.innerHTML=`<div><b>${esc(x.eventName)}</b><div class="rv-meta">${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
     el.onclick=()=>rvOpen(x.folderId);$('rvList').appendChild(el)})}
 async function rvOpen(folderId){
   $('rvMsg').textContent='讀取中…';
@@ -1823,9 +1839,11 @@ async function rvOpen(folderId){
   <label class="chk" style="margin:10px 0"><input type="checkbox" id="rvNotify" checked>寄信通知申請人審核結果（${esc(x.email)}）</label><br>
   <button type="button" class="primary" id="rvSave" style="max-width:240px">送出審核結果</button>
   <div id="rvSaveMsg" style="margin-top:8px"></div>
-  <details style="margin-top:18px"><summary>已上架？標記後會從清單隱藏</summary>
-    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><input type="url" id="rvPubLink" value="${esc(x.pubLink)}" placeholder="上架連結（選填）" style="flex:1;min-width:220px"><button type="button" class="small" id="rvPub">標記為已上架</button></div>
-    <div class="hint" id="rvPubMsg"></div></details>`;
+  <div style="border-top:1px solid var(--line,#e5e7eb);margin:20px 0 12px"></div>
+  <h3 style="margin:0 0 8px">已上架${x.status==='已上架'?`<span class="rv-badge s-已上架" style="margin-left:6px">已上架${x.pubDate?' '+esc(rocD(x.pubDate)):''}</span>`:''}</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:640px"><input type="url" id="rvPubLink" value="${esc(x.pubLink)}" placeholder="上架連結（選填，如校網新聞或 FB 貼文網址）" style="flex:1;min-width:220px">
+    <button type="button" class="primary rv-pub-btn" id="rvPub" style="width:auto;padding:9px 18px">${x.status==='已上架'?'更新上架連結':'✓ 標記為已上架'}</button></div>
+  <div class="hint" id="rvPubMsg" style="margin-top:6px">標記後：處理狀態改為「已上架」，雲端資料夾自動移到「已上架／年-月」歸檔，連結不會失效。</div>`;
   rvShow('rvDetail');window.scrollTo(0,0);
   $('rvBack').onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()};
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
@@ -1852,8 +1870,9 @@ async function rvSave(){
   $('rvSave').disabled=false}
 async function rvPublish(){
   const m=$('rvPubMsg');m.textContent='處理中…';
-  try{await rvCall({action:'reviewpub',folderId:rvCur.folderId,link:val('rvPubLink')});
-    rvList=rvList.filter(x=>x.folderId!==rvCur.folderId);m.textContent='✓ 已標記為已上架，已從清單隱藏。';
+  try{const j=await rvCall({action:'reviewpub',folderId:rvCur.folderId,link:val('rvPubLink')});
+    const it=rvList.find(x=>x.folderId===rvCur.folderId);if(it){it.status='已上架';it.pubLink=val('rvPubLink');it.pubDate=j.pubDate||todayISO();it.archived=!!j.archived}
+    m.textContent=j.archived?`✓ 已標記為已上架，資料夾已移到「${j.archivePath}」。`:'✓ 已標記為已上架。'+(j.archiveErr?`（資料夾未能移動：${j.archiveErr}）`:'');rvTab='pub';
     setTimeout(()=>{try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()},900)}
   catch(e){m.textContent='失敗：'+e.message}}
 async function buildReviewDocx(x,f){
