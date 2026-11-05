@@ -225,6 +225,7 @@ body.review .layout{display:none!important}
 .cat-group>summary .grp-cnt{float:right;font-weight:400;font-size:13px;color:var(--muted)}
 .cat-group[open]>summary{border-bottom:1px solid var(--line,#d6dbe5)}
 .cat-group>table.form{margin:0}
+.rv-edit-box{margin:-2px 0 8px 24px;padding:10px 12px;background:#fff;border:1px dashed var(--brand);border-radius:8px}
 </style>
 </head>
 <body>
@@ -1863,7 +1864,6 @@ async function rvOpen(folderId){
     <tr><th>事件日期</th><td>${esc(rocD(x.eventDate))||'—'}　<span class="hint">申請送出：${esc(rocD(x.created))}${x.follow?`；補件／修改 ${x.follow} 次`:''}</span></td></tr>
     <tr><th>資料</th><td><a href="${esc(x.url)}" target="_blank" rel="noopener">📁 雲端資料夾</a>${j.docs.map(d=>`　<a href="${esc(d.url)}" target="_blank" rel="noopener">📄 ${esc(d.name)}</a>`).join('')}${j.photoCount?`<span class="hint">　照片 ${j.photoCount} 張</span>`:''}</td></tr>
     <tr><th>申請人補件／修改</th><td id="rvQuota">${rvQuotaHtml(j.quota)}</td></tr>
-    <tr><th>稿件</th><td><button type="button" class="small" id="rvEditBtn">✏️ 修改稿件（追蹤修訂）</button><div id="rvEditInfo" class="hint" style="margin-top:6px"></div></td></tr>
   </table>
   <h3 style="margin:14px 0 8px">七、公關中心評估意見</h3>
   <div id="rvDoneNote">${rvDoneHtml(x)}</div>
@@ -1877,6 +1877,8 @@ async function rvOpen(folderId){
       ${opt('return',`退回或改變刊登方式：逾申請期限或已逾新聞時效，改以<input type="text" id="rvRet" value="${rk==='return'?esc(rtxt):''}" placeholder="刊登方式（如 FB 貼文）">刊登。`)}
       ${opt('supplement',`補件：<input type="text" id="rvSup" value="${rk==='supplement'?esc(rtxt):''}" placeholder="需補充的資料">`)}
       ${opt('edit','潤修：由公關中心潤修，回傳申請單位確認。')}
+      <div id="rvEditBox" class="rv-edit-box ${rk==='edit'?'':'hidden'}"><button type="button" class="small" id="rvEditBtn">✏️ 修改稿件（追蹤修訂）</button><div id="rvEditInfo" class="hint" style="margin-top:6px"></div>
+        <label class="chk hidden" id="rvAttachWrap" style="margin-top:6px"><input type="checkbox" id="rvAttach" checked>審核結果信附上修訂稿連結（追蹤修訂版＋修訂後定稿，只開放給申請人檢視）</label></div>
       ${opt('asis','照刊：依申請單位提供內容刊登。')}
       <div class="hint">「退回」未填刊登方式時，處理狀態記為「不予上架」；有填則記為「已核定」。</div></td></tr>
     ${isExt?`<tr><th>校外稿</th><td><label class="chk"><input type="radio" name="rvExt" value="同意發送對外媒體群組" ${ext==='同意發送對外媒體群組'?'checked':''}>同意發送對外媒體群組</label>　<label class="chk"><input type="radio" name="rvExt" value="改以校內稿刊登" ${ext==='改以校內稿刊登'?'checked':''}>改以校內稿刊登</label></td></tr>`:''}
@@ -1886,7 +1888,7 @@ async function rvOpen(folderId){
     <tr><th>內部備註</th><td><input type="text" id="rvNote" value="${esc(x.note)}" placeholder="申請人看不到"></td></tr>
   </table>
   <label class="chk" style="margin:10px 0"><input type="checkbox" id="rvNotify" ${rvDone(x)?'':'checked'}>寄信通知申請人審核結果（${esc(x.email)}）${rvDone(x)?'<span class="hint">　先前已寄過；需要再次通知申請人才勾選</span>':''}</label><br>
-  <label class="chk hidden" id="rvAttachWrap" style="margin:0 0 10px 24px"><input type="checkbox" id="rvAttach" checked>信件附上修訂稿（追蹤修訂版＋修訂後定稿）</label>
+
   <button type="button" class="primary" id="rvSave" style="max-width:240px">${rvDone(x)?'更新審核結果':'送出審核結果'}</button>
   <div id="rvSaveMsg" style="margin-top:8px"></div>
   <div style="border-top:1px solid var(--line,#e5e7eb);margin:20px 0 12px"></div>
@@ -1899,7 +1901,8 @@ async function rvOpen(folderId){
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
   $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
   $('rvSave').onclick=rvSave;$('rvPub').onclick=rvPublish;
-  $('rvEditBtn').onclick=edOpen;edLoad(folderId);rvQuotaBind()}
+  $('rvEditBtn').onclick=edOpen;edLoad(folderId);rvQuotaBind();
+  document.querySelectorAll('[name=rvRes]').forEach(r=>r.addEventListener('change',()=>$('rvEditBox').classList.toggle('hidden',(document.querySelector('[name=rvRes]:checked')||{}).value!=='edit')))}
 async function rvSave(){
   const r=(document.querySelector('[name=rvRes]:checked')||{}).value,m=$('rvSaveMsg');
   if(!r){m.innerHTML='<div class="notice err">請選擇評估結果。</div>';return}
@@ -1909,7 +1912,7 @@ async function rvSave(){
   if(at)extras.push(['派員出席',at.value==='yes'?`派員（${val('rvAttWho')||'＿＿'}）`:'不派員（活動照片及出席媒體名單由申請單位提供）']);
   $('rvSave').disabled=true;m.innerHTML='<div class="notice info">送出中…</div>';
   try{const j=await rvCall({action:'reviewsave',folderId:rvCur.folderId,received:val('rvRecv'),planned:val('rvPlan'),staff:val('rvStaff'),
-      result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,attachEdits:!!(ED.saved&&$('rvAttach').checked),message:$('rvMsgTxt').value.trim(),note:val('rvNote'),notify:$('rvNotify').checked});
+      result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,attachEdits:!!(r==='edit'&&ED.saved&&$('rvAttach').checked),message:$('rvMsgTxt').value.trim(),note:val('rvNote'),notify:$('rvNotify').checked});
     const i=rvList.findIndex(x=>x.folderId===rvCur.folderId);if(i>=0)rvList[i]=j.item;rvCur=j.item;
     $('rvDoneNote').innerHTML=rvDoneHtml(j.item);$('rvSave').textContent='更新審核結果';
     let docMsg='並在資料夾存一份「公關中心評估意見.docx」。';
@@ -2061,7 +2064,7 @@ async function edSave(){
     ED.saved=rec;edInfo();$('edDlg').close();
     if(rec.changes){const e=document.querySelector('[name=rvRes][value=edit]');if(e&&!document.querySelector('[name=rvRes]:checked'))e.checked=true}
     if(note&&!$('rvMsgTxt').value.includes(note))$('rvMsgTxt').value=($('rvMsgTxt').value?$('rvMsgTxt').value+'\n':'')+note;
-    $('rvSaveMsg').innerHTML='<div class="notice ok">✓ 修訂稿已存入資料夾。完成評估後按「送出審核結果」，通知信會附上修訂稿。</div>'}
+    $('rvSaveMsg').innerHTML='<div class="notice ok">✓ 修訂稿已存入資料夾。完成評估後按「送出審核結果」，通知信會附上修訂稿連結。</div>'}
   catch(e){alertBox('儲存失敗：'+e.message)}
   btn.disabled=false;btn.textContent='儲存修訂稿'}
 function alertBox(m){$('edCount').textContent=m}
