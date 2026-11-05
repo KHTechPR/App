@@ -1866,6 +1866,7 @@ async function rvOpen(folderId){
     <tr><th>稿件</th><td><button type="button" class="small" id="rvEditBtn">✏️ 修改稿件（追蹤修訂）</button><div id="rvEditInfo" class="hint" style="margin-top:6px"></div></td></tr>
   </table>
   <h3 style="margin:14px 0 8px">七、公關中心評估意見</h3>
+  <div id="rvDoneNote">${rvDoneHtml(x)}</div>
   <table class="form">
     <tr><th>收件</th><td><input type="date" id="rvRecv" value="${esc(x.received||x.created||todayISO())}" style="max-width:200px"></td></tr>
     <tr><th>預定上架</th><td><input type="date" id="rvPlan" value="${esc(x.planned)}" style="max-width:200px"></td></tr>
@@ -1884,9 +1885,9 @@ async function rvOpen(folderId){
     <tr><th>給申請人的說明</th><td><textarea id="rvMsgTxt" style="min-height:70px" placeholder="選填；會寫在通知信中">${esc(msg)}</textarea></td></tr>
     <tr><th>內部備註</th><td><input type="text" id="rvNote" value="${esc(x.note)}" placeholder="申請人看不到"></td></tr>
   </table>
-  <label class="chk" style="margin:10px 0"><input type="checkbox" id="rvNotify" checked>寄信通知申請人審核結果（${esc(x.email)}）</label><br>
+  <label class="chk" style="margin:10px 0"><input type="checkbox" id="rvNotify" ${rvDone(x)?'':'checked'}>寄信通知申請人審核結果（${esc(x.email)}）${rvDone(x)?'<span class="hint">　先前已寄過；需要再次通知申請人才勾選</span>':''}</label><br>
   <label class="chk hidden" id="rvAttachWrap" style="margin:0 0 10px 24px"><input type="checkbox" id="rvAttach" checked>信件附上修訂稿（追蹤修訂版＋修訂後定稿）</label>
-  <button type="button" class="primary" id="rvSave" style="max-width:240px">送出審核結果</button>
+  <button type="button" class="primary" id="rvSave" style="max-width:240px">${rvDone(x)?'更新審核結果':'送出審核結果'}</button>
   <div id="rvSaveMsg" style="margin-top:8px"></div>
   <div style="border-top:1px solid var(--line,#e5e7eb);margin:20px 0 12px"></div>
   <h3 style="margin:0 0 8px">已上架${x.status==='已上架'?`<span class="rv-badge s-已上架" style="margin-left:6px">已上架${x.pubDate?' '+esc(rocD(x.pubDate)):''}</span>`:''}</h3>
@@ -1910,6 +1911,7 @@ async function rvSave(){
   try{const j=await rvCall({action:'reviewsave',folderId:rvCur.folderId,received:val('rvRecv'),planned:val('rvPlan'),staff:val('rvStaff'),
       result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,attachEdits:!!(ED.saved&&$('rvAttach').checked),message:$('rvMsgTxt').value.trim(),note:val('rvNote'),notify:$('rvNotify').checked});
     const i=rvList.findIndex(x=>x.folderId===rvCur.folderId);if(i>=0)rvList[i]=j.item;rvCur=j.item;
+    $('rvDoneNote').innerHTML=rvDoneHtml(j.item);$('rvSave').textContent='更新審核結果';
     let docMsg='並在資料夾存一份「公關中心評估意見.docx」。';
     try{m.innerHTML='<div class="notice info">產生評估意見 Word 檔…</div>';
       const blob=await buildReviewDocx(j.item,{received:val('rvRecv'),planned:val('rvPlan'),staff:val('rvStaff'),result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,message:$('rvMsgTxt').value.trim()});
@@ -1917,7 +1919,7 @@ async function rvSave(){
     catch(e){docMsg=`<br>⚠ 評估意見 Word 檔未能存入資料夾（${esc(e.message)}），請再按一次「送出審核結果」。`}
     m.innerHTML=`<div class="notice ok">✓ 已儲存，處理狀態：<b>${esc(j.item.status)}</b>。已寫入申請紀錄試算表，${docMsg}${j.mailed?`已寄信通知申請人（${esc(j.item.email)}）。`:$('rvNotify').checked?'（未寄信：申請人 Email 不是校內信箱或今日信件已達上限）':''}</div>`}
   catch(e){m.innerHTML=`<div class="notice err">儲存失敗：${esc(e.message)}</div>`}
-  $('rvSave').disabled=false}
+  $('rvSave').disabled=false;if(rvDone(rvCur))$('rvNotify').checked=false}
 async function rvPublish(){
   const m=$('rvPubMsg');m.textContent='處理中…';
   try{const j=await rvCall({action:'reviewpub',folderId:rvCur.folderId,link:val('rvPubLink')});
@@ -2071,6 +2073,9 @@ function rvQuotaHtml(q){if(!q)return '—';
   return `${f(q.revise,q.reviseMax,'修改內容','revise')}　｜　${f(q.photo,q.photoMax,'補傳照片','photo')}<div class="hint">送出「補件」結果時，系統會自動各多開放一次。</div>`}
 function rvQuotaBind(){document.querySelectorAll('.rv-q').forEach(b=>b.onclick=async()=>{b.disabled=true;
   try{const j=await rvCall({action:'reviewquota',folderId:rvCur.folderId,kind:b.dataset.k});$('rvQuota').innerHTML=rvQuotaHtml(j.quota);rvQuotaBind()}catch(e){b.textContent='失敗：'+e.message}})}
+const rvDone=x=>!!(x&&(x.result||x.reviewed));
+function rvDoneHtml(x){if(!rvDone(x))return '';
+  return `<div class="notice ok" style="margin-bottom:10px">✓ 已於 ${esc(rocD(x.reviewed)||'先前')} 送出審核結果。如需修正，改好後按「更新審核結果」。</div>`}
 async function initReview(){
   document.body.classList.add('review');$('reviewApp').classList.remove('rv-hidden');document.title='公關中心審核｜新聞資訊上架申請';
   $('rvPinBtn').onclick=async()=>{const p=val('rvPin');if(!p)return;try{localStorage.setItem(RV_KEY,p)}catch{}$('rvLoginMsg').textContent='登入中…';
