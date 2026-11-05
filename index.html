@@ -217,6 +217,12 @@ body.review .layout{display:none!important}
 .ed-txt del{color:#b42318;background:#fde8e6}.ed-txt ins{color:#0d5c32;background:#dcf3e4;text-decoration:underline}
 .ed-note{background:var(--brand-soft);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14px}
 .q-left{font-weight:700;color:var(--brand)}.q-left.out{color:var(--err)}
+.cat-group{border:1px solid var(--line,#d6dbe5);border-radius:8px;margin-bottom:10px;background:#fff}
+.cat-group>summary{cursor:pointer;padding:10px 12px;font-weight:700;color:var(--brand);list-style:revert}
+.cat-group>summary .hint{font-weight:400;margin-left:8px}
+.cat-group>summary .grp-cnt{float:right;font-weight:400;font-size:13px;color:var(--muted)}
+.cat-group[open]>summary{border-bottom:1px solid var(--line,#d6dbe5)}
+.cat-group>table.form{margin:0}
 </style>
 </head>
 <body>
@@ -323,6 +329,7 @@ body.review .layout{display:none!important}
   <h2>一、申請項目（可複選）</h2>
   <div class="body">
     <p class="hint">期限以日曆天計，自收件日（今天：<b id="today-label"></b>）起算；事件日指活動舉行日或成果擬公布日。</p>
+    <details class="cat-group" id="grpNews"><summary>新聞稿件<span class="hint">校內稿、校外稿、邀請媒體到校採訪、無預定日期之成果報導</span><span class="grp-cnt" id="cntNews"></span></summary>
     <table class="form">
       <tr><th>校內稿<span class="hint">校官網新聞</span></th>
         <td><label class="chk"><input type="checkbox" data-cat="internal">申請</label>
@@ -350,6 +357,9 @@ body.review .layout{display:none!important}
             <div><label class="chk"><input type="checkbox" id="resultPublic">內容已公開，或已經合作單位同意發佈（必勾）</label></div>
           </div>
           <div class="hint">隨時提供，由公關中心依排程安排上架日</div></td></tr>
+    </table></details>
+    <details class="cat-group" id="grpSocial"><summary>社群貼文<span class="hint">本校官方 Facebook／Instagram</span><span class="grp-cnt" id="cntSocial"></span></summary>
+    <table class="form">
       <tr><th>本校官方 Facebook／Instagram</th>
         <td><div class="auth-social"><label class="chk"><input type="checkbox" id="authSocial">授權公關中心依新聞稿內容撰寫社群貼文</label>
             <div class="hint">適用已申請校內稿、校外稿或成果報導者；勾選後第五項的貼文內容可免填，由公關中心依新聞稿與照片撰寫。</div></div>
@@ -361,6 +371,8 @@ body.review .layout{display:none!important}
           <label class="chk"><input type="checkbox" data-cat="fbBig">大型企劃（直播、短影音、抽獎、系列宣傳）</label>
           <span class="hint">事件日前 30 日　<span class="status" id="st-fbBig"></span></span>
           <div class="notice info hidden" id="note-fbBig">社群宣傳以本校官方平台為限；抽獎活動由申請單位自辦，公關中心協助宣傳。如有媒體宣傳經費規劃，請另洽公關中心。</div></td></tr>
+    </table></details>
+    <table class="form" style="margin-top:10px">
       <tr><th>榮譽肯定／校官網 Banner</th>
         <td><span class="hint">不適用本表。請依「BC04 校官網首頁資訊刊登作業程序」，至</span>
           <a href="https://ws1.nkust.edu.tw/CCElecForm/" target="_blank" rel="noopener">電算中心電子表單申請系統</a>
@@ -859,7 +871,10 @@ function checkFast(){
   if(typeof markErrors==='function')markErrors(E);
   return {E,W};
 }
-function check(){
+function grpCount(){[['grpNews','cntNews'],['grpSocial','cntSocial']].forEach(([g,c])=>{const box=$(g);if(!box)return;
+  const n=[...box.querySelectorAll('input[type=checkbox][data-cat],#authSocial')].filter(x=>x.checked).length;
+  $(c).textContent=n?`已選 ${n} 項`:'未選';if(n&&!box.dataset.auto){box.open=true;box.dataset.auto='1'}})}
+function check(){grpCount();
   if(isFast())return checkFast();
   const E=[],W=[],I=[];const c=cats();
   const isNews=c.some(x=>NEWS_CATS.includes(x)), isSocial=c.some(x=>SOCIAL_CATS.includes(x));
