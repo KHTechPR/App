@@ -246,8 +246,9 @@ body.review .layout{display:none!important}
 <div id="reviewApp" class="rv-hidden">
   <section class="card"><h2 id="rvTitle">公關中心審核</h2><div class="body">
     <div id="rvLogin" class="rv-hidden">
-      <p class="hint" style="margin-top:0">此頁僅供公關中心同仁使用。請輸入審核碼（這台瀏覽器會記住，不必每次輸入）。</p>
-      <div style="display:flex;gap:8px;max-width:420px"><input type="password" id="rvPin" placeholder="審核碼" autocomplete="off"><button type="button" class="small" id="rvPinBtn" style="white-space:nowrap">登入</button></div>
+      <p class="hint" style="margin-top:0">此頁僅供公關中心同仁使用，請輸入審核碼。</p>
+      <div style="display:flex;gap:8px;max-width:420px"><input type="password" id="rvPin" placeholder="審核碼" autocomplete="off"><button type="button" class="small" id="rvPinBtn" style="white-space:nowrap">進入審核</button></div>
+      <label class="chk" style="margin-top:6px"><input type="checkbox" id="rvRemember" checked>在這台電腦記住審核碼（下次自動帶入，仍需按「進入審核」）</label>
       <div class="hint" id="rvLoginMsg" style="margin-top:6px"></div>
     </div>
     <div id="rvListBox" class="rv-hidden">
@@ -1822,13 +1823,15 @@ setMode();
 const RV_KEY='nkust-pr-review-pin', RV_STAFF=['楊豐榮','鄭婷','鄭潔珊'];
 const RV_TABS=[['pending','待審核',x=>!x.status||x.status==='待審核'||x.status==='處理中'],['supp','需補件',x=>x.status==='需補件'],['ok','已核定',x=>x.status==='已核定'],['no','不予上架',x=>x.status==='不予上架'],['pub','已上架',x=>x.status==='已上架'],['all','全部',x=>x.status!=='已上架']];
 let rvList=[],rvTab='pending',rvCur=null,rvRole='staff';
-const rvPin=()=>{try{return localStorage.getItem(RV_KEY)||''}catch{return ''}};
+let RV_ACTIVE='';   // 本次進入使用的審核碼，只存在記憶體；重新整理或另開分頁都要再按一次「進入審核」
+const rvPin=()=>RV_ACTIVE;
+const rvSaved=()=>{try{return localStorage.getItem(RV_KEY)||''}catch{return ''}};
 const rvShow=id=>['rvLogin','rvListBox','rvDetail'].forEach(k=>$(k).classList.toggle('rv-hidden',k!==id));
 const rocD=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${+m[1]-1911}/${+m[2]}/${+m[3]}`:''};
 const todayISO=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 async function rvCall(body){
   try{return await gas({...body,pin:rvPin()})}
-  catch(e){if(/審核碼不正確/.test(e.message)){try{localStorage.removeItem(RV_KEY)}catch{}rvShow('rvLogin');$('rvLoginMsg').textContent='審核碼不正確，請重新輸入。'}throw e}}
+  catch(e){if(/審核碼不正確/.test(e.message)){RV_ACTIVE='';try{localStorage.removeItem(RV_KEY)}catch{}$('rvPin').value='';rvShow('rvLogin');$('rvLoginMsg').textContent='審核碼不正確，請重新輸入。'}throw e}}
 async function rvLoad(){
   $('rvMsg').textContent='讀取中…';
   try{const j=await rvCall({action:'reviewlist'});rvList=j.list;rvRole=j.role||'staff';$('rvRoleTag').innerHTML=rvRole==='director'?'目前身分：<b>主任</b>':'目前身分：承辦同仁';$('rvMsg').textContent='';rvShow('rvListBox');rvRender();return true}
@@ -2084,14 +2087,16 @@ function rvDoneHtml(x){if(!rvDone(x))return '';
   return `<div class="notice ok" style="margin-bottom:10px">✓ 已於 ${esc(rocD(x.reviewed)||'先前')} 送出審核結果。如需修正，改好後按「更新審核結果」。</div>`}
 async function initReview(){
   document.body.classList.add('review');$('reviewApp').classList.remove('rv-hidden');document.title='公關中心審核｜新聞資訊上架申請';
-  $('rvPinBtn').onclick=async()=>{const p=val('rvPin');if(!p)return;try{localStorage.setItem(RV_KEY,p)}catch{}$('rvLoginMsg').textContent='登入中…';
+  $('rvPinBtn').onclick=async()=>{const p=val('rvPin');if(!p)return;RV_ACTIVE=p;
+    try{if($('rvRemember').checked)localStorage.setItem(RV_KEY,p);else localStorage.removeItem(RV_KEY)}catch{}
+    $('rvLoginMsg').textContent='登入中…';
     if(await rvLoad()){$('rvLoginMsg').textContent='';const m=decodeURIComponent(location.hash).match(/^#review=([\w-]+)/);if(m)rvOpen(m[1])}else if(rvPin())$('rvLoginMsg').textContent=$('rvMsg').textContent};
   $('rvPin').onkeydown=e=>{if(e.key==='Enter')$('rvPinBtn').click()};
   $('rvReload').onclick=rvLoad;
-  $('rvLogout').onclick=()=>{try{localStorage.removeItem(RV_KEY)}catch{}rvList=[];$('rvPin').value='';rvShow('rvLogin')};
+  $('rvLogout').onclick=()=>{RV_ACTIVE='';rvList=[];$('rvPin').value=rvSaved();$('rvMsg').textContent='';rvShow('rvLogin')};
   if(!CONFIG.BACKEND_URL){$('rvMsg').textContent='後端尚未設定。';return}
-  if(!rvPin()){rvShow('rvLogin');return}
-  if(await rvLoad()){const m=decodeURIComponent(location.hash).match(/^#review=([\w-]+)/);if(m)rvOpen(m[1])}}
+  const saved=rvSaved();$('rvPin').value=saved;$('rvRemember').checked=!!saved||true;
+  rvShow('rvLogin');setTimeout(()=>(saved?$('rvPinBtn'):$('rvPin')).focus(),50)}
 $('rvEntry').onclick=e=>{e.preventDefault();location.hash='#review';location.reload()};
 if(/^#review/.test(location.hash))initReview();
 
