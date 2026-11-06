@@ -253,7 +253,7 @@ body.review .layout{display:none!important}
     <div id="rvListBox" class="rv-hidden">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
         <div class="rv-tabs" id="rvTabs"></div>
-        <div><button type="button" class="small" id="rvReload">重新整理</button> <button type="button" class="small" id="rvLogout">登出</button></div>
+        <div><span class="hint" id="rvRoleTag" style="margin-right:8px"></span><button type="button" class="small" id="rvReload">重新整理</button> <button type="button" class="small" id="rvLogout">登出</button></div>
       </div>
       <div class="hint" style="margin:-4px 0 10px">已上架的申請只顯示在「已上架」分頁，雲端資料夾會自動移到「已上架／年-月」歸檔。</div>
       <div id="rvList"></div>
@@ -1821,7 +1821,7 @@ setMode();
 /* ===== 公關中心審核頁 ===== */
 const RV_KEY='nkust-pr-review-pin', RV_STAFF=['楊豐榮','鄭婷','鄭潔珊'];
 const RV_TABS=[['pending','待審核',x=>!x.status||x.status==='待審核'||x.status==='處理中'],['supp','需補件',x=>x.status==='需補件'],['ok','已核定',x=>x.status==='已核定'],['no','不予上架',x=>x.status==='不予上架'],['pub','已上架',x=>x.status==='已上架'],['all','全部',x=>x.status!=='已上架']];
-let rvList=[],rvTab='pending',rvCur=null;
+let rvList=[],rvTab='pending',rvCur=null,rvRole='staff';
 const rvPin=()=>{try{return localStorage.getItem(RV_KEY)||''}catch{return ''}};
 const rvShow=id=>['rvLogin','rvListBox','rvDetail'].forEach(k=>$(k).classList.toggle('rv-hidden',k!==id));
 const rocD=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${+m[1]-1911}/${+m[2]}/${+m[3]}`:''};
@@ -1831,7 +1831,7 @@ async function rvCall(body){
   catch(e){if(/審核碼不正確/.test(e.message)){try{localStorage.removeItem(RV_KEY)}catch{}rvShow('rvLogin');$('rvLoginMsg').textContent='審核碼不正確，請重新輸入。'}throw e}}
 async function rvLoad(){
   $('rvMsg').textContent='讀取中…';
-  try{const j=await rvCall({action:'reviewlist'});rvList=j.list;$('rvMsg').textContent='';rvShow('rvListBox');rvRender();return true}
+  try{const j=await rvCall({action:'reviewlist'});rvList=j.list;rvRole=j.role||'staff';$('rvRoleTag').innerHTML=rvRole==='director'?'目前身分：<b>主任</b>':'目前身分：承辦同仁';$('rvMsg').textContent='';rvShow('rvListBox');rvRender();return true}
   catch(e){$('rvMsg').textContent='讀取失敗：'+e.message;return false}}
 function rvRender(){
   $('rvTabs').innerHTML=RV_TABS.map(([k,n,f])=>`<button type="button" data-k="${k}" class="${k===rvTab?'on':''}">${n} ${rvList.filter(f).length}</button>`).join('');
@@ -1841,17 +1841,17 @@ function rvRender(){
   const today=todayISO();
   L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
     const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
-    el.innerHTML=`<div><b>${esc(x.eventName)}</b><div class="rv-meta">${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.innerHTML=`<div><b>${esc(x.eventName)}</b><div class="rv-meta">${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
     el.onclick=()=>rvOpen(x.folderId);$('rvList').appendChild(el)})}
 async function rvOpen(folderId){
   $('rvMsg').textContent='讀取中…';
   let j;try{j=await rvCall({action:'reviewget',folderId})}catch(e){$('rvMsg').textContent='讀取失敗：'+e.message;return}
-  $('rvMsg').textContent='';rvCur=j.item;const x=j.item;
+  $('rvMsg').textContent='';rvCur=j.item;const x=j.item;if(j.role)rvRole=j.role;const canAtt=rvRole==='director';
   try{history.replaceState(null,'','#review='+folderId)}catch{}
   const rk=(x.result||'').startsWith('退回')?'return':(x.result||'').startsWith('補件')?'supplement':(x.result||'').startsWith('潤修')?'edit':(x.result||'').startsWith('照刊')?'asis':'';
   const opl=(x.opinion||'').split('\n'),firstLine=opl[0]||'';
-  const ext=((opl.find(l=>l.startsWith('校外稿：'))||'').slice(4)),att=((opl.find(l=>l.startsWith('派員出席：'))||'').slice(5));
-  const msg=opl.slice(1).filter(l=>!/^(校外稿|派員出席)：/.test(l)).join('\n');
+  const ext=((opl.find(l=>l.startsWith('校外稿：'))||'').slice(4)),att=((opl.find(l=>l.startsWith('派員出席：'))||'').slice(5)),sug=((opl.find(l=>l.startsWith('派員建議：'))||'').slice(5));
+  const msg=opl.slice(1).filter(l=>!/^(校外稿|派員出席|派員建議)：/.test(l)).join('\n');
   const isExt=/校外稿/.test(x.categories),isStaff=/請公關中心協助/.test(x.categories);
   const rtxt=rk==='return'?((firstLine.match(/改以(.+?)刊登/)||[])[1]||''):rk==='supplement'?firstLine.replace(/^補件：/,''):'';
   const opt=(k,html)=>`<label class="rv-opt"><input type="radio" name="rvRes" value="${k}" ${rk===k?'checked':''}> ${html}</label>`;
@@ -1882,12 +1882,13 @@ async function rvOpen(folderId){
       ${opt('asis','照刊：依申請單位提供內容刊登。')}
       <div class="hint">「退回」未填刊登方式時，處理狀態記為「不予上架」；有填則記為「已核定」。</div></td></tr>
     ${isExt?`<tr><th>校外稿</th><td><label class="chk"><input type="radio" name="rvExt" value="同意發送對外媒體群組" ${ext==='同意發送對外媒體群組'?'checked':''}>同意發送對外媒體群組</label>　<label class="chk"><input type="radio" name="rvExt" value="改以校內稿刊登" ${ext==='改以校內稿刊登'?'checked':''}>改以校內稿刊登</label></td></tr>`:''}
-    ${isStaff?`<tr><th>派員出席</th><td><label class="chk"><input type="radio" name="rvAtt" value="yes" ${att.startsWith('派員')?'checked':''}>派員</label><input type="text" id="rvAttWho" value="${esc((att.match(/^派員（(.*)）$/)||[])[1]||'')}" placeholder="出席同仁" style="display:inline-block;width:auto;min-width:140px;margin:0 12px 0 4px">
-      <label class="chk"><input type="radio" name="rvAtt" value="no" ${att.startsWith('不派員')?'checked':''}>不派員（活動照片及出席媒體名單由申請單位提供）</label></td></tr>`:''}
+    ${isStaff?`<tr><th>派員出席</th><td>${canAtt?`${sug?`<div class="hint" style="margin-bottom:4px">承辦建議派員：${esc(sug)}</div>`:''}<label class="chk"><input type="radio" name="rvAtt" value="yes" ${att.startsWith('派員')?'checked':''}>派員</label><input type="text" id="rvAttWho" value="${esc((att.match(/^派員（(.*)）$/)||[])[1]||'')}" placeholder="出席同仁" style="display:inline-block;width:auto;min-width:140px;margin:0 12px 0 4px">
+      <label class="chk"><input type="radio" name="rvAtt" value="no" ${att.startsWith('不派員')?'checked':''}>不派員（活動照片及出席媒體名單由申請單位提供）</label>`
+      :att?esc(att):`<label class="chk"><input type="checkbox" id="rvSug" ${sug?'checked':''}>建議派員</label><input type="text" id="rvSugWhy" value="${esc(sug==='建議派員'?'':sug)}" placeholder="原因" style="display:inline-block;width:auto;min-width:240px;margin-left:8px">`}</td></tr>`:''}
     <tr><th>給申請人的說明</th><td><textarea id="rvMsgTxt" style="min-height:70px" placeholder="選填；會寫在通知信中">${esc(msg)}</textarea></td></tr>
     <tr><th>內部備註</th><td><input type="text" id="rvNote" value="${esc(x.note)}" placeholder="申請人看不到"></td></tr>
   </table>
-  <label class="chk" style="margin:10px 0"><input type="checkbox" id="rvNotify" ${rvDone(x)?'':'checked'}>寄信通知申請人審核結果（${esc(x.email)}）${rvDone(x)?'<span class="hint">　先前已寄過；需要再次通知申請人才勾選</span>':''}</label><br>
+  <label class="chk" style="margin:10px 0"><input type="checkbox" id="rvNotify" ${rvDone(x)&&!x.pendingMail?'':'checked'}>寄信通知申請人審核結果（${esc(x.email)}）${x.pendingMail?'<span class="hint">　通知信保留中，主任指派派員後寄出</span>':rvDone(x)?'<span class="hint">　先前已寄過；需要再次通知申請人才勾選</span>':''}</label><br>
 
   <button type="button" class="primary" id="rvSave" style="max-width:240px">${rvDone(x)?'更新審核結果':'送出審核結果'}</button>
   <div id="rvSaveMsg" style="margin-top:8px"></div>
@@ -1900,6 +1901,7 @@ async function rvOpen(folderId){
   $('rvBack').onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()};
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
   $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
+  if($('rvSugWhy'))$('rvSugWhy').oninput=()=>{if(val('rvSugWhy'))$('rvSug').checked=true};
   $('rvSave').onclick=rvSave;$('rvPub').onclick=rvPublish;
   $('rvEditBtn').onclick=edOpen;edLoad(folderId);rvQuotaBind();
   document.querySelectorAll('[name=rvRes]').forEach(r=>r.addEventListener('change',()=>$('rvEditBox').classList.toggle('hidden',(document.querySelector('[name=rvRes]:checked')||{}).value!=='edit')))}
@@ -1910,6 +1912,7 @@ async function rvSave(){
   const extras=[];const ex=document.querySelector('[name=rvExt]:checked'),at=document.querySelector('[name=rvAtt]:checked');
   if(ex)extras.push(['校外稿',ex.value]);
   if(at)extras.push(['派員出席',at.value==='yes'?`派員（${val('rvAttWho')||'＿＿'}）`:'不派員（活動照片及出席媒體名單由申請單位提供）']);
+  if($('rvSug'))extras.push(['派員建議',$('rvSug').checked?(val('rvSugWhy')||'建議派員'):'']);
   $('rvSave').disabled=true;m.innerHTML='<div class="notice info">送出中…</div>';
   try{const j=await rvCall({action:'reviewsave',folderId:rvCur.folderId,received:val('rvRecv'),planned:val('rvPlan'),staff:val('rvStaff'),
       result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,attachEdits:!!(r==='edit'&&ED.saved&&$('rvAttach').checked),message:$('rvMsgTxt').value.trim(),note:val('rvNote'),notify:$('rvNotify').checked});
@@ -1920,9 +1923,9 @@ async function rvSave(){
       const blob=await buildReviewDocx(j.item,{received:val('rvRecv'),planned:val('rvPlan'),staff:val('rvStaff'),result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,message:$('rvMsgTxt').value.trim()});
       await rvCall({action:'reviewfile',folderId:rvCur.folderId,data:await toB64(blob)})}
     catch(e){docMsg=`<br>⚠ 評估意見 Word 檔未能存入資料夾（${esc(e.message)}），請再按一次「送出審核結果」。`}
-    m.innerHTML=`<div class="notice ok">✓ 已儲存，處理狀態：<b>${esc(j.item.status)}</b>。已寫入申請紀錄試算表，${docMsg}${j.mailed?`已寄信通知申請人（${esc(j.item.email)}）。`:$('rvNotify').checked?'（未寄信：申請人 Email 不是校內信箱或今日信件已達上限）':''}</div>`}
+    m.innerHTML=`<div class="notice ok">✓ 已儲存，處理狀態：<b>${esc(j.item.status)}</b>。已寫入申請紀錄試算表，${docMsg}${j.mailed?`已寄信通知申請人（${esc(j.item.email)}）。`:j.held?'這件有申請派員，通知信會在主任指派後寄出。':$('rvNotify').checked?'（未寄信：申請人 Email 不是校內信箱或今日信件已達上限）':''}</div>`}
   catch(e){m.innerHTML=`<div class="notice err">儲存失敗：${esc(e.message)}</div>`}
-  $('rvSave').disabled=false;if(rvDone(rvCur))$('rvNotify').checked=false}
+  $('rvSave').disabled=false;if(rvDone(rvCur)&&!rvCur.pendingMail)$('rvNotify').checked=false}
 async function rvPublish(){
   const m=$('rvPubMsg');m.textContent='處理中…';
   try{const j=await rvCall({action:'reviewpub',folderId:rvCur.folderId,link:val('rvPubLink')});
