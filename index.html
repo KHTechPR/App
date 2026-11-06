@@ -226,6 +226,8 @@ body.review .layout{display:none!important}
 .cat-group[open]>summary{border-bottom:1px solid var(--line,#d6dbe5)}
 .cat-group>table.form{margin:0}
 .rv-edit-box{margin:-2px 0 8px 24px;padding:10px 12px;background:#fff;border:1px dashed var(--brand);border-radius:8px}
+.cat-note{padding:10px 12px 10px 28px}
+.cat-note-title{font-weight:700;color:var(--brand);margin-right:8px}
 </style>
 </head>
 <body>
@@ -333,7 +335,7 @@ body.review .layout{display:none!important}
   <h2>一、申請項目（可複選）</h2>
   <div class="body">
     <p class="hint">期限以日曆天計，自收件日（今天：<b id="today-label"></b>）起算；事件日指活動舉行日或成果擬公布日。</p>
-    <details class="cat-group" id="grpNews"><summary>新聞稿件<span class="hint">校內稿、校外稿、邀請媒體到校採訪、無預定日期之成果報導</span><span class="grp-cnt" id="cntNews"></span></summary>
+    <details class="cat-group" id="grpNews"><summary>新聞稿件<span class="hint">校內稿、校外稿、媒體邀訪與活動支援、無預定日期之成果報導</span><span class="grp-cnt" id="cntNews"></span></summary>
     <table class="form">
       <tr><th>校內稿<span class="hint">校官網新聞</span></th>
         <td><label class="chk"><input type="checkbox" data-cat="internal">申請</label>
@@ -343,7 +345,7 @@ body.review .layout{display:none!important}
           <input type="text" id="externalReason" class="inline-in" placeholder="理由（必填）">
           <div class="hint">最遲：事件日前 14 日　<span class="status" id="st-external"></span></div>
           <div class="notice info hidden" id="note-external">校外稿以校級重要議題為原則（如全國性或國際性獲獎、重大計畫成果、產學合作、國際交流及校級典禮）；未獲同意者，改以校內稿刊登。</div></td></tr>
-      <tr><th>邀請媒體到校採訪<span class="hint">含記者會、校級活動之媒體接待、拍攝</span></th>
+      <tr><th>媒體邀訪與活動支援<span class="hint">記者會、校內外活動之媒體邀請、接待或拍攝</span></th>
         <td><label class="chk"><input type="checkbox" data-cat="notice">採訪通知</label>
           <span class="hint">最遲：事件日前 14 日　<span class="status" id="st-notice"></span></span><br>
           <label class="chk"><input type="checkbox" data-cat="staff">請公關中心協助</label>
@@ -376,12 +378,7 @@ body.review .layout{display:none!important}
           <span class="hint">事件日前 30 日　<span class="status" id="st-fbBig"></span></span>
           <div class="notice info hidden" id="note-fbBig">社群宣傳以本校官方平台為限；抽獎活動由申請單位自辦，公關中心協助宣傳。如有媒體宣傳經費規劃，請另洽公關中心。</div></td></tr>
     </table></details>
-    <table class="form" style="margin-top:10px">
-      <tr><th>榮譽肯定／校官網 Banner</th>
-        <td><span class="hint">不適用本表。請依「BC04 校官網首頁資訊刊登作業程序」，至</span>
-          <a href="https://ws1.nkust.edu.tw/CCElecForm/" target="_blank" rel="noopener">電算中心電子表單申請系統</a>
-          <span class="hint">登入後，選擇「校園網頁建置修改申請」提出。</span></td></tr>
-    </table>
+    <div class="cat-group cat-note"><span class="cat-note-title">榮譽肯定／校官網 Banner</span><span class="hint">請依「BC04 校官網首頁資訊刊登作業程序」，至 <a href="https://ws1.nkust.edu.tw/CCElecForm/" target="_blank" rel="noopener">電算中心電子表單申請系統</a> 登入後，選擇「校園網頁建置修改申請」提出。</span></div>
 
   </div>
 </section>
@@ -466,7 +463,7 @@ body.review .layout{display:none!important}
 
 <!-- 四、邀請媒體 -->
 <section class="card main-only hidden" id="sec4">
-  <h2>四、邀請媒體到校採訪（申請採訪通知、辦理記者會或請公關中心協助者填寫）</h2>
+  <h2>四、媒體邀訪與活動支援（申請採訪通知或請公關中心協助者填寫）</h2>
   <div class="body">
     <table class="form">
       <tr><th>* 活動流程<span class="hint">時間＋流程；或另附流程表</span></th><td><textarea id="flow"></textarea></td></tr>
