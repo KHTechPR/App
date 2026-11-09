@@ -228,6 +228,10 @@ body.review .layout{display:none!important}
 .rv-edit-box{margin:-2px 0 8px 24px;padding:10px 12px;background:#fff;border:1px dashed var(--brand);border-radius:8px}
 .cat-note{padding:10px 12px 10px 28px}
 .cat-note-title{font-weight:700;color:var(--brand);margin-right:8px}
+.rv-tag{display:inline-block;font-size:11.5px;font-weight:700;border-radius:4px;padding:0 6px;margin-right:5px;line-height:18px;vertical-align:1px}
+.t-in{background:#dbe7ff;color:#1f3a93}.t-out{background:#ffe2c7;color:#9a4a00}.t-media{background:#e8def8;color:#4a2a8a}
+.t-staff{background:#fad2cf;color:#8a1c12}.t-result{background:#ceead6;color:#1e6b34}.t-social{background:#fde1ef;color:#9b1f5c}
+.rv-plan{color:var(--brand)}
 </style>
 </head>
 <body>
@@ -1837,11 +1841,14 @@ function rvRender(){
   $('rvTabs').innerHTML=RV_TABS.map(([k,n,f])=>`<button type="button" data-k="${k}" class="${k===rvTab?'on':''}">${n} ${rvList.filter(f).length}</button>`).join('');
   $('rvTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{rvTab=b.dataset.k;rvRender()});
   const f=RV_TABS.find(t=>t[0]===rvTab)[2],L=rvList.filter(f);
+  // 依預定上架日排序（近的在前）；已上架分頁依上架日新到舊；沒填預定上架日的排在最後，依事件日
+  if(rvTab==='pub')L.sort((a,b)=>(b.pubDate||'').localeCompare(a.pubDate||''));
+  else L.sort((a,b)=>(a.planned||'9999').localeCompare(b.planned||'9999')||(a.eventDate||'9999').localeCompare(b.eventDate||'9999')||(a.created||'').localeCompare(b.created||''));
   $('rvList').innerHTML=L.length?'':'<p class="hint">目前沒有申請。</p>';
   const today=todayISO();
   L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
     const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
-    el.innerHTML=`<div><b>${esc(x.eventName)}</b><div class="rv-meta">${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b><div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
     el.onclick=()=>rvOpen(x.folderId);$('rvList').appendChild(el)})}
 async function rvOpen(folderId){
   $('rvMsg').textContent='讀取中…';
@@ -1869,7 +1876,7 @@ async function rvOpen(folderId){
   <div id="rvDoneNote">${rvDoneHtml(x)}</div>
   <table class="form">
     <tr><th>收件</th><td><input type="date" id="rvRecv" value="${esc(x.received||x.created||todayISO())}" style="max-width:200px"></td></tr>
-    <tr><th>預定上架</th><td><input type="date" id="rvPlan" value="${esc(x.planned)}" style="max-width:200px"></td></tr>
+    <tr><th>預定上架</th><td><input type="date" id="rvPlan" value="${esc(x.planned)}" style="max-width:200px"><div id="rvPlanWarn"></div></td></tr>
     <tr><th>承辦人</th><td><input type="text" id="rvStaff" list="rvStaffList" value="${esc(x.staff)}" placeholder="點選或自行輸入" style="max-width:220px" autocomplete="off">
       <datalist id="rvStaffList">${RV_STAFF.map(n=>`<option value="${n}">`).join('')}</datalist>
       <div class="hint">可從選單點選，或直接輸入其他承辦人姓名。</div></td></tr>
@@ -1902,6 +1909,7 @@ async function rvOpen(folderId){
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
   $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
   if($('rvSugWhy'))$('rvSugWhy').oninput=()=>{if(val('rvSugWhy'))$('rvSug').checked=true};
+  $('rvPlan').oninput=$('rvPlan').onchange=rvPlanWarn;rvPlanWarn();
   $('rvSave').onclick=rvSave;$('rvPub').onclick=rvPublish;
   $('rvEditBtn').onclick=edOpen;edLoad(folderId);rvQuotaBind();
   document.querySelectorAll('[name=rvRes]').forEach(r=>r.addEventListener('change',()=>$('rvEditBox').classList.toggle('hidden',(document.querySelector('[name=rvRes]:checked')||{}).value!=='edit')))}
@@ -2082,6 +2090,11 @@ function rvQuotaBind(){document.querySelectorAll('.rv-q').forEach(b=>b.onclick=a
 const rvDone=x=>!!(x&&(x.result||x.reviewed));
 function rvDoneHtml(x){if(!rvDone(x))return '';
   return `<div class="notice ok" style="margin-bottom:10px">✓ 已於 ${esc(rocD(x.reviewed)||'先前')} 送出審核結果。如需修正，改好後按「更新審核結果」。</div>`}
+const RV_TAG=[[/校內稿/,'校內','t-in'],[/校外稿/,'校外','t-out'],[/採訪通知/,'採訪','t-media'],[/請公關中心協助/,'派員','t-staff'],[/成果報導/,'成果','t-result'],[/FB\/IG|授權撰寫社群貼文/,'社群','t-social']];
+function rvTags(c){return RV_TAG.filter(([re])=>re.test(c||'')).map(([,n,k])=>`<span class="rv-tag ${k}">${n}</span>`).join('')}
+function rvPlanWarn(){const d=val('rvPlan'),box=$('rvPlanWarn');if(!box)return;
+  const same=!d?[]:rvList.filter(y=>rvCur&&y.folderId!==rvCur.folderId&&y.status!=='不予上架'&&(y.status==='已上架'?y.pubDate===d:y.planned===d));
+  box.innerHTML=same.length?`<div class="notice warn" style="margin-top:6px">⚠ ${esc(rocD(d))} 已有 ${same.length} 則預定上架：${same.map(y=>`${rvTags(y.categories)}${esc(y.eventName)}`).join('、')}。請確認是否要錯開。</div>`:'';}
 async function initReview(){
   document.body.classList.add('review');$('reviewApp').classList.remove('rv-hidden');document.title='公關中心審核｜新聞資訊上架申請';
   $('rvPinBtn').onclick=async()=>{const p=val('rvPin');if(!p)return;RV_ACTIVE=p;
