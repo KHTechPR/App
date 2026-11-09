@@ -1822,8 +1822,9 @@ setMode();
 
 /* ===== 公關中心審核頁 ===== */
 const RV_KEY='nkust-pr-review-pin', RV_STAFF=['楊豐榮','鄭婷','鄭潔珊'];
-const RV_TABS=[['pending','待審核',x=>!x.status||x.status==='待審核'||x.status==='處理中'],['supp','需補件',x=>x.status==='需補件'],['ok','已核定',x=>x.status==='已核定'],['no','不予上架',x=>x.status==='不予上架'],['pub','已上架',x=>x.status==='已上架'],['all','全部',x=>x.status!=='已上架']];
-let rvList=[],rvTab='pending',rvCur=null,rvRole='staff';
+const hasSoc=x=>/FB\/IG|授權撰寫社群貼文/.test(x.categories||'');
+const RV_TABS=[['pending','待審核',x=>!x.status||x.status==='待審核'||x.status==='處理中'],['supp','需補件',x=>x.status==='需補件'],['ok','已核定',x=>x.status==='已核定'],['no','不予上架',x=>x.status==='不予上架'],['pub','已上架',x=>x.status==='已上架'],['soc','社群待發布',x=>hasSoc(x)&&!x.socialDate&&x.status!=='不予上架'],['all','全部',x=>x.status!=='已上架']];
+let rvList=[],rvTab='pending',rvCur=null,rvRole='staff',rvRole0=0;
 let RV_ACTIVE='';   // 本次進入使用的審核碼，只存在記憶體；重新整理或另開分頁都要再按一次「進入審核」
 const rvPin=()=>RV_ACTIVE;
 const rvSaved=()=>{try{return localStorage.getItem(RV_KEY)||''}catch{return ''}};
@@ -1835,7 +1836,7 @@ async function rvCall(body){
   catch(e){if(/審核碼不正確/.test(e.message)){RV_ACTIVE='';try{localStorage.removeItem(RV_KEY)}catch{}$('rvPin').value='';rvShow('rvLogin');$('rvLoginMsg').textContent='審核碼不正確，請重新輸入。'}throw e}}
 async function rvLoad(){
   $('rvMsg').textContent='讀取中…';
-  try{const j=await rvCall({action:'reviewlist'});rvList=j.list;rvRole=j.role||'staff';$('rvRoleTag').innerHTML=rvRole==='director'?'目前身分：<b>主任</b>':'目前身分：承辦同仁';$('rvMsg').textContent='';rvShow('rvListBox');rvRender();return true}
+  try{const j=await rvCall({action:'reviewlist'});rvList=j.list;if(!rvRole0&&j.role==='social')rvTab='soc';rvRole0=1;rvRole=j.role||'staff';$('rvRoleTag').innerHTML=rvRole==='director'?'目前身分：<b>主任</b>':rvRole==='social'?'目前身分：<b>社群同仁</b>':'目前身分：新聞同仁';$('rvMsg').textContent='';rvShow('rvListBox');rvRender();return true}
   catch(e){$('rvMsg').textContent='讀取失敗：'+e.message;return false}}
 function rvRender(){
   $('rvTabs').innerHTML=RV_TABS.map(([k,n,f])=>`<button type="button" data-k="${k}" class="${k===rvTab?'on':''}">${n} ${rvList.filter(f).length}</button>`).join('');
@@ -1848,7 +1849,7 @@ function rvRender(){
   const today=todayISO();
   L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
     const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
-    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b><div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b><div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${hasSoc(x)&&x.status!=='不予上架'?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
     el.onclick=()=>rvOpen(x.folderId);$('rvList').appendChild(el)})}
 async function rvOpen(folderId){
   $('rvMsg').textContent='讀取中…';
@@ -1903,13 +1904,20 @@ async function rvOpen(folderId){
   <h3 style="margin:0 0 8px">已上架${x.status==='已上架'?`<span class="rv-badge s-已上架" style="margin-left:6px">已上架${x.pubDate?' '+esc(rocD(x.pubDate)):''}</span>`:''}</h3>
   <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:640px"><input type="url" id="rvPubLink" value="${esc(x.pubLink)}" placeholder="上架連結（選填，如校網新聞或 FB 貼文網址）" style="flex:1;min-width:220px">
     <button type="button" class="primary rv-pub-btn" id="rvPub" style="width:auto;padding:9px 18px">${x.status==='已上架'?'更新上架連結':'✓ 標記為已上架'}</button></div>
-  <div class="hint" id="rvPubMsg" style="margin-top:6px">標記後：處理狀態改為「已上架」，雲端資料夾自動移到「已上架／年-月」歸檔，連結不會失效。</div>`;
+  <div class="hint" id="rvPubMsg" style="margin-top:6px">標記後：處理狀態改為「已上架」，雲端資料夾自動移到「已上架／年-月」歸檔，連結不會失效。</div>
+  ${hasSoc(x)?`<div style="border-top:1px solid var(--line,#e5e7eb);margin:20px 0 12px"></div>
+  <h3 style="margin:0 0 8px">社群貼文${x.socialDate?`<span class="rv-badge s-已上架" style="margin-left:6px">已發布 ${esc(rocD(x.socialDate))}</span>`:''}</h3>
+  ${rvRole==='social'||rvRole==='director'?`<div style="display:flex;gap:8px;flex-wrap:wrap;max-width:640px"><input type="url" id="rvSocLink" value="${esc(x.socialLink)}" placeholder="FB／IG 貼文連結（選填）" style="flex:1;min-width:220px">
+    <button type="button" class="primary" id="rvSoc" style="width:auto;padding:9px 18px;background:#9b1f5c">${x.socialDate?'更新貼文連結':'✓ 標記社群已發布'}</button></div>
+    ${x.socialDate?'<p class="hint" style="margin-top:6px"><a href="#" id="rvSocUndo">取消標記</a></p>':''}<div class="hint" id="rvSocMsg"></div>`
+  :`<p>${x.socialDate?`已發布（${esc(rocD(x.socialDate))}）${x.socialLink?`　<a href="${esc(x.socialLink)}" target="_blank" rel="noopener">貼文連結</a>`:''}`:'待發布'}</p>`}`:''}`;
   rvShow('rvDetail');window.scrollTo(0,0);
   $('rvBack').onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()};
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
   $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
   if($('rvSugWhy'))$('rvSugWhy').oninput=()=>{if(val('rvSugWhy'))$('rvSug').checked=true};
   $('rvPlan').oninput=$('rvPlan').onchange=rvPlanWarn;rvPlanWarn();
+  if($('rvSoc'))$('rvSoc').onclick=()=>rvSocial(false);if($('rvSocUndo'))$('rvSocUndo').onclick=e=>{e.preventDefault();rvSocial(true)};
   $('rvSave').onclick=rvSave;$('rvPub').onclick=rvPublish;
   $('rvEditBtn').onclick=edOpen;edLoad(folderId);rvQuotaBind();
   document.querySelectorAll('[name=rvRes]').forEach(r=>r.addEventListener('change',()=>$('rvEditBox').classList.toggle('hidden',(document.querySelector('[name=rvRes]:checked')||{}).value!=='edit')))}
@@ -1934,6 +1942,14 @@ async function rvSave(){
     m.innerHTML=`<div class="notice ok">✓ 已儲存，處理狀態：<b>${esc(j.item.status)}</b>。已寫入申請紀錄試算表，${docMsg}${j.mailed?`已寄信通知申請人（${esc(j.item.email)}）。`:j.held?'這件有申請派員，通知信會在主任指派後寄出。':$('rvNotify').checked?'（未寄信：申請人 Email 不是校內信箱或今日信件已達上限）':''}</div>`}
   catch(e){m.innerHTML=`<div class="notice err">儲存失敗：${esc(e.message)}</div>`}
   $('rvSave').disabled=false;if(rvDone(rvCur)&&!rvCur.pendingMail)$('rvNotify').checked=false}
+async function rvSocial(undo){
+  const m=$('rvSocMsg');m.textContent='處理中…';
+  try{const j=await rvCall({action:'reviewsocial',folderId:rvCur.folderId,link:val('rvSocLink'),undo});
+    const it=rvList.find(x=>x.folderId===rvCur.folderId);[it,rvCur].forEach(o=>{if(o){o.socialDate=j.socialDate;o.socialLink=undo?'':val('rvSocLink');
+      if(j.socialOnly){o.status=undo?'已核定':'已上架';o.pubDate=undo?'':(o.pubDate||j.socialDate)}}});
+    await rvOpen(rvCur.folderId);
+    if(j.archived)$('rvSocMsg').textContent=`✓ 已標記社群已發布。這件沒有新聞稿，已一併改為「已上架」，資料夾移到「${j.archivePath}」。`}
+  catch(e){m.textContent='失敗：'+e.message}}
 async function rvPublish(){
   const m=$('rvPubMsg');m.textContent='處理中…';
   try{const j=await rvCall({action:'reviewpub',folderId:rvCur.folderId,link:val('rvPubLink')});
