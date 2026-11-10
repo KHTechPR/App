@@ -232,6 +232,7 @@ body.review .layout{display:none!important}
 .t-in{background:#dbe7ff;color:#1f3a93}.t-out{background:#ffe2c7;color:#9a4a00}.t-media{background:#e8def8;color:#4a2a8a}
 .t-staff{background:#fad2cf;color:#8a1c12}.t-result{background:#ceead6;color:#1e6b34}.t-social{background:#fde1ef;color:#9b1f5c}
 .rv-plan{color:var(--brand)}
+.rv-unfin{color:#9a5b00;font-weight:700}
 </style>
 </head>
 <body>
@@ -1117,9 +1118,11 @@ async function submitNew(res){
 async function deliver(d,blob,res){
   const name=`新聞資訊上架申請表_${d.unit}_${d.eventName}`.replace(/[\\/:*?"<>|]/g,'');
   const url=URL.createObjectURL(blob);
-  // 自動下載一份給申請人留存（瀏覽器會詢問是否儲存，不想存可以取消）
-  {const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove()}
-  const steps=[];const draw=()=>{res.innerHTML=`<div class="notice info"><b>送出中，請勿關閉頁面…</b><ul class="steps">${steps.map(x=>`<li class="${x.s}">${esc(x.t)}</li>`).join('')}</ul></div>`};
+  // 申請表留存檔：全部上傳完成後才自動下載，避免申請人看到下載就以為完成、提早關閉頁面
+  const dl=()=>{const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove()};
+  const guard=e=>{e.preventDefault();e.returnValue='照片還在上傳中，現在離開會缺少檔案。確定要離開嗎？';return e.returnValue};
+  window.addEventListener('beforeunload',guard);
+  const steps=[];const draw=()=>{res.innerHTML=`<div class="notice info"><b>送出中，照片上傳可能需要一點時間，請勿關閉頁面…</b><ul class="steps">${steps.map(x=>`<li class="${x.s}">${esc(x.t)}</li>`).join('')}</ul></div>`};
   const step=t=>{const x={t,s:'run'};steps.push(x);draw();return {ok:(t2)=>{x.s='ok';if(t2)x.t=t2;draw()},err:(t2)=>{x.s='err';x.t=t2;draw()}}};
   $('submitBtn').disabled=true;
   const stamp=()=>new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'');
@@ -1128,7 +1131,7 @@ async function deliver(d,blob,res){
     // 1. 資料夾
     if(!uploaded||!uploaded.folderId){const s1=step('建立雲端資料夾');
       const f=revising?{folderId:revising.folderId,token:revising.token,url:revising.url||'',appId:revising.appId||''}
-        :await gas({action:'folder',unit:d.unit,eventName:d.eventName,eventDate:d.eventDate,contact:`${d.contact.name}（${d.contact.phone}）`,contactName:d.contact.name,email:d.contact.email,categories:d.categories.join('、'),note:uploadNote()});
+        :await gas({action:'folder',unit:d.unit,eventName:d.eventName,eventDate:d.eventDate,contact:`${d.contact.name}（${d.contact.phone}）`,contactName:d.contact.name,email:d.contact.email,categories:d.categories.join('、'),note:uploadNote(),expectPhotos:items.filter(it=>it.photo).length,expectAssets:isFast()?0:assets.length});
       uploaded={sig:'',url:f.url,folderId:f.folderId,token:f.token,appId:f.appId||'',photoCount:0,assetCount:0};s1.ok(revising?'使用原申請的雲端資料夾':'建立雲端資料夾')}
     // 2. 申請表（最重要，先傳，失敗重試一次）
     if(!docOk){const s2=step('上傳申請表（Word）');
@@ -1155,14 +1158,16 @@ async function deliver(d,blob,res){
   }catch(e){
     $('submitBtn').disabled=false;
     const who=d.groups.map(g=>CONFIG.PHONES[g]).join('；');
-    res.innerHTML=res.innerHTML.replace('<b>送出中，請勿關閉頁面…</b>','<b>送出未完成</b>')+
+    res.innerHTML=res.innerHTML.replace('<b>送出中，照片上傳可能需要一點時間，請勿關閉頁面…</b>','<b>送出未完成</b>')+
       `<div class="notice err">${e.doc?'申請表沒有成功存入公關中心雲端。':'上傳過程發生錯誤：'+esc(e.message)+'。'}請按「重新送出」再試一次（已完成的部分不會重複上傳）。若持續失敗，請把剛下載的 Word 申請表寄給承辦人，並電話告知：${esc(who)}
        <div style="margin-top:8px"><button type="button" class="small" id="retryBtn">重新送出</button> <a href="${url}" download="${name}.docx">⬇ 重新下載申請表</a></div></div>`;
     $('retryBtn').onclick=()=>deliver(d,blob,res);
     for(const g of d.groups)res.innerHTML+=mailLinks(CONFIG.ROUTES[g],`【新聞資訊上架申請】${d.unit}－${d.eventName}`,`公關中心您好：\n\n${d.unit}申請「${d.eventName}」新聞資訊上架，申請表 Word 檔如附件。\n\n聯絡人：${d.contact.name}　${d.contact.phone}`,CONFIG.ROUTES[g].label,d.contact.email);
     if($('retryBtn'))$('retryBtn').onclick=()=>deliver(d,blob,res);
+    window.removeEventListener('beforeunload',guard);dl();
     return;
   }
+  window.removeEventListener('beforeunload',guard);dl();
   SENT={...uploaded,eventName:d.eventName,unit:d.unit};
   const me={folderId:uploaded.folderId,token:uploaded.token,appId:uploaded.appId||'',eventName:d.eventName,unit:d.unit,contact:d.contact.name,email:d.contact.email,categories:d.categories.join('、')};
   const sb=$('submitBtn');sb.disabled=true;sb.classList.add('sent');sb.textContent=`✓ ${revising?'修訂版已送出':'已送出'}${uploaded.appId?`（${uploaded.appId}）`:''}`;$('submitHint').classList.add('hidden');
@@ -1849,7 +1854,7 @@ function rvRender(){
   const today=todayISO();
   L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
     const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
-    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b><div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${hasSoc(x)&&x.status!=='不予上架'?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b>${x.unfinished?' <span class="rv-unfin" title="申請人未完成上傳">⚠</span>':''}<div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${hasSoc(x)&&x.status!=='不予上架'?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
     el.onclick=()=>rvOpen(x.folderId);$('rvList').appendChild(el)})}
 async function rvOpen(folderId){
   $('rvMsg').textContent='讀取中…';
