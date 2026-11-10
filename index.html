@@ -2020,7 +2020,9 @@ function edOpen(){
     `<label>修改說明（選填，會放進給申請人的說明）</label><input type="text" id="ed_note" value="${esc((ED.saved&&ED.saved.note)||'')}" placeholder="例如：標題精簡、補上合作期程">`;
   ED.view='edit';edTab();$('edDlg').showModal();
   $('edEdit').oninput=()=>edCount()}
-function edAuthor(){return '公關中心'+(val('rvStaff')?' '+val('rvStaff'):'')}
+// 追蹤修訂的修訂者依登入的審核碼決定：新聞審核碼＝楊豐榮、主任審核碼＝主任、社群審核碼＝公關中心社群組
+const ED_AUTHOR={staff:'楊豐榮',director:'主任',social:'公關中心社群組'};
+function edAuthor(){return ED_AUTHOR[rvRole]||'公關中心'}
 function edTab(){document.querySelectorAll('.ed-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===ED.view));
   $('edEdit').classList.toggle('hidden',ED.view!=='edit');$('edDiff').classList.toggle('hidden',ED.view!=='diff');
   if(ED.view==='diff')edRenderDiff();edCount()}
