@@ -110,7 +110,17 @@ button.small{padding:5px 10px;font-size:14px}
 .remember{margin-top:8px;font-size:14px}
 .linkbtn{border:0;background:none;color:var(--brand);text-decoration:underline;padding:0 4px;font-size:13.5px}
 .mode-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:640px){.mode-pick{grid-template-columns:1fr}}
+.mode-card .body{padding:10px 12px}
+.mode-card .mode-pick{grid-template-columns:1fr 1fr minmax(140px,.6fr);gap:8px}
+.mode-card .mode-opt{padding:7px 10px;gap:8px;line-height:1.4;border-width:1.5px}
+.mode-card .mode-opt input{margin-top:3px}
+.mode-card .mode-opt b,.mode-link b{display:block;font-size:15px}
+.mode-card .hint{display:block;font-size:12.5px}
+.mode-link{display:flex;flex-direction:column;justify-content:center;border:1.5px dashed var(--accent);border-radius:10px;padding:5px 10px;background:#fff8f0;text-decoration:none;color:var(--ink);line-height:1.35}
+.mode-link b{color:var(--accent);font-size:14px!important}
+.mode-link .hint{font-size:12px!important}
+.mode-link:hover{background:#ffefdc}
+@media (max-width:640px){.mode-pick,.mode-card .mode-pick{grid-template-columns:1fr}}
 .mode-opt{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:#fff}
 .mode-opt input{margin-top:6px}
 .mode-opt:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}
@@ -307,8 +317,9 @@ button.rv-done,button.rv-done:disabled{background:#e6f4ea!important;color:#1e6b3
 <!-- 申請類型 -->
 <section class="card mode-card">
   <div class="body mode-pick">
-    <label class="mode-opt"><input type="radio" name="mode" value="new" checked><span><b>新申請</b><br><span class="hint">新聞稿、邀請媒體、社群貼文等上架申請</span></span></label>
-    <label class="mode-opt"><input type="radio" name="mode" value="fast"><span><b>已提送申請：補照片或修改內容</b><br><span class="hint">活動結束後補傳照片，或修改已送出的新聞稿、貼文</span></span></label>
+    <label class="mode-opt"><input type="radio" name="mode" value="new" checked><span><b>新申請</b><span class="hint">新聞稿、媒體邀請、社群貼文</span></span></label>
+    <label class="mode-opt"><input type="radio" name="mode" value="fast"><span><b>已提送申請</b><span class="hint">補照片或修改內容</span></span></label>
+    <a class="mode-link" href="superman.html" target="_blank" rel="noopener"><b>媒體超人幫幫我 ↗</b><span class="hint">只想寫稿或改稿</span></a>
   </div>
 </section>
 

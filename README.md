@@ -2,10 +2,11 @@
 
 國立高雄科技大學秘書室公關中心「新聞資訊上架申請表」線上版，依 BC03 新聞稿發佈及新媒體整合應用作業程序（115.10.28）及新聞稿撰寫指引建置。
 
-網址：https://khtechpr.github.io/App/（原測試站：https://szu1104.github.io/NKUSTPR/）
+網址：https://khtechpr.github.io/App/
 
 ## Repository 內的檔案
 - `index.html`：申請表網頁
+- `superman.html`：媒體超人幫幫我（獨立寫稿／改稿頁，不送出申請）
 - `BC03-writing-guide.pdf`：新聞稿撰寫指引（網頁上的下載連結指向此檔名）
 - `README.md`：本說明
 - `高科大NKUST.png`：表頭 logo（檔名不可更改）
@@ -71,3 +72,12 @@
 - 按「產生申請表」會先開啟 Word 申請表預覽，申請人確認後才送出。
 - 送出順序：建立資料夾 → **申請表 Word（失敗自動重試一次）** → 照片／素材 → 申請資料.json → 通知信；畫面逐步顯示進度。
 - 申請表未成功存入雲端時不會寄通知信，畫面顯示錯誤與「重新送出」按鈕（已完成的部分不重複上傳）。
+
+## 媒體超人幫幫我（superman.html）
+- 網址：https://khtechpr.github.io/App/superman.html ；改稿分頁可直接連 `superman.html#edit`。
+- 給只想寫稿或改稿的同仁使用，不填申請表、不上傳照片、不寄通知信。兩個分頁：
+  - 幫我寫新聞稿：貼活動資訊或上傳議程／企劃書（.docx、.pdf、.txt），產生標題、亮點、內文與待補清單。
+  - 幫我改新聞稿：「直接幫我改稿」依指引改寫並列出主要修改；「只給修改建議」逐項檢核、不改動原稿。
+- 撰稿規範（`GUIDE`、`DRAFT_SYS`）與申請表相同；改寫規範為本頁專用的 `REVISE_SYS`。
+- 內建高科iAI key（`AI_BUILTIN`）寫在本檔的 `CONFIG`，與 `index.html` 各自一份：**更換 key 時兩個檔案都要改**。
+- AI 設定（模型、個人 key）存在瀏覽器，與申請表共用；等待字幕同樣讀取 `ticker.xlsx`（新聞稿、檢視初稿兩類）。
