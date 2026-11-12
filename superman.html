@@ -29,9 +29,11 @@ header h1{margin:2px 0 0;font-size:24px;letter-spacing:.04em;color:var(--brand)}
 main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
 .intro{margin:0 0 14px;color:var(--muted);font-size:14.5px}
 .intro a{color:var(--brand)}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .tab{display:block;text-align:left;border:2px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff;color:var(--ink)}
 .tab b{display:block;font-size:17px;color:var(--brand)}
+.opts{display:flex;gap:14px;flex-wrap:wrap;font-size:15px}
+.opts label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
 .tab span{font-size:13.5px;color:var(--muted)}
 .tab.on{border-color:var(--brand);background:var(--brand-soft)}
 @media (max-width:640px){.tabs{grid-template-columns:1fr}}
@@ -101,11 +103,12 @@ footer a{color:var(--brand)}
 </div></header>
 
 <main>
-  <p class="intro">貼上資料就能用，不需要申請 API key。媒體超人依「高科大新聞稿撰寫指引」幫你寫稿或改稿，結果可以直接複製使用。這裡不會送出任何申請；稿子完成後，如需公關中心協助上架，請再到<a href="./">新聞資訊上架申請表</a>提出申請。</p>
+  <p class="intro">貼上資料就能用，不需要申請 API key。媒體超人依「高科大新聞稿撰寫指引」幫你寫稿、改稿或寫社群貼文，結果可以直接複製使用。這裡不會送出任何申請；稿子完成後，如需公關中心協助上架，請再到<a href="./">新聞資訊上架申請表</a>提出申請。</p>
 
   <div class="tabs" role="tablist">
-    <button type="button" class="tab on" id="tabWrite" role="tab"><b>幫我寫新聞稿</b><span>貼上活動資訊或上傳議程、企劃書，產生新聞稿草稿</span></button>
-    <button type="button" class="tab" id="tabEdit" role="tab"><b>幫我改新聞稿</b><span>貼上已寫好的稿子，檢查哪裡要改，或直接改寫</span></button>
+    <button type="button" class="tab on" id="tabWrite" role="tab"><b>幫我寫新聞稿</b><span>貼資訊或上傳企劃書，產生草稿</span></button>
+    <button type="button" class="tab" id="tabEdit" role="tab"><b>幫我改新聞稿</b><span>貼上寫好的稿子，檢查或改寫</span></button>
+    <button type="button" class="tab" id="tabSocial" role="tab"><b>幫我寫社群貼文</b><span>Facebook／Instagram 貼文</span></button>
   </div>
 
   <!-- 寫稿 -->
@@ -154,6 +157,33 @@ footer a{color:var(--brand)}
       </div>
       <p class="hint" style="margin:6px 0 0">「直接幫我改稿」會依指引改寫成完整新聞稿，並列出改了哪些地方；「只給修改建議」不改動原稿，逐項檢核後告訴你哪裡要調整。</p>
       <div class="out" id="outEdit"></div>
+    </div>
+  </section>
+
+
+  <!-- 社群貼文 -->
+  <section class="card hidden" id="paneSocial">
+    <h2>幫我寫社群貼文</h2>
+    <div class="body">
+      <label class="f">發佈平台</label>
+      <div class="opts"><label><input type="checkbox" name="splat" value="Facebook" checked>Facebook</label><label><input type="checkbox" name="splat" value="Instagram" checked>Instagram</label></div>
+      <label class="f">貼文類型</label>
+      <div class="opts"><label><input type="radio" name="stype" value="活動宣傳" checked>活動宣傳</label><label><input type="radio" name="stype" value="活動花絮、成果">活動花絮、成果</label></div>
+      <label class="f" for="sNotes">活動重點<span class="hint">　條列即可：日期、時間、地點、對象、報名方式、亮點</span></label>
+      <textarea id="sNotes" style="min-height:130px" placeholder="例如：&#10;- 12/5 下午在燕巢校區舉辦耶誕市集&#10;- 學生社團擺攤，全校師生都可參加&#10;- 前 100 名送熱可可"></textarea>
+      <label class="f" for="sNews">已有新聞稿？<span class="hint">　選填，貼上後會以新聞稿為主濃縮改寫</span></label>
+      <textarea id="sNews" style="min-height:90px" placeholder="貼上新聞稿全文"></textarea>
+      <div class="row2">
+        <div><label class="f" for="sLink">相關連結<span class="hint">　選填</span></label><input type="url" id="sLink" placeholder="報名表或活動網址"></div>
+        <div><label class="f" for="sUnit">單位<span class="hint">　選填</span></label><input type="text" id="sUnit"></div>
+        <div><label class="f" for="sDate">活動日期<span class="hint">　選填</span></label><input type="date" id="sDate"></div>
+        <div><label class="f" for="sPlace">地點<span class="hint">　選填</span></label><input type="text" id="sPlace"></div>
+      </div>
+      <div class="actions">
+        <button type="button" class="go" id="btnSocial">媒體超人，出動！</button>
+        <button type="button" class="small" id="aiSetS">AI 設定</button>
+      </div>
+      <div class="out" id="outSocial"></div>
     </div>
   </section>
 
@@ -398,16 +428,35 @@ function parseDraft(t){
   j.highlights=(j.highlights||[]).slice(0,3);j.missing=j.missing||[];return j;
 }
 
+/* 社群貼文規範（與申請表相同；本頁類型為「活動宣傳」「活動花絮、成果」） */
+const SOCIAL_SYS=`你是國立高雄科技大學（高科大）秘書室公關中心的社群小編，負責經營學校官方 Facebook 與 Instagram。請依申請單位提供的資訊，分別撰寫 FB 與 IG 貼文。用繁體中文（台灣用語）。
+共同原則：
+1. 依貼文類型調整：活動宣傳重在吸引報名或參加，清楚交代日期、時間、地點、對象與報名方式；活動花絮或成果重在呈現現場亮點與成果，用過去式描述。
+2. 適度使用 emoji 增加可讀性，常用於段落開頭或資訊條列（如 📅 日期、📍 地點、🔗 報名），但不要每句都放，也不要連續堆疊。
+3. 【重要】不得捏造資訊中沒有的日期、時間、地點、數據、獎品、人名或引言。資訊不足之處用「○○」標示，並列入待補。
+4. 有報名或相關連結時放在文末；沒有提供連結就不要編造。\n5. 若有提供【新聞稿】，以新聞稿為主要依據濃縮改寫成社群貼文：挑出最吸引人的一兩個亮點，不要逐段摘要，也不要沿用新聞稿的正式語氣；【補充資訊】中的社群專屬內容（如報名方式、抽獎）要一併放入。不得加入新聞稿與補充資訊以外的事實。
+Facebook 版：
+- 對象為校內外大眾、家長、校友與合作夥伴，語氣親切但正式。
+- 約 150 至 300 字：一句吸睛開頭，接著說明活動內容與重點，活動資訊條列，最後行動呼籲。
+- 文末 hashtag 1 至 3 個，固定包含 #高科大。
+Instagram 版：
+- 對象以學生為主，語氣輕鬆活潑、口語化，可以用學生熟悉的說法，但不要過度網路流行語或不雅用語。
+- 內文精簡，約 50 至 120 字，短句、多分行，第一行就要抓住注意力。
+- 重點資訊用 emoji 條列。
+- 文末另起一行放 hashtag 5 至 8 個，包含 #高科大 #NKUST，其餘依活動主題。
+只輸出一個 JSON 物件，不要有其他文字或 Markdown，格式：
+{"fb":"FB 貼文全文（含 hashtag，分行用\\n）","ig":"IG 貼文全文（含 hashtag，分行用\\n）","missing":["待補資訊"]}
+只撰寫【發佈平台】指定的平台；未指定的平台，該欄位填空字串。`;
+
 /* ===== 分頁 ===== */
-function showTab(w){
-  $('tabWrite').classList.toggle('on',w);$('tabEdit').classList.toggle('on',!w);
-  $('paneWrite').classList.toggle('hidden',!w);$('paneEdit').classList.toggle('hidden',w);
-  try{history.replaceState(null,'',w?location.pathname:'#edit')}catch{}
+const TABS={write:['tabWrite','paneWrite'],edit:['tabEdit','paneEdit'],social:['tabSocial','paneSocial']};
+function showTab(k){
+  Object.entries(TABS).forEach(([n,[t,p]])=>{$(t).classList.toggle('on',n===k);$(p).classList.toggle('hidden',n!==k)});
+  try{history.replaceState(null,'',k==='write'?location.pathname:'#'+k)}catch{}
 }
-$('tabWrite').onclick=()=>showTab(true);
-$('tabEdit').onclick=()=>showTab(false);
-if(/^#edit/.test(location.hash))showTab(false);
-$('aiSetW').onclick=$('aiSetE').onclick=()=>$('aiSet').click();
+Object.entries(TABS).forEach(([n,[t]])=>$(t).onclick=()=>showTab(n));
+{const h=location.hash.slice(1);if(TABS[h])showTab(h)}
+$('aiSetW').onclick=$('aiSetE').onclick=$('aiSetS').onclick=()=>$('aiSet').click();
 $('edBody').addEventListener('input',()=>{const n=chars($('edBody').value);$('edCount').textContent=n?`${n} 字（指引建議 800 至 1000 字）`:''});
 
 /* ===== 結果顯示與複製 ===== */
@@ -446,7 +495,7 @@ function waiting(out,key){
   out.classList.add('show');out.innerHTML='<div class="wait"></div>';
   return startTicker(out.querySelector('.wait'),key);
 }
-function busy(on){['btnDraft','btnRevise','btnReview'].forEach(id=>$(id).disabled=on)}
+function busy(on){['btnDraft','btnRevise','btnReview','btnSocial'].forEach(id=>$(id).disabled=on)}
 
 /* ===== 寫稿 ===== */
 $('btnDraft').onclick=async()=>{
@@ -494,6 +543,34 @@ $('btnReview').onclick=async()=>{
   try{
     const r=await aiChat([{role:'system',content:GUIDE},{role:'user',content:draftInput()}],0.3);stop();
     showPlain(out,r||'AI 沒有回傳內容，請再試一次。','修改建議');
+  }catch(err){stop();showPlain(out,aiErr(err))}
+  finally{stop();busy(false)}
+};
+/* ===== 社群貼文 ===== */
+$('btnSocial').onclick=async()=>{
+  const out=$('outSocial');
+  if(!aiReady()){$('aiSet').click();return}
+  const plats=[...document.querySelectorAll('[name=splat]:checked')].map(x=>x.value);
+  if(!plats.length){out.classList.add('show');showPlain(out,'請至少勾選一個發佈平台（Facebook／Instagram）。');return}
+  const wantFb=plats.includes('Facebook'),wantIg=plats.includes('Instagram');
+  const notes=$('sNotes').value.trim(),news=$('sNews').value.trim();
+  if(chars(news)<50&&chars(notes)<10){out.classList.add('show');showPlain(out,'請先輸入一些活動重點（至少一兩句），或貼上新聞稿。');return}
+  const type=(document.querySelector('[name=stype]:checked')||{}).value||'活動宣傳';
+  const ctx=[`發佈平台：${plats.join('、')}`,`貼文類型：${type}`,val('sUnit')?`申請單位：${val('sUnit')}`:'',
+    val('sDate')?`事件日期：${roc(val('sDate'))}`:'',val('sPlace')?`事件地點：${val('sPlace')}`:'',
+    val('sLink')?`相關連結：${val('sLink')}`:'相關連結：（無）',`今天日期：${fmt(today)}`].filter(Boolean).join('\n');
+  const hasNews=chars(news)>=50;
+  const stop=waiting(out,'social');busy(true);
+  try{
+    const raw0=await aiChat([{role:'system',content:SOCIAL_SYS},{role:'user',content:`【基本資料】\n${ctx}`+(hasNews?`\n\n【新聞稿】\n${news}`:'')+(notes?`\n\n【${hasNews?'補充資訊':'申請單位提供的活動重點'}】\n${notes}`:'')}],0.7);
+    stop();
+    const raw=(raw0||'').replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'');
+    let d;try{d=looseJSON(raw);if((wantFb&&!d.fb)||(wantIg&&!d.ig))throw 0}catch{showPlain(out,raw||'AI 回傳格式無法解析，請再試一次。',raw?'AI 回覆（未依格式，請自行整理）':'');return}
+    const fb=wantFb?String(d.fb).replace(/\\n/g,'\n'):'',ig=wantIg?String(d.ig).replace(/\\n/g,'\n'):'',miss=d.missing||[];
+    out.innerHTML='';
+    if(fb)out.appendChild(block('Facebook 版',`${chars(fb)} 字`,fb));
+    if(ig)out.appendChild(block('Instagram 版',`${chars(ig)} 字`,ig));
+    if(miss.length)out.appendChild(block('待補資訊','請補齊後再使用',miss.map(m=>'・'+m).join('\n'),'miss'));
   }catch(err){stop();showPlain(out,aiErr(err))}
   finally{stop();busy(false)}
 };
