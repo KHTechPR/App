@@ -168,13 +168,16 @@ footer a{color:var(--brand)}
       <label class="f">發佈平台</label>
       <div class="opts"><label><input type="checkbox" name="splat" value="Facebook" checked>Facebook</label><label><input type="checkbox" name="splat" value="Instagram" checked>Instagram</label></div>
       <label class="f">貼文類型</label>
-      <div class="opts"><label><input type="radio" name="stype" value="活動宣傳" checked>活動宣傳</label><label><input type="radio" name="stype" value="活動花絮、成果">活動花絮、成果</label></div>
-      <label class="f" for="sNotes">活動重點<span class="hint">　條列即可：日期、時間、地點、對象、報名方式、亮點</span></label>
+      <div class="opts"><label><input type="radio" name="stype" value="活動宣傳" checked>宣傳稿（活動預告）</label><label><input type="radio" name="stype" value="活動花絮、成果">活動花絮／成果（事後報導）</label></div>
+      <p class="hint" id="sTypeHint" style="margin:4px 0 0"></p>
+      <div id="sNewsWrap" class="hidden">
+        <label class="f" for="sNews">貼上新聞稿全文<span class="hint">　媒體超人會濃縮成活動花絮／成果貼文</span></label>
+        <textarea id="sNews" style="min-height:200px" placeholder="把新聞稿全文貼在這裡"></textarea>
+      </div>
+      <label class="f" for="sNotes" id="sNotesLabel">活動重點<span class="hint">　條列即可：日期、時間、地點、對象、報名方式、亮點</span></label>
       <textarea id="sNotes" style="min-height:130px" placeholder="例如：&#10;- 12/5 下午在燕巢校區舉辦耶誕市集&#10;- 學生社團擺攤，全校師生都可參加&#10;- 前 100 名送熱可可"></textarea>
-      <label class="f" for="sNews">已有新聞稿？<span class="hint">　選填，貼上後會以新聞稿為主濃縮改寫</span></label>
-      <textarea id="sNews" style="min-height:90px" placeholder="貼上新聞稿全文"></textarea>
       <div class="row2">
-        <div><label class="f" for="sLink">相關連結<span class="hint">　選填</span></label><input type="url" id="sLink" placeholder="報名表或活動網址"></div>
+        <div><label class="f" for="sLink" id="sLinkLabel">報名或活動連結<span class="hint">　選填</span></label><input type="url" id="sLink" placeholder="報名表或活動網址"></div>
         <div><label class="f" for="sUnit">單位<span class="hint">　選填</span></label><input type="text" id="sUnit"></div>
         <div><label class="f" for="sDate">活動日期<span class="hint">　選填</span></label><input type="date" id="sDate"></div>
         <div><label class="f" for="sPlace">地點<span class="hint">　選填</span></label><input type="text" id="sPlace"></div>
@@ -431,17 +434,20 @@ function parseDraft(t){
 /* 社群貼文規範（與申請表相同；本頁類型為「活動宣傳」「活動花絮、成果」） */
 const SOCIAL_SYS=`你是國立高雄科技大學（高科大）秘書室公關中心的社群小編，負責經營學校官方 Facebook 與 Instagram。請依申請單位提供的資訊，分別撰寫 FB 與 IG 貼文。用繁體中文（台灣用語）。
 共同原則：
-1. 依貼文類型調整：活動宣傳重在吸引報名或參加，清楚交代日期、時間、地點、對象與報名方式；活動花絮或成果重在呈現現場亮點與成果，用過去式描述。
+1. 【貼文寫法】必須依基本資料指定的寫法撰寫：
+   ・活動預告：重在吸引報名或參加，清楚交代日期、時間、地點、對象與報名方式，資訊可用 emoji 條列，文末行動呼籲。
+   ・活動花絮／事後報導：活動已經結束或成果已經產生。開頭直接點出發生了什麼，只挑一兩個最有感的亮點、成果或數字，用過去式描述；可帶一句有意義的發言（新聞稿裡有才可引用）。不寫報名資訊，不用「快來參加」「別錯過」等行動呼籲；有新聞連結時可在文末放「完整新聞」。像把新聞稿濃縮成好讀的社群版，不是逐段摘要。
 2. 適度使用 emoji 增加可讀性，常用於段落開頭或資訊條列（如 📅 日期、📍 地點、🔗 報名），但不要每句都放，也不要連續堆疊。
 3. 【重要】不得捏造資訊中沒有的日期、時間、地點、數據、獎品、人名或引言。資訊不足之處用「○○」標示，並列入待補。
 4. 有報名或相關連結時放在文末；沒有提供連結就不要編造。\n5. 若有提供【新聞稿】，以新聞稿為主要依據濃縮改寫成社群貼文：挑出最吸引人的一兩個亮點，不要逐段摘要，也不要沿用新聞稿的正式語氣；【補充資訊】中的社群專屬內容（如報名方式、抽獎）要一併放入。不得加入新聞稿與補充資訊以外的事實。
 Facebook 版：
 - 對象為校內外大眾、家長、校友與合作夥伴，語氣親切但正式。
-- 約 150 至 300 字：一句吸睛開頭，接著說明活動內容與重點，活動資訊條列，最後行動呼籲。
+- 活動預告約 150 至 300 字：一句吸睛開頭，說明活動內容與重點，活動資訊條列，最後行動呼籲。
+- 活動花絮／事後報導約 120 至 250 字：一句吸睛開頭點出成果，接著一兩段重點，不放活動資訊條列與行動呼籲。
 - 文末 hashtag 1 至 3 個，固定包含 #高科大。
 Instagram 版：
 - 對象以學生為主，語氣輕鬆活潑、口語化，可以用學生熟悉的說法，但不要過度網路流行語或不雅用語。
-- 內文精簡，約 50 至 120 字，短句、多分行，第一行就要抓住注意力。
+- 內文精簡，活動預告約 50 至 120 字、事後報導約 50 至 100 字，短句、多分行，第一行就要抓住注意力。
 - 重點資訊用 emoji 條列。
 - 文末另起一行放 hashtag 5 至 8 個，包含 #高科大 #NKUST，其餘依活動主題。
 只輸出一個 JSON 物件，不要有其他文字或 Markdown，格式：
@@ -547,6 +553,14 @@ $('btnReview').onclick=async()=>{
   finally{stop();busy(false)}
 };
 /* ===== 社群貼文 ===== */
+function sType(){const post=(document.querySelector('[name=stype]:checked')||{}).value!=='活動宣傳';
+  $('sNewsWrap').classList.toggle('hidden',!post);
+  $('sTypeHint').textContent=post?'事後報導：貼上新聞稿全文，濃縮亮點、用過去式描述現場與成果，不寫報名資訊。':'宣傳稿：交代活動日期、時間、地點與報名方式，文末行動呼籲。';
+  $('sNotesLabel').innerHTML=post?'補充資訊<span class="hint">　選填；沒有新聞稿時，也可以直接寫活動成果重點</span>':'活動重點<span class="hint">　條列即可：日期、時間、地點、對象、報名方式、亮點</span>';
+  $('sNotes').style.minHeight=post?'70px':'130px';
+  if(!sType.ph)sType.ph=$('sNotes').placeholder;$('sNotes').placeholder=post?'例如：現場約 300 人參加、校長致詞重點、得獎名單':sType.ph;
+  $('sLinkLabel').innerHTML=(post?'完整新聞連結':'報名或活動連結')+'<span class="hint">　選填</span>';$('sLink').placeholder=post?'校網新聞網址':'報名表或活動網址'}
+document.querySelectorAll('[name=stype]').forEach(r=>r.addEventListener('change',sType));sType();
 $('btnSocial').onclick=async()=>{
   const out=$('outSocial');
   if(!aiReady()){$('aiSet').click();return}
@@ -554,12 +568,12 @@ $('btnSocial').onclick=async()=>{
   if(!plats.length){out.classList.add('show');showPlain(out,'請至少勾選一個發佈平台（Facebook／Instagram）。');return}
   const wantFb=plats.includes('Facebook'),wantIg=plats.includes('Instagram');
   const notes=$('sNotes').value.trim(),news=$('sNews').value.trim();
-  if(chars(news)<50&&chars(notes)<10){out.classList.add('show');showPlain(out,'請先輸入一些活動重點（至少一兩句），或貼上新聞稿。');return}
-  const type=(document.querySelector('[name=stype]:checked')||{}).value||'活動宣傳';
-  const ctx=[`發佈平台：${plats.join('、')}`,`貼文類型：${type}`,val('sUnit')?`申請單位：${val('sUnit')}`:'',
+  const type=(document.querySelector('[name=stype]:checked')||{}).value||'活動宣傳',isPost=type!=='活動宣傳';
+  if(isPost?(chars(news)<50&&chars(notes)<10):chars(notes)<10){out.classList.add('show');showPlain(out,isPost?'請貼上新聞稿全文，或寫下活動成果重點。':'請先輸入活動重點（至少一兩句）：日期、時間、地點、報名方式等。');return}
+  const ctx=[`發佈平台：${plats.join('、')}`,`貼文寫法：${isPost?'活動花絮／事後報導':'活動預告'}`,val('sUnit')?`申請單位：${val('sUnit')}`:'',
     val('sDate')?`事件日期：${roc(val('sDate'))}`:'',val('sPlace')?`事件地點：${val('sPlace')}`:'',
-    val('sLink')?`相關連結：${val('sLink')}`:'相關連結：（無）',`今天日期：${fmt(today)}`].filter(Boolean).join('\n');
-  const hasNews=chars(news)>=50;
+    val('sLink')?`${isPost?'完整新聞連結':'相關連結'}：${val('sLink')}`:'相關連結：（無）',`今天日期：${fmt(today)}`].filter(Boolean).join('\n');
+  const hasNews=isPost&&chars(news)>=50;
   const stop=waiting(out,'social');busy(true);
   try{
     const raw0=await aiChat([{role:'system',content:SOCIAL_SYS},{role:'user',content:`【基本資料】\n${ctx}`+(hasNews?`\n\n【新聞稿】\n${news}`:'')+(notes?`\n\n【${hasNews?'補充資訊':'申請單位提供的活動重點'}】\n${notes}`:'')}],0.7);

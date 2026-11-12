@@ -2,7 +2,7 @@
 
 國立高雄科技大學秘書室公關中心「新聞資訊上架申請表」線上版，依 BC03 新聞稿發佈及新媒體整合應用作業程序（115.10.28）及新聞稿撰寫指引建置。
 
-網址：https://khtechpr.github.io/App/（原測試站：https://szu1104.github.io/NKUSTPR/）
+網址：https://khtechpr.github.io/App/
 
 ## Repository 內的檔案
 - `index.html`：申請表網頁

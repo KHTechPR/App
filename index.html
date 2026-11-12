@@ -110,7 +110,17 @@ button.small{padding:5px 10px;font-size:14px}
 .remember{margin-top:8px;font-size:14px}
 .linkbtn{border:0;background:none;color:var(--brand);text-decoration:underline;padding:0 4px;font-size:13.5px}
 .mode-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:640px){.mode-pick{grid-template-columns:1fr}}
+.mode-card .body{padding:10px 12px}
+.mode-card .mode-pick{grid-template-columns:1fr 1fr minmax(140px,.6fr);gap:8px}
+.mode-card .mode-opt{padding:7px 10px;gap:8px;line-height:1.4;border-width:1.5px}
+.mode-card .mode-opt input{margin-top:3px}
+.mode-card .mode-opt b,.mode-link b{display:block;font-size:15px}
+.mode-card .hint{display:block;font-size:12.5px}
+.mode-link{display:flex;flex-direction:column;justify-content:center;border:1.5px dashed var(--accent);border-radius:10px;padding:5px 10px;background:#fff8f0;text-decoration:none;color:var(--ink);line-height:1.35}
+.mode-link b{color:var(--accent);font-size:14px!important}
+.mode-link .hint{font-size:12px!important}
+.mode-link:hover{background:#ffefdc}
+@media (max-width:640px){.mode-pick,.mode-card .mode-pick{grid-template-columns:1fr}}
 .mode-opt{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:#fff}
 .mode-opt input{margin-top:6px}
 .mode-opt:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}
@@ -311,8 +321,9 @@ body.draft-pending .req3{display:none}
 <!-- 申請類型 -->
 <section class="card mode-card">
   <div class="body mode-pick">
-    <label class="mode-opt"><input type="radio" name="mode" value="new" checked><span><b>新申請</b><br><span class="hint">新聞稿、邀請媒體、社群貼文等上架申請</span></span></label>
-    <label class="mode-opt"><input type="radio" name="mode" value="fast"><span><b>已提送申請：補照片或修改內容</b><br><span class="hint">活動結束後補傳照片，或修改已送出的新聞稿、貼文</span></span></label>
+    <label class="mode-opt"><input type="radio" name="mode" value="new" checked><span><b>新申請</b><span class="hint">新聞稿、媒體邀請、社群貼文</span></span></label>
+    <label class="mode-opt"><input type="radio" name="mode" value="fast"><span><b>已提送申請</b><span class="hint">補照片或修改內容</span></span></label>
+    <a class="mode-link" href="superman.html" target="_blank" rel="noopener"><b>媒體超人幫幫我 ↗</b><span class="hint">只想寫稿或改稿</span></a>
   </div>
 </section>
 
@@ -530,9 +541,10 @@ body.draft-pending .req3{display:none}
       <div class="notice ok hidden" id="authNote5" style="margin-top:8px">✓ 已授權公關中心依新聞稿內容撰寫社群貼文，<b>下方貼文內容可免填</b>。如有社群專屬資訊（報名連結、抽獎辦法等），可補充在貼文內容。</div>
       <div class="notice info hidden" id="socialFromNews" style="margin-top:8px">✓ 已偵測到第三項新聞稿內容，AI 會以新聞稿為主濃縮改寫成貼文。下方可留空，或補充社群專屬資訊（如報名連結、抽獎辦法、集合時間）。</div>
       <div style="margin-top:8px"><b>貼文寫法</b> <span class="hint">系統依申請項目與事件日期自動選好，可以改</span></div>
-      <div class="post-style"><label class="chk"><input type="radio" name="postStyle" value="pre">活動預告</label><label class="chk"><input type="radio" name="postStyle" value="post">活動花絮／事後報導</label></div>
+      <div class="post-style"><label class="chk"><input type="radio" name="postStyle" value="pre">宣傳稿（活動預告）</label><label class="chk"><input type="radio" name="postStyle" value="post">活動花絮／事後報導</label></div>
       <div class="hint" id="postStyleHint"></div>
-      <textarea id="socialNotes" style="margin-top:8px;min-height:110px" placeholder="例如：&#10;- 11/20 職涯博覽會，燕巢校區活動中心 10:00–16:00&#10;- 80 家企業、超過 1,000 個職缺&#10;- 現場有履歷健診、模擬面試&#10;- 集點可抽 AirPods"></textarea>
+      <label for="socialNotes" id="socialNotesLabel" style="display:block;margin-top:8px;font-weight:700"></label>
+      <textarea id="socialNotes" style="margin-top:4px;min-height:110px" placeholder="例如：&#10;- 11/20 職涯博覽會，燕巢校區活動中心 10:00–16:00&#10;- 80 家企業、超過 1,000 個職缺&#10;- 現場有履歷健診、模擬面試&#10;- 集點可抽 AirPods"></textarea>
       <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
         <button type="button" class="small" id="aiSocial">生成社群貼文</button>
         <button type="button" class="small hidden" id="aiSocialApply" style="background:var(--brand);color:#fff">套用到貼文內容</button>
@@ -1581,6 +1593,7 @@ const DRAFT_SYS=`你是國立高雄科技大學秘書室公關中心的資深新
 7. 【重要】不得捏造資訊中沒有的事實、數據、人名、職稱或引言。資訊不足之處用「○○」標示，並列入「待補」。引言只能使用資訊中提供的說法，可潤飾文句但不可改變原意。
 8. 若資訊不足以寫到 800 字，寧可短一些並在待補中說明缺少哪些資訊，不要用空泛內容灌水。
 9. 若有【參考文件】（議程、企劃書、流程表等），從中擷取活動名稱、時間、地點、出席貴賓、活動內容與亮點；不要照抄企劃書的計畫目標、KPI 或公文語氣，要改寫成新聞報導的寫法。文件與零散資訊衝突時，以零散資訊為準。
+10. 【時態】新聞稿是活動當天或之後發布的事後報導，即使活動還沒舉行，也一律寫成「已經發生」的報導：以事件日為「今（月/日）日」，用「舉行」「出席」「表示」等已完成的寫法；不要寫成活動預告，不要出現「將於」「歡迎報名」「敬請踴躍參加」等邀請語。活動當天才會知道的細節（現場人數、致詞內容、成果數字）若資訊中沒有，用「○○」標示並列入待補，不要自行推測。沒有事件日期的成果報導，用「近日」或直接陳述成果。
 
 ${EXAMPLE}
 
@@ -1618,7 +1631,7 @@ $('aiDraft').onclick=async()=>{
   if(chars(notes)<8&&!docText){out.textContent='媒體超人需要一點線索！請貼上活動資訊，或上傳一份議程／企劃書。';return}
   const ctx=[`申請單位：${val('unit')||'（未填）'}`,`活動或成果名稱：${val('eventName')||'（未填）'}`,
     `事件日期：${val('eventDate')?roc(val('eventDate')):'（未填）'}`,`事件地點：${val('eventPlace')||'（未填）'}`,
-    val('guests3')?`出席貴賓：${val('guests3')}`:'',`今天日期：${fmt(today)}`].filter(Boolean).join('\n');
+    val('guests3')?`出席貴賓：${val('guests3')}`:'',`今天日期：${fmt(today)}`,'撰寫時點：以事件日當天發布的事後報導撰寫（見規範第 10 點）'].filter(Boolean).join('\n');
   const stopT=startTicker(out,'news');
   $('draftApplied').textContent='';$('aiApply').classList.add('hidden');$('aiDraft').disabled=true;
   try{
@@ -1686,7 +1699,12 @@ function autoPostStyle(){
   else if(!c.includes('fbPost')&&!authS&&!hasNews&&future)v='pre';
   const box=document.querySelector('.post-style');
   if(!box.dataset.touched){const r=document.querySelector(`[name=postStyle][value=${v}]`);if(r)r.checked=true}
-  $('postStyleHint').textContent=postStyle()==='pre'?'活動預告：交代日期、地點、報名方式，文末行動呼籲。':'事後報導：從新聞稿濃縮亮點，用過去式描述現場與成果，不寫報名資訊。'}
+  const pre=postStyle()==='pre',ta=$('socialNotes');
+  $('postStyleHint').textContent=pre?'宣傳稿：交代活動日期、時間、地點與報名方式，文末行動呼籲。':'事後報導：從新聞稿濃縮亮點，用過去式描述現場與成果，不寫報名資訊。';
+  if(pre){$('socialNotesLabel').innerHTML='活動重點 <span class="hint">日期、時間、地點、對象、報名方式、亮點</span>';ta.placeholder=SOC_PH_PRE}
+  else if(hasNews){$('socialNotesLabel').innerHTML='補充資訊 <span class="hint">選填；已偵測到第三項新聞稿，會以新聞稿為主濃縮</span>';ta.placeholder='例如：活動相簿連結、得獎名單、想特別感謝的單位'}
+  else{$('socialNotesLabel').innerHTML='貼上新聞稿全文 <span class="hint">或寫下活動成果重點</span>';ta.placeholder='把新聞稿全文貼在這裡，媒體超人會濃縮成活動花絮／成果貼文'}}
+const SOC_PH_PRE=($('socialNotes')||{}).placeholder||'';
 document.querySelectorAll('[name=postStyle]').forEach(r=>['input','change'].forEach(ev=>r.addEventListener(ev,()=>{document.querySelector('.post-style').dataset.touched='1';autoPostStyle()})));
 $('aiSet3').onclick=()=>$('aiSet').click();
 function newsForSocial(){
@@ -1701,10 +1719,12 @@ $('aiSocial').onclick=async()=>{
   $('aiSocialApply').classList.add('hidden');$('socialApplied').textContent='';lastSocial=null;
   if(!plats.length){out.textContent='請先勾選發佈平台（Facebook／Instagram）。';return}
   const wantFb=plats.includes('Facebook'),wantIg=plats.includes('Instagram');
-  const notes=$('socialNotes').value.trim()||val('postText');
-  const news=newsForSocial();
+  let notes=$('socialNotes').value.trim()||val('postText');
+  let news=newsForSocial();
+  autoPostStyle();
+  if(!news&&postStyle()==='post'&&chars(notes)>=200){news=notes;notes=''}   // 事後報導：格子裡貼的是新聞稿全文
   if(!news&&chars(notes)<10){out.textContent='請先輸入一些活動重點（至少一兩句）。';return}
-  autoPostStyle();const types=postStyle()==='pre'?'活動預告':'活動花絮／事後報導';
+  const types=postStyle()==='pre'?'活動預告':'活動花絮／事後報導';
   const ctx=[`發佈平台：${plats.join('、')}`,`貼文寫法：${types}`,`申請單位：${val('unit')||'（未填）'}`,`活動或成果名稱：${val('eventName')||'（未填）'}`,
     `事件日期：${val('eventDate')?roc(val('eventDate')):'（未填）'}`,`事件地點：${val('eventPlace')||'（未填）'}`,
     val('postDate')?`預定發文日：${roc(val('postDate'))}`:'',val('postLink')?`相關連結：${val('postLink')}`:'相關連結：（無）',`今天日期：${fmt(today)}`].filter(Boolean).join('\n');
