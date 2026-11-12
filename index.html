@@ -227,6 +227,23 @@ body.review .layout{display:none!important}
 .ed-sec{font-size:13px;color:var(--muted);margin:14px 0 4px}.ed-sec:first-child{margin-top:0}
 .ed-txt{white-space:pre-wrap;line-height:1.9;font-size:15px;border:1px solid var(--line,#e5e7eb);border-radius:8px;padding:8px 10px}
 .ed-txt del{color:#b42318;background:#fde8e6}.ed-txt ins{color:#0d5c32;background:#dcf3e4;text-decoration:underline}
+.rc-box{border:2px solid #e8a317;border-radius:10px;margin-top:12px;overflow:hidden;background:#fff}
+.rc-box.done{border-color:#9bd3b2}
+.rc-hd{background:#fff8e6;padding:10px 14px;font-weight:700;color:#7a4b00;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.rc-hd .meta{font-weight:400;font-size:13px;color:#6b5a3a}
+.rc-bd{padding:12px 14px}
+.rc-tabs{display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap}
+.rc-tabs button{border:1px solid #cbd2e1;background:#fff;color:inherit;border-radius:16px;padding:3px 12px;font-size:13px;cursor:pointer;width:auto;margin:0}
+.rc-tabs button.on{background:var(--brand,#1f3a8a);color:#fff;border-color:var(--brand,#1f3a8a)}
+.rc-tabs .sp{flex:1}
+.chg{border-radius:4px;padding:0 1px;cursor:pointer}
+.chg.acc del{color:#b42318;background:#fde8e6}.chg.acc ins{color:#0d5c32;background:#dcf3e4;text-decoration:underline}
+.chg.rej del{color:inherit;background:#f1f2f4;text-decoration:none}.chg.rej ins{color:#9aa0aa;background:#f1f2f4;text-decoration:line-through}
+.chg .tg{display:inline-block;font-size:11px;line-height:16px;border-radius:8px;padding:0 5px;margin:0 2px;vertical-align:1px;font-weight:700;white-space:nowrap}
+.chg.acc .tg{background:#1e7a46;color:#fff}.chg.rej .tg{background:#8a919c;color:#fff}
+.rc-sum{font-size:13px;color:#444;margin:8px 0}
+.rc-ok{background:#1e7a46!important;color:#fff!important;border:0;border-radius:8px;padding:8px 16px;font-weight:700;width:auto}
+.rc-done{background:#e9f7ef;border:1px solid #9bd3b2;border-radius:8px;padding:10px 12px;color:#0d5c32}
 .ed-note{background:var(--brand-soft);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14px}
 .q-left{font-weight:700;color:var(--brand)}.q-left.out{color:var(--err)}
 .cat-group{border:1px solid var(--line,#d6dbe5);border-radius:8px;margin-bottom:10px;background:#fff}
@@ -342,6 +359,7 @@ body.draft-pending .req3{display:none}
       <div id="ftList" class="ft-list"></div>
     </div>
     <div id="ftBound" class="bound-box hidden"></div>
+    <div id="rcBox" class="rc-box hidden"></div>
     <div id="ftNext" class="hidden" style="margin-top:12px">
       <p class="hint" style="margin:0 0 6px"><b>步驟 2｜你要做什麼？</b></p>
       <div class="mode-pick">
@@ -843,6 +861,7 @@ function showBound(){
   if(on)$('ftBound').innerHTML=`✓ 已連結原申請：<b>${esc(bound.eventName)}</b>（${esc(bound.unit)}${bound.appId?'，申請編號 '+esc(bound.appId):''}${bound.created?'，'+esc(bound.created):''}）<button type="button" class="linkbtn" id="ftUnbind">換一件</button>`;
   if(on)$('ftUnbind').onclick=()=>{bound=null;uploaded=null;showBound();check()};
   if(on&&bound.token)loadQuota();
+  loadRev();
 
   check();
 }
@@ -862,6 +881,56 @@ $('ftLookupBtn').onclick=async()=>{
       el.onclick=()=>{bound=x;uploaded=null;showBound()};$('ftList').appendChild(el)});
   }catch(e){msg.innerHTML=`查詢失敗：${esc(e.message)}。<br>也可以直接點選 <b>[上架申請通知]</b> 信件中的「補件／修改連結」。`}
 };
+/* ===== 申請單位確認公關中心修訂稿 ===== */
+let RC=null;   // {rec,confirm,secs:[[名稱,[片段…]]],dec:{id:true接受/false拒絕},view}
+function rcPairs(o,t){const P=ED_FIELDS.map(([k,n])=>[n,(o||{})[k]||'',(t||{})[k]||'']);
+  const oc=(o||{}).caps||[],tc=(t||{}).caps||[];for(let i=0;i<Math.max(oc.length,tc.length);i++)P.push([`圖${i+1} 圖說`,oc[i]||'',tc[i]||'']);return P}
+async function loadRev(){
+  const box=$('rcBox'),b=bound;box.classList.add('hidden');box.innerHTML='';RC=null;
+  if(!b||!b.token||!CONFIG.BACKEND_URL)return;
+  try{const j=await gas({action:'revget',folderId:b.folderId,token:b.token});if(bound!==b||!j.edits||!j.edits.text)return;
+    const rec=j.edits,secs=[];let id=0;const dec={};
+    rcPairs(rec.orig,rec.text).filter(([,a,c])=>a||c).forEach(([n,a,c])=>{const segs=[];
+      diffText(a,c).forEach(([t,x])=>{if(t===0){segs.push([0,x]);return}
+        let L=segs[segs.length-1];if(!L||L[0]!==1){L=[1,'','',id++];segs.push(L);dec[L[3]]=true}
+        if(t<0)L[1]+=x;else L[2]+=x});secs.push([n,segs])});
+    RC={rec,confirm:j.confirm&&j.confirm.revAt===rec.at?j.confirm:null,secs,dec,view:'diff'};rcRender()}catch(e){}}
+function rcFinal(){const o={};RC.secs.forEach(([n,segs])=>o[n]=segs.map(s=>s[0]===0?s[1]:(RC.dec[s[3]]?s[2]:s[1])).join(''));return o}
+function rcCounts(){const v=Object.values(RC.dec);return{acc:v.filter(Boolean).length,rej:v.filter(x=>!x).length}}
+function rcRender(){
+  const box=$('rcBox'),r=RC.rec,c=RC.confirm;box.classList.remove('hidden');box.classList.toggle('done',!!c);
+  const fin=c?c.final:rcFinal();
+  const finalHtml=RC.secs.map(([n])=>`<div class="ed-sec">${esc(n)}</div><div class="ed-txt">${esc(fin[n]||'')}</div>`).join('');
+  if(c){box.innerHTML=`<div class="rc-bd"><div class="rc-done">✓ 你已確認公關中心修訂稿（${esc(c.at)}）：接受 ${c.accepted} 處、拒絕 ${c.rejected} 處。<br>確認後的定稿已存入原申請資料夾，並通知承辦人。<button type="button" class="linkbtn" id="rcShow">${RC.show?'收合定稿':'檢視定稿'}</button></div>${RC.show?`<div style="margin-top:10px">${finalHtml}</div>`:''}</div>`;
+    $('rcShow').onclick=()=>{RC.show=!RC.show;rcRender()};return}
+  const n=Object.keys(RC.dec).length,k=rcCounts();
+  const diffHtml=RC.secs.map(([nm,segs])=>`<div class="ed-sec">${esc(nm)}</div><div class="ed-txt">${segs.map(s=>s[0]===0?esc(s[1]):`<span class="chg ${RC.dec[s[3]]?'acc':'rej'}" data-i="${s[3]}" title="點一下切換接受／拒絕">${s[1]?`<del>${esc(s[1])}</del>`:''}${s[2]?`<ins>${esc(s[2])}</ins>`:''}<span class="tg">${RC.dec[s[3]]?'✓ 接受':'✗ 拒絕'}</span></span>`).join('')}</div>`).join('');
+  const keep=$('rcComment')?$('rcComment').value:'';
+  box.innerHTML=`<div class="rc-hd"><span>📝 公關中心已修訂你的新聞稿，請確認</span><span class="meta">修訂者 ${esc(r.by||'公關中心')}．${esc(r.at||'')}．共 ${n} 處修改</span></div>
+<div class="rc-bd"><div class="rc-tabs"><button type="button" data-v="diff" class="${RC.view==='diff'?'on':''}">修訂對照</button><button type="button" data-v="final" class="${RC.view==='final'?'on':''}">修訂後定稿</button><span class="sp"></span>${RC.view==='diff'?'<span class="hint">點一下修改處可切換「接受／拒絕」</span>':''}</div>
+${r.note?`<p class="hint" style="margin:0 0 6px">修改說明：${esc(r.note)}</p>`:''}
+${RC.view==='diff'?diffHtml:finalHtml}
+<div class="rc-sum">已接受 <b>${k.acc}</b> 處、拒絕 <b>${k.rej}</b> 處　<button type="button" class="linkbtn" id="rcAll">${k.rej?'全部接受':'全部拒絕'}</button>　<button type="button" class="linkbtn" id="rcWord">下載追蹤修訂 Word</button></div>
+<label class="hint" for="rcComment" style="display:block;margin-top:6px"><b>給公關中心的意見</b>（選填；有拒絕的修改時建議說明原因）</label>
+<textarea id="rcComment" style="min-height:60px;width:100%;margin-top:4px" maxlength="1000"></textarea>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center"><button type="button" class="rc-ok" id="rcOk">確認送出（接受 ${k.acc}、拒絕 ${k.rej}）</button><span class="hint" id="rcMsg"></span></div></div>`;
+  $('rcComment').value=keep;
+  box.querySelectorAll('.rc-tabs button').forEach(b=>b.onclick=()=>{RC.view=b.dataset.v;rcRender()});
+  box.querySelectorAll('.chg').forEach(el=>el.onclick=()=>{const i=el.dataset.i;RC.dec[i]=!RC.dec[i];rcRender()});
+  $('rcAll').onclick=()=>{const to=!!k.rej;Object.keys(RC.dec).forEach(i=>RC.dec[i]=to);rcRender()};
+  $('rcWord').onclick=async()=>{const blob=await edDocx('tracked',{pairs:rcPairs(r.orig,r.text),who:r.by||'公關中心',meta:[`申請編號：${bound.appId||''}　活動或成果名稱：${bound.eventName||''}`,`修訂：${r.by||'公關中心'}　${r.at||''}`]});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='新聞稿_修訂稿（追蹤修訂）.docx';document.body.appendChild(a);a.click();a.remove()};
+  $('rcOk').onclick=rcConfirm}
+async function rcConfirm(){
+  const btn=$('rcOk'),k=rcCounts(),fin=rcFinal(),comment=$('rcComment').value.trim().slice(0,1000);
+  if(k.rej&&!comment&&!confirm('你拒絕了部分修改，但沒有寫意見。確定直接送出嗎？'))return;
+  btn.disabled=true;btn.textContent='送出中…';$('rcMsg').textContent='';
+  try{const rejected=[];RC.secs.forEach(([n,segs])=>segs.forEach(s=>{if(s[0]&&!RC.dec[s[3]])rejected.push([n,s[1],s[2]])}));
+    const blob=await edDocx('clean',{title:'新聞稿定稿（申請單位確認）',pairs:RC.secs.map(([n])=>[n,fin[n],fin[n]]),who:bound.unit||'申請單位',
+      meta:[`申請編號：${bound.appId||''}　活動或成果名稱：${bound.eventName||''}`,`公關中心修訂：${RC.rec.by||''}　申請單位確認：接受 ${k.acc} 處、拒絕 ${k.rej} 處`].concat(comment?['申請單位意見：'+comment]:[])});
+    const j=await gas({action:'revconfirm',folderId:bound.folderId,token:bound.token,revAt:RC.rec.at,accepted:k.acc,rejected:k.rej,comment,final:fin,rejectedList:rejected.slice(0,50),data:await toB64(blob)});
+    RC.confirm=j.confirm;RC.show=false;rcRender()}
+  catch(e){btn.disabled=false;btn.textContent=`確認送出（接受 ${k.acc}、拒絕 ${k.rej}）`;$('rcMsg').textContent='送出失敗：'+e.message}}
 /* 從通知信的連結進來：#photos=資料夾ID.驗證碼 */
 async function bindFromHash(){
   const m=decodeURIComponent(location.hash).match(/^#photos=([\w-]+)\.([\w=-]+)/);if(!m||!CONFIG.BACKEND_URL)return;
@@ -1938,7 +2007,7 @@ function rvRender(){
   const today=todayISO();
   L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
     const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
-    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b>${x.unfinished?' <span class="rv-unfin" title="申請人未完成上傳">⚠</span>':''}<div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${/稿件後補/.test(x.categories)&&x.status!=='已上架'&&x.status!=='不予上架'?'｜稿件待補':''}${hasSoc(x)&&x.status!=='不予上架'?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b>${x.unfinished?' <span class="rv-unfin" title="申請人未完成上傳">⚠</span>':''}<div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.revPending?'｜<b class="rv-plan">修訂稿待申請單位確認</b>':x.revOk?'｜修訂稿已確認':''}${/稿件後補/.test(x.categories)&&x.status!=='已上架'&&x.status!=='不予上架'?'｜稿件待補':''}${hasSoc(x)&&x.status!=='不予上架'?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
     el.onclick=()=>rvOpen(x.folderId);$('rvList').appendChild(el)})}
 async function rvOpen(folderId){
   $('rvMsg').textContent='讀取中…';
@@ -1958,6 +2027,7 @@ async function rvOpen(folderId){
   <table class="form" style="margin-bottom:12px">
     <tr><th>申請單位</th><td>${esc(x.unit)}　${esc(x.contact)}　<a href="mailto:${esc(x.email)}">${esc(x.email)}</a></td></tr>
     <tr><th>申請項目</th><td>${esc(x.categories)}</td></tr>
+    ${x.revPending||x.revConfirm?`<tr><th>修訂稿確認</th><td>${x.revPending?'<b class="rv-plan">待申請單位確認</b> <span class="hint">申請人可從補件／修改連結逐處接受或拒絕</span>':`✅ ${esc(x.revConfirm)}`}</td></tr>`:''}
     <tr><th>事件日期</th><td>${esc(rocD(x.eventDate))||'—'}　<span class="hint">申請送出：${esc(rocD(x.created))}${x.follow?`；補件／修改 ${x.follow} 次`:''}</span></td></tr>
     <tr><th>資料</th><td><a href="${esc(x.url)}" target="_blank" rel="noopener">📁 雲端資料夾</a>${j.docs.map(d=>`　<a href="${esc(d.url)}" target="_blank" rel="noopener">📄 ${esc(d.name)}</a>`).join('')}${j.photoCount?`<span class="hint">　照片 ${j.photoCount} 張</span>`:''}</td></tr>
     <tr><th>申請人補件／修改</th><td id="rvQuota">${rvQuotaHtml(j.quota)}</td></tr>
@@ -2137,13 +2207,14 @@ function edFromData(d){const v=(d&&d.v)||{};const o={};ED_FIELDS.forEach(([k])=>
 async function edLoad(folderId){
   ED.orig=null;ED.edits=null;ED.saved=null;ED.folderId=folderId;$('rvEditInfo').textContent='讀取稿件中…';
   try{const j=await rvCall({action:'reviewdata',folderId});
-    ED.orig=j.data?edFromData(j.data):null;ED.edits=j.edits&&j.edits.text?j.edits:null;
+    ED.orig=j.data?edFromData(j.data):null;ED.confirm=j.confirm||null;ED.edits=j.edits&&j.edits.text?j.edits:null;
     if(ED.edits){ED.saved=ED.edits;if(!ED.orig&&ED.edits.orig)ED.orig=ED.edits.orig}
     edInfo()}catch(e){$('rvEditInfo').textContent='稿件讀取失敗：'+e.message}}
 function edInfo(){
   const el=$('rvEditInfo');if(!el)return;
   if(!ED.orig)el.textContent='這件申請沒有線上稿件內容（可能是舊版或補件），可開啟後自行貼上稿件再修改。';
-  else if(ED.saved){el.innerHTML=`📝 已存修訂稿：${ED.saved.changes} 處修改（${esc(ED.saved.by||'')}，${esc(ED.saved.at||'')}）。資料夾內有「追蹤修訂」與「修訂後定稿」兩個 Word 檔。`}
+  else if(ED.saved){el.innerHTML=`📝 已存修訂稿：${ED.saved.changes} 處修改（${esc(ED.saved.by||'')}，${esc(ED.saved.at||'')}）。資料夾內有「追蹤修訂」與「修訂後定稿」兩個 Word 檔。`+
+    (ED.confirm&&ED.confirm.revAt===ED.saved.at?`<br>✅ 申請單位已確認（${esc(ED.confirm.at)}）：接受 ${ED.confirm.accepted} 處、拒絕 ${ED.confirm.rejected} 處${ED.confirm.comment?`；意見：${esc(ED.confirm.comment)}`:''}。定稿存在資料夾「新聞稿_申請單位確認定稿.docx」。`:'')}
   else el.textContent=ED.orig.body||ED.orig.title?'可直接修改申請人的標題、重點、內文與圖說，儲存後產生追蹤修訂 Word 檔。':'這件申請沒有新聞稿內容（可能只申請社群貼文）。';
   $('rvAttachWrap').classList.toggle('hidden',!ED.saved)}
 function edCur(){const o={};ED_FIELDS.forEach(([k])=>o[k]=($('ed_'+k)||{}).value||'');o.caps=[...document.querySelectorAll('.ed-cap')].map(x=>x.value);return o}
@@ -2195,9 +2266,9 @@ function diffText(a,b){
   segs.forEach(([t,c])=>{if(t===0){flush();const L=out[out.length-1];if(L&&L[0]===0)L[1]+=c;else out.push([0,c])}else if(t<0)del+=c;else ins+=c});flush();
   return out}
 /* 產生 Word：追蹤修訂版（w:ins／w:del）或定稿 */
-function edDocx(mode){
+function edDocx(mode,o){o=o||{};
   const X=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const who=X(edAuthor()),when=new Date().toISOString().replace(/\.\d+Z$/,'Z');let rid=1;
+  const who=X(o.who||edAuthor()),when=new Date().toISOString().replace(/\.\d+Z$/,'Z');let rid=1;
   const rpr=(b,sz)=>`<w:rPr><w:rFonts w:ascii="標楷體" w:eastAsia="標楷體" w:hAnsi="標楷體"/>${b?'<w:b/>':''}<w:sz w:val="${sz||24}"/></w:rPr>`;
   const run=(t,kind)=>{if(!t)return '';const r=`<w:r>${rpr()}<w:${kind===-1?'delText':'t'} xml:space="preserve">${X(t)}</w:${kind===-1?'delText':'t'}></w:r>`;
     return kind===1?`<w:ins w:id="${rid++}" w:author="${who}" w:date="${when}">${r}</w:ins>`:kind===-1?`<w:del w:id="${rid++}" w:author="${who}" w:date="${when}">${r.replace('<w:r>','<w:r>')}</w:del>`:r};
@@ -2205,10 +2276,10 @@ function edDocx(mode){
   const plain=(t,b,sz)=>`<w:p><w:pPr><w:spacing w:after="80"/></w:pPr><w:r>${rpr(b,sz)}<w:t xml:space="preserve">${X(t)}</w:t></w:r></w:p>`;
   const tracked=segs=>{let out='',cur='';segs.forEach(([t,c])=>{const parts=c.split('\n');parts.forEach((pt,i)=>{cur+=run(pt,t);if(i<parts.length-1){out+=para(cur,t===0?0:t);cur=''}})});return out+para(cur,0)};
   const clean=t=>String(t).split('\n').map(l=>para(run(l,0),0)).join('');
-  let body=plain(mode==='tracked'?'新聞稿修訂稿（追蹤修訂）':'新聞稿修訂後定稿',true,32)+
-    plain(`申請編號：${rvCur.appId}　活動或成果名稱：${rvCur.eventName}`,false,20)+plain(`申請單位：${rvCur.unit}　修訂：${edAuthor()}　${new Date().toLocaleDateString('zh-TW')}`,false,20)+
+  let body=plain(o.title||(mode==='tracked'?'新聞稿修訂稿（追蹤修訂）':'新聞稿修訂後定稿'),true,32)+
+    (o.meta||[`申請編號：${rvCur.appId}　活動或成果名稱：${rvCur.eventName}`,`申請單位：${rvCur.unit}　修訂：${edAuthor()}　${new Date().toLocaleDateString('zh-TW')}`]).map(t=>plain(t,false,20)).join('')+
     (mode==='tracked'?plain('（請用 Word 開啟，於「校閱」→「接受／拒絕」逐條確認修改。）',false,18):'')+plain('',false,20);
-  edPairs().filter(([,a,b])=>a||b).forEach(([n,a,b])=>{body+=plain(n,true,24)+(mode==='tracked'?tracked(diffText(a,b)):clean(b))});
+  (o.pairs||edPairs()).filter(([,a,b])=>a||b).forEach(([n,a,b])=>{body+=plain(n,true,24)+(mode==='tracked'?tracked(diffText(a,b)):clean(b))});
   const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="851" w:footer="992" w:gutter="0"/></w:sectPr></w:body></w:document>`;
   const z=new JSZip();
   z.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>');
