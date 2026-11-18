@@ -246,6 +246,8 @@ body.review .layout{display:none!important}
 .psel .psck{position:absolute;left:8px;top:8px;background:#fff;border-radius:6px;padding:2px 8px;font-size:13px;box-shadow:0 1px 3px #0003;display:flex;gap:4px;align-items:center;cursor:pointer}
 .psel .psno{position:absolute;right:8px;top:8px;background:#1e7a46;color:#fff;border-radius:10px;font-size:12px;padding:0 8px;font-weight:700}
 .psel .pscap{padding:6px 8px;font-size:13px;line-height:1.5}.psel .pscap textarea{width:100%;min-height:44px;font-size:13px}
+.psel .pssz{font-size:12.5px;margin-top:2px}.psel .pssz.ok{color:var(--ok)}.psel .pssz.bad{color:var(--warn)}
+.psel .psfix{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:2px}
 .psel .src{display:inline-block;font-size:11px;background:#eef1f6;border-radius:4px;padding:0 5px;color:#556;margin-top:2px}
 .psel .mv{display:flex;justify-content:space-between;align-items:center;margin-top:4px}.psel .mv button{width:auto;padding:0 8px;font-size:13px;margin:0}
 .psel .sum{font-size:13.5px;color:#0d5c32}.psel .lockbar{background:#f3fbf6;border:1px solid #9bd3b2;color:#0d5c32;border-radius:8px;padding:6px 10px;font-size:13.5px;margin-bottom:8px}
@@ -1023,9 +1025,9 @@ function opMailState(){
   cb.disabled=!ok;if(!ok)cb.checked=false;cb.parentElement.style.color=ok?'':'#9aa0aa';
   $('rvMailWhy').textContent=daily?'今天已寄過通知信，這次僅存檔不寄信。':!(add||changed)?'若無新增說明或修改評估結果，僅存檔不寄信。':'需要通知申請人才勾選。'}
 /* ===== 定稿文件：照片與圖說（勾選放入定稿、排序、改圖說；自動更新定稿文件）===== */
-const PS={fid:'',list:[],locked:false,t:null};
+const PS={fid:'',list:[],locked:false,t:null,hide:[]};
 async function psLoad(){
-  const fid=rvCur.folderId,box=$('psBox');PS.fid=fid;PS.list=[];box.innerHTML='<div class="hint">載入照片中…</div>';
+  const fid=rvCur.folderId,box=$('psBox');PS.fid=fid;PS.list=[];PS.hide=[];box.innerHTML='<div class="hint">載入照片中…</div>';
   try{const j=await rvCall({action:'reviewphotos',folderId:fid});if(!rvCur||rvCur.folderId!==fid)return;PS.list=j.photos||[];PS.locked=!!j.locked;psRender()}
   catch(e){box.innerHTML=`<div class="hint">照片讀取失敗：${esc(e.message)}</div>`}}
 function psRender(){
@@ -1037,18 +1039,38 @@ ${lk?'<div class="lockbar">🔒 已定稿：照片與圖說已鎖定</div>':''}
 <div class="grid">${L.map((p,i)=>{const no=p.on?++k:0;return `<div class="psph ${p.on?'on':''}" data-i="${i}">${p.thumb?`<img class="psimg" alt="" src="${p.thumb}">`:`<div class="psimg" style="display:flex;align-items:center;justify-content:center;font-size:12px;color:#666">${esc(p.name)}</div>`}
 <label class="psck"><input type="checkbox" ${p.on?'checked':''} ${lk?'disabled':''}>放入定稿</label>${no?`<span class="psno">圖${no}</span>`:''}
 <div class="pscap">${lk?esc(p.cap||'（未填圖說）'):`<textarea placeholder="圖說">${esc(p.cap||'')}</textarea>`}
+${p.w?`<div class="pssz ${psOK(p)?'ok':'bad'}">${psOK(p)?'✓':'⚠'} ${p.w}×${p.h}${psOK(p)?'':(p.w<p.h?'．直式':Math.abs(p.w/p.h-1.5)>0.05?'．不是 3:2':'')+(Math.max(p.w,p.h)<3000?'．解析度偏低':'')}</div>`:''}
+${lk?'':`<div class="psfix"><button type="button" class="linkbtn ps-crop">✂ 裁切</button><button type="button" class="linkbtn ps-swap">⇄ 換一張</button><span class="hint ps-busy"></span></div>`}
 <div class="mv"><span class="src">${esc(p.src)}</span>${lk?'':`<span><button type="button" class="small ps-l" ${i?'':'disabled'} title="往前">←</button> <button type="button" class="small ps-r" ${i<L.length-1?'':'disabled'} title="往後">→</button></span>`}</div></div></div>`}).join('')}</div>
 ${lk?'':'<div style="margin-top:8px"><button type="button" class="linkbtn" id="psAll">全部勾選</button>　<button type="button" class="linkbtn" id="psNone">全部取消</button>　<span class="hint" id="psMsg"></span></div>'}`;
   if(lk)return;
   box.querySelectorAll('.psph').forEach(c=>{const i=+c.dataset.i,p=L[i];
     c.querySelector('input').onchange=e=>{p.on=e.target.checked;psRender();psSave()};
     c.querySelector('textarea').oninput=e=>{p.cap=e.target.value;psSave(1500)};
+    c.querySelector('.ps-crop').onclick=()=>psCrop(p,c);c.querySelector('.ps-swap').onclick=()=>psSwap(p,c);
     c.querySelector('.ps-l').onclick=()=>{[L[i-1],L[i]]=[L[i],L[i-1]];psRender();psSave()};
     c.querySelector('.ps-r').onclick=()=>{[L[i+1],L[i]]=[L[i],L[i+1]];psRender();psSave()}});
   $('psAll').onclick=()=>{L.forEach(p=>p.on=true);psRender();psSave()};$('psNone').onclick=()=>{L.forEach(p=>p.on=false);psRender();psSave()}}
+const psOK=p=>p.w>=p.h&&Math.abs(p.w/p.h-1.5)<=0.05&&Math.max(p.w,p.h)>=3000;
+async function psFetch(p){const j=await rvCall({action:'reviewimg',folderId:PS.fid,fileId:p.id});
+  const bin=atob(j.data),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  return inspect(new File([u],j.name.replace(/^(補件|修圖)\d{4}-\d{4}_(圖\d+_)?/,''),{type:j.mime||'image/jpeg'}))}
+// 用裁切後或換上的新照片取代：上傳到同一個資料夾，沿用勾選、順序與圖說；舊照片保留在資料夾但不再列出
+async function psReplace(p,photo,card){
+  const busy=card.querySelector('.ps-busy');busy.textContent='上傳中…';UP.start(1);
+  try{const stamp=new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'').replace(/^(\d{4})(\d{4})$/,'$1-$2');
+    const name=`修圖${stamp}_${photo.name}`,j=await rvCall({action:'reviewphoto',folderId:PS.fid,name,mimeType:photo.file.type||'image/jpeg',data:await toB64(photo.file)});
+    const th=await thumb(photo,400),url=th?URL.createObjectURL(new Blob([th.buf],{type:'image/jpeg'})):'';
+    PS.hide.push(p.id);Object.assign(p,{id:j.id,name,w:photo.w,h:photo.h,thumb:url||p.thumb,src:'公關調整'});psRender();psSave(10)}
+  catch(e){busy.textContent='失敗：'+e.message}finally{UP.end()}}
+async function psCrop(p,card){const busy=card.querySelector('.ps-busy');busy.textContent='讀取原圖中…';
+  try{const info=await psFetch(p);busy.textContent='';const tmp={photo:info,orig:null};cropOpen(tmp,()=>psReplace(p,tmp.photo,card))}
+  catch(e){busy.textContent='讀取失敗：'+e.message}}
+function psSwap(p,card){const inp=document.createElement('input');inp.type='file';inp.accept='image/jpeg,image/png,image/*';
+  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;pkOpen([await inspect(f)],out=>{if(out.length)psReplace(p,out[0].photo,card)})};inp.click()}
 function psSave(delay){clearTimeout(PS.t);const m=$('psMsg');if(m)m.textContent='儲存中…';
   PS.t=setTimeout(async()=>{const fid=PS.fid,L=PS.list;
-    try{const j=await rvCall({action:'reviewphotosel',folderId:fid,order:L.map(p=>p.id),on:L.filter(p=>p.on).map(p=>p.id),caps:Object.fromEntries(L.map(p=>[p.id,p.cap||''])),by:edAuthor()});
+    try{const j=await rvCall({action:'reviewphotosel',folderId:fid,hide:PS.hide,order:L.map(p=>p.id),on:L.filter(p=>p.on).map(p=>p.id),caps:Object.fromEntries(L.map(p=>[p.id,p.cap||''])),by:edAuthor()});
       if(rvCur&&rvCur.folderId===fid){rvCur.final=j.final;fvRender(j.final);const m2=$('psMsg');if(m2)m2.textContent='✓ 已更新定稿文件'}}
     catch(e){const m2=$('psMsg');if(m2)m2.textContent='儲存失敗：'+e.message}},delay||600)}
 /* ===== 定稿文件（審核頁）===== */
