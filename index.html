@@ -238,7 +238,19 @@ body.review .layout{display:none!important}
 .fv.lock{border-color:#9bd3b2;background:#f3fbf6}
 .fv .hd{font-weight:700}.fv .st-e{color:#7a4b00}.fv .st-l{color:#0d5c32}
 .fv .lk{margin-right:12px}.fv .sm{font-size:13px;color:#555}
-.fv .btnL{background:#1e7a46!important;color:#fff!important;border:0;border-radius:8px;padding:6px 14px;font-weight:700;width:auto;margin:6px 8px 0 0;cursor:pointer}
+.psel{margin:12px 0 4px}.psel .hd{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.psel .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.psel .psph{border:2px solid #dde2ea;border-radius:10px;overflow:hidden;background:#fff;position:relative}
+.psel .psph.on{border-color:#1e7a46}.psel .psph:not(.on) .psimg{opacity:.6}
+.psel .psimg{width:100%;aspect-ratio:3/2;object-fit:cover;display:block;background:#e5e7eb}
+.psel .psck{position:absolute;left:8px;top:8px;background:#fff;border-radius:6px;padding:2px 8px;font-size:13px;box-shadow:0 1px 3px #0003;display:flex;gap:4px;align-items:center;cursor:pointer}
+.psel .psno{position:absolute;right:8px;top:8px;background:#1e7a46;color:#fff;border-radius:10px;font-size:12px;padding:0 8px;font-weight:700}
+.psel .pscap{padding:6px 8px;font-size:13px;line-height:1.5}.psel .pscap textarea{width:100%;min-height:44px;font-size:13px}
+.psel .src{display:inline-block;font-size:11px;background:#eef1f6;border-radius:4px;padding:0 5px;color:#556;margin-top:2px}
+.psel .mv{display:flex;justify-content:space-between;align-items:center;margin-top:4px}.psel .mv button{width:auto;padding:0 8px;font-size:13px;margin:0}
+.psel .sum{font-size:13.5px;color:#0d5c32}.psel .lockbar{background:#f3fbf6;border:1px solid #9bd3b2;color:#0d5c32;border-radius:8px;padding:6px 10px;font-size:13.5px;margin-bottom:8px}
+.fv-acts{margin:10px 0 4px}
+.fv .btnL,.fv-acts .btnL{background:#1e7a46!important;color:#fff!important;border:0;border-radius:8px;padding:6px 14px;font-weight:700;width:auto;margin:6px 8px 0 0;cursor:pointer}
 .fv details{font-size:13px;color:#555;margin-top:4px}.fv details li{margin:2px 0}
 .ft-locked{margin-top:12px;background:#f3fbf6;border:1px solid #9bd3b2;color:#0d5c32;border-radius:8px;padding:10px 12px}
 .rp-box{border:1px solid #cbd5e1;border-radius:10px;padding:12px 14px;max-width:760px;background:#fbfcfe}
@@ -1007,18 +1019,49 @@ function opMailState(){
   const daily=(x.resentToday||0)>=1&&rvRole!=='director',cb=$('rvNotify'),ok=(add||changed)&&!daily;
   cb.disabled=!ok;if(!ok)cb.checked=false;cb.parentElement.style.color=ok?'':'#9aa0aa';
   $('rvMailWhy').textContent=daily?'今天已寄過通知信，這次僅存檔不寄信。':!(add||changed)?'若無新增說明或修改評估結果，僅存檔不寄信。':'需要通知申請人才勾選。'}
+/* ===== 定稿文件：照片與圖說（勾選放入定稿、排序、改圖說；自動更新定稿文件）===== */
+const PS={fid:'',list:[],locked:false,t:null};
+async function psLoad(){
+  const fid=rvCur.folderId,box=$('psBox');PS.fid=fid;PS.list=[];box.innerHTML='<div class="hint">載入照片中…</div>';
+  try{const j=await rvCall({action:'reviewphotos',folderId:fid});if(!rvCur||rvCur.folderId!==fid)return;PS.list=j.photos||[];PS.locked=!!j.locked;psRender()}
+  catch(e){box.innerHTML=`<div class="hint">照片讀取失敗：${esc(e.message)}</div>`}}
+function psRender(){
+  const box=$('psBox');if(!box)return;const L=PS.list,lk=PS.locked,on=L.filter(p=>p.on).length;
+  if(!L.length){box.innerHTML='<div class="hds"><b>照片與圖說</b>　<span class="hint">這件申請沒有照片</span></div>';return}
+  let k=0;
+  box.innerHTML=`<div class="hd"><b style="font-size:16px">照片與圖說（${L.length} 張）</b><span class="sum" id="psSum">${on?`已選 ${on} 張放入定稿文件`:'尚未勾選照片'}${lk?'':'．勾選、排序或改圖說後會自動更新定稿文件'}</span></div>
+${lk?'<div class="lockbar">🔒 已定稿：照片與圖說已鎖定</div>':''}
+<div class="grid">${L.map((p,i)=>{const no=p.on?++k:0;return `<div class="psph ${p.on?'on':''}" data-i="${i}">${p.thumb?`<img class="psimg" alt="" src="${p.thumb}">`:`<div class="psimg" style="display:flex;align-items:center;justify-content:center;font-size:12px;color:#666">${esc(p.name)}</div>`}
+<label class="psck"><input type="checkbox" ${p.on?'checked':''} ${lk?'disabled':''}>放入定稿</label>${no?`<span class="psno">圖${no}</span>`:''}
+<div class="pscap">${lk?esc(p.cap||'（未填圖說）'):`<textarea placeholder="圖說">${esc(p.cap||'')}</textarea>`}
+<div class="mv"><span class="src">${esc(p.src)}</span>${lk?'':`<span><button type="button" class="small ps-l" ${i?'':'disabled'} title="往前">←</button> <button type="button" class="small ps-r" ${i<L.length-1?'':'disabled'} title="往後">→</button></span>`}</div></div></div>`}).join('')}</div>
+${lk?'':'<div style="margin-top:8px"><button type="button" class="linkbtn" id="psAll">全部勾選</button>　<button type="button" class="linkbtn" id="psNone">全部取消</button>　<span class="hint" id="psMsg"></span></div>'}`;
+  if(lk)return;
+  box.querySelectorAll('.psph').forEach(c=>{const i=+c.dataset.i,p=L[i];
+    c.querySelector('input').onchange=e=>{p.on=e.target.checked;psRender();psSave()};
+    c.querySelector('textarea').oninput=e=>{p.cap=e.target.value;psSave(1500)};
+    c.querySelector('.ps-l').onclick=()=>{[L[i-1],L[i]]=[L[i],L[i-1]];psRender();psSave()};
+    c.querySelector('.ps-r').onclick=()=>{[L[i+1],L[i]]=[L[i],L[i+1]];psRender();psSave()}});
+  $('psAll').onclick=()=>{L.forEach(p=>p.on=true);psRender();psSave()};$('psNone').onclick=()=>{L.forEach(p=>p.on=false);psRender();psSave()}}
+function psSave(delay){clearTimeout(PS.t);const m=$('psMsg');if(m)m.textContent='儲存中…';
+  PS.t=setTimeout(async()=>{const fid=PS.fid,L=PS.list;
+    try{const j=await rvCall({action:'reviewphotosel',folderId:fid,order:L.map(p=>p.id),on:L.filter(p=>p.on).map(p=>p.id),caps:Object.fromEntries(L.map(p=>[p.id,p.cap||''])),by:edAuthor()});
+      if(rvCur&&rvCur.folderId===fid){rvCur.final=j.final;fvRender(j.final);const m2=$('psMsg');if(m2)m2.textContent='✓ 已更新定稿文件'}}
+    catch(e){const m2=$('psMsg');if(m2)m2.textContent='儲存失敗：'+e.message}},delay||600)}
 /* ===== 定稿文件（審核頁）===== */
 function fvRender(f,err){
   const el=$('rvFinal');if(!el||!rvCur)return;f=f||{};const L=f.lock,info=f.info||{},log=f.log||[];
   const links=f.id?`<a class="lk" href="${esc(f.url)}" target="_blank" rel="noopener">📄 開啟【定稿】${esc(rvCur.appId)}_${esc(rvCur.eventName)}</a><a class="lk" href="${esc(f.docx)}" target="_blank" rel="noopener">⬇ 下載 Word</a><br>`:'<span class="sm">尚未建立</span><br>';
-  const src=info.updated?`<span class="sm">${L?'':'最後更新 '+esc(info.updated)+(log[0]&&!/定稿|解除/.test(log[0].what)?'：'+esc(log[0].what):'')+'．'}文字：${esc(info.src||'')}．照片 ${info.photos||0} 張</span>`:'';
+  const src=info.updated?`<span class="sm">${L?'':'最後更新 '+esc(info.updated)+(log[0]&&!/定稿|解除/.test(log[0].what)?'：'+esc(log[0].what):'')+'．'}文字：${esc(info.src||'')}．照片 ${info.picked===false?'尚未選定':(info.photos||0)+' 張'}</span>`:'';
   const hist=log.length?`<details><summary>更新紀錄（${log.length}）</summary><ul style="margin:4px 0;padding-left:20px">${log.map(x=>`<li>${esc(x.at)}　${esc(x.what)}</li>`).join('')}</ul></details>`:'';
   const msg=`<span class="hint" id="fvMsg">${err?'⚠ 更新失敗：'+esc(err):''}</span>`;
-  if(L){el.innerHTML=`<div class="fv lock"><span class="hd st-l">🔒 已定稿</span>　${esc(L.at)} ${esc(L.by)} 確認<br>${links}${src}${hist}
-${rvRole==='director'?'<div class="sm" style="margin-top:4px">需要再修改？<button type="button" class="linkbtn" id="fvUnlock">解除定稿</button>（解除後申請人可再補件或修改）</div>':'<div class="sm" style="margin-top:4px">已定稿，不再自動更新；申請人也不能再修改或補傳。</div>'}${msg}</div>`}
-  else el.innerHTML=`<div class="fv"><span class="hd st-e">✏️ 編修中</span>（每次修改、補件會自動更新同一份文件）<br>${links}${src}${hist}
-<button type="button" class="btnL" id="fvLock">🔒 定稿</button><button type="button" class="linkbtn" id="fvBuild">立即更新</button>
-<div class="hint">定稿後不再自動更新，申請人也不能再修改或補傳。標記已上架時會自動定稿。</div>${msg}</div>`;
+  const acts=$('fvActs');
+  if(L){el.innerHTML=`<div class="fv lock"><span class="hd st-l">🔒 已定稿</span>　${esc(L.at)} ${esc(L.by)} 確認<br>${links}${src}${hist}</div>`;
+    acts.innerHTML=`${rvRole==='director'?'<div class="sm">需要再修改？<button type="button" class="linkbtn" id="fvUnlock">解除定稿</button>（解除後申請人可再補件或修改）</div>':''}${msg}`}
+  else{el.innerHTML=`<div class="fv"><span class="hd st-e">✏️ 編修中</span>（每次修改、補件會自動更新同一份文件）<br>${links}${src}${hist}</div>`;
+    acts.innerHTML=`<button type="button" class="btnL" id="fvLock">🔒 定稿</button><button type="button" class="linkbtn" id="fvBuild">立即更新</button>
+<div class="hint">定稿後不再自動更新，申請人也不能再修改或補傳。標記已上架時會自動定稿。</div>${msg}`}
+  if(PS.locked!==!!L&&PS.fid===rvCur.folderId){PS.locked=!!L;psRender()}
   const go=async(op,btn,busy)=>{if(op==='unlock'&&!confirm('解除定稿後，申請人可以再補件或修改，定稿文件也會恢復自動更新。確定嗎？'))return;
     if(op==='lock'&&!confirm('定稿後，文件不再自動更新，申請人也不能再修改或補傳照片。確定嗎？'))return;
     const fid=rvCur.folderId;btn.disabled=true;const t=btn.textContent;btn.textContent=busy;
@@ -1070,6 +1113,7 @@ async function rpUpload(){
     await rvCall({action:'reviewphoto',folderId:fid,name:`補件${stamp}_圖說.txt`,mimeType:'text/plain',data:b64text(txt)});
     const j=await rvCall({action:'reviewphotodone',folderId:fid,count:list.length,source:src,notify,by,items:list.map((it,i)=>({cloud:`補件${stamp}_圖${i+1}_${it.photo.name}`,caption:it.caption.trim()}))});
     if(j.final&&rvCur&&rvCur.folderId===fid){rvCur.final=j.final;fvRender(j.final)}
+    if(rvCur&&rvCur.folderId===fid)psLoad();
     if(rvCur&&rvCur.folderId===fid){rvCur.note=j.note;if($('rvNote'))$('rvNote').value=j.note}
     list.forEach(it=>{URL.revokeObjectURL(it.photo.url)});
     RP={items:[],busy:false,done:{n:list.length,by,mailed:j.mailed,url:j.url,at:new Date().toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Taipei'})}};
@@ -2243,9 +2287,12 @@ async function rvOpen(folderId){
     <tr><th>事件日期</th><td>${esc(rocD(x.eventDate))||'—'}　<span class="hint">申請送出：${esc(rocD(x.created))}${x.follow?`；補件／修改 ${x.follow} 次`:''}</span></td></tr>
     <tr><th>資料</th><td><a href="${esc(x.url)}" target="_blank" rel="noopener">📁 雲端資料夾</a>${j.docs.map(d=>`　<a href="${esc(d.url)}" target="_blank" rel="noopener">📄 ${esc(d.name)}</a>`).join('')}${j.photoCount?`<span class="hint">　照片 ${j.photoCount} 張</span>`:''}</td></tr>
     <tr><th>申請人補件／修改</th><td id="rvQuota">${rvQuotaHtml(j.quota)}</td></tr>
-    <tr><th>定稿文件</th><td id="rvFinal"></td></tr>
   </table>
-  <h3 style="margin:14px 0 8px">七、公關中心評估意見</h3>
+  <h3 style="margin:14px 0 8px">定稿文件</h3>
+  <div id="rvFinal"></div>
+  <div id="psBox" class="psel"></div>
+  <div id="fvActs" class="fv-acts"></div>
+  <h3 style="margin:22px 0 8px">七、公關中心評估意見</h3>
   <div id="rvDoneNote">${rvDoneHtml(x)}</div>
   <table class="form">
     <tr><th>收件</th><td><input type="date" id="rvRecv" value="${esc(x.received||x.created||todayISO())}" style="max-width:200px"></td></tr>
@@ -2285,7 +2332,7 @@ async function rvOpen(folderId){
     <button type="button" class="primary" id="rvSoc" style="width:auto;padding:9px 18px;background:#9b1f5c">${x.socialDate?'✓ 已完成':'✓ 標記社群已發布'}</button></div>
     ${x.socialDate?'<p class="hint" style="margin-top:6px"><a href="#" id="rvSocUndo">取消標記</a></p>':''}<div class="hint" id="rvSocMsg"></div>`
   :`<p>${x.socialDate?`已發布（${esc(rocD(x.socialDate))}）${x.socialLink?`　<a href="${esc(x.socialLink)}" target="_blank" rel="noopener">貼文連結</a>`:''}`:'待發布'}</p>`}`:''}`;
-  RP={items:[],done:null,busy:false};rpRender();fvRender(x.final,x.finalErr);opRender(msg);rvShow('rvDetail');window.scrollTo(0,0);
+  RP={items:[],done:null,busy:false};rpRender();PS.fid=x.folderId;PS.locked=!!(x.final&&x.final.lock);fvRender(x.final,x.finalErr);psLoad();opRender(msg);rvShow('rvDetail');window.scrollTo(0,0);
   $('rvBack').onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()};
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
   $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
