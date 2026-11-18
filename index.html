@@ -230,6 +230,13 @@ body.review .layout{display:none!important}
 .ed-sec{font-size:13px;color:var(--muted);margin:14px 0 4px}.ed-sec:first-child{margin-top:0}
 .ed-txt{white-space:pre-wrap;line-height:1.9;font-size:15px;border:1px solid var(--line,#e5e7eb);border-radius:8px;padding:8px 10px}
 .ed-txt del{color:#b42318;background:#fde8e6}.ed-txt ins{color:#0d5c32;background:#dcf3e4;text-decoration:underline}
+.fv{border:1px solid #f3d38a;background:#fffaf0;border-radius:8px;padding:8px 10px;line-height:1.7}
+.fv.lock{border-color:#9bd3b2;background:#f3fbf6}
+.fv .hd{font-weight:700}.fv .st-e{color:#7a4b00}.fv .st-l{color:#0d5c32}
+.fv .lk{margin-right:12px}.fv .sm{font-size:13px;color:#555}
+.fv .btnL{background:#1e7a46!important;color:#fff!important;border:0;border-radius:8px;padding:6px 14px;font-weight:700;width:auto;margin:6px 8px 0 0;cursor:pointer}
+.fv details{font-size:13px;color:#555;margin-top:4px}.fv details li{margin:2px 0}
+.ft-locked{margin-top:12px;background:#f3fbf6;border:1px solid #9bd3b2;color:#0d5c32;border-radius:8px;padding:10px 12px}
 .rp-box{border:1px solid #cbd5e1;border-radius:10px;padding:12px 14px;max-width:760px;background:#fbfcfe}
 .rp-row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:start;padding:8px 0;border-top:1px dashed #e2e8f0}
 .rp-row:first-child{border-top:0}.rp-row img{width:120px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd}
@@ -369,6 +376,7 @@ body.draft-pending .req3{display:none}
     </div>
     <div id="ftBound" class="bound-box hidden"></div>
     <div id="rcBox" class="rc-box hidden"></div>
+    <div id="ftLocked" class="ft-locked hidden">🔒 這件申請已完成定稿，將以此版本發布。如需更動請洽公關中心承辦。</div>
     <div id="ftNext" class="hidden" style="margin-top:12px">
       <p class="hint" style="margin:0 0 6px"><b>步驟 2｜你要做什麼？</b></p>
       <div class="mode-pick">
@@ -862,10 +870,11 @@ async function loadQuota(){
     const set=(id,used,max,val)=>{const left=Math.max(0,max-used),el=$(id),inp=document.querySelector(`[name=ftAction][value=${val}]`);
       el.textContent=left?`可再${val==='revise'?'修改':'補傳'} ${left} 次（共 ${max} 次）`:`已用完 ${max} 次，如需再${val==='revise'?'修改':'補件'}請聯絡承辦人`;el.classList.toggle('out',!left);
       inp.disabled=!left;if(!left&&inp.checked){const o=document.querySelector(`[name=ftAction]:not([value=${val}])`);if(o&&!o.disabled)o.checked=true}};
-    set('qPhoto',q.photo,q.photoMax,'photos');set('qRevise',q.revise,q.reviseMax,'revise');check()}catch(e){}}
+    set('qPhoto',q.photo,q.photoMax,'photos');set('qRevise',q.revise,q.reviseMax,'revise');ftLockUI();check()}catch(e){}}
+function ftLockUI(){const L=!!(bound&&bound.quota&&bound.quota.locked);$('ftLocked').classList.toggle('hidden',!L);if(L){$('ftNext').classList.add('hidden');$('rcBox').classList.add('hidden')}}
 function showBound(){
   const on=!!bound;
-  $('ftBound').classList.toggle('hidden',!on);$('ftNext').classList.toggle('hidden',!on);
+  $('ftBound').classList.toggle('hidden',!on);$('ftNext').classList.toggle('hidden',!on);$('ftLocked').classList.add('hidden');
   $('ftFind').classList.toggle('hidden',on);$('ftManualBox').classList.toggle('hidden',on);
   if(on)$('ftBound').innerHTML=`✓ 已連結原申請：<b>${esc(bound.eventName)}</b>（${esc(bound.unit)}${bound.appId?'，申請編號 '+esc(bound.appId):''}${bound.created?'，'+esc(bound.created):''}）<button type="button" class="linkbtn" id="ftUnbind">換一件</button>`;
   if(on)$('ftUnbind').onclick=()=>{bound=null;uploaded=null;showBound();check()};
@@ -890,6 +899,27 @@ $('ftLookupBtn').onclick=async()=>{
       el.onclick=()=>{bound=x;uploaded=null;showBound()};$('ftList').appendChild(el)});
   }catch(e){msg.innerHTML=`查詢失敗：${esc(e.message)}。<br>也可以直接點選 <b>[上架申請通知]</b> 信件中的「補件／修改連結」。`}
 };
+/* ===== 終版文件（審核頁）===== */
+function fvRender(f,err){
+  const el=$('rvFinal');if(!el||!rvCur)return;f=f||{};const L=f.lock,info=f.info||{},log=f.log||[];
+  const links=f.id?`<a class="lk" href="${esc(f.url)}" target="_blank" rel="noopener">📄 開啟【終版】${esc(rvCur.appId)}_${esc(rvCur.eventName)}</a><a class="lk" href="${esc(f.docx)}" target="_blank" rel="noopener">⬇ 下載 Word</a><br>`:'<span class="sm">尚未建立</span><br>';
+  const src=info.updated?`<span class="sm">${L?'':'最後更新 '+esc(info.updated)+(log[0]&&!/核定|解除/.test(log[0].what)?'：'+esc(log[0].what):'')+'．'}文字：${esc(info.src||'')}．照片 ${info.photos||0} 張</span>`:'';
+  const hist=log.length?`<details><summary>更新紀錄（${log.length}）</summary><ul style="margin:4px 0;padding-left:20px">${log.map(x=>`<li>${esc(x.at)}　${esc(x.what)}</li>`).join('')}</ul></details>`:'';
+  const msg=`<span class="hint" id="fvMsg">${err?'⚠ 更新失敗：'+esc(err):''}</span>`;
+  if(L){el.innerHTML=`<div class="fv lock"><span class="hd st-l">🔒 終版</span>　${esc(L.at)} ${esc(L.by)} 核定<br>${links}${src}${hist}
+${rvRole==='director'?'<div class="sm" style="margin-top:4px">需要再修改？<button type="button" class="linkbtn" id="fvUnlock">解除鎖定</button>（解除後申請人可再補件或修改）</div>':'<div class="sm" style="margin-top:4px">已鎖定，不再自動更新；申請人也不能再修改或補傳。</div>'}${msg}</div>`}
+  else el.innerHTML=`<div class="fv"><span class="hd st-e">✏️ 編修中</span>（每次修改、補件會自動更新同一份文件）<br>${links}${src}${hist}
+${rvRole!=='social'?'<button type="button" class="btnL" id="fvLock">🔒 核定為終版</button>':''}<button type="button" class="linkbtn" id="fvBuild">立即更新</button>
+<div class="hint">核定後不再自動更新，申請人也不能再修改或補傳。標記已上架時會自動核定。</div>${msg}</div>`;
+  const go=async(op,btn,busy)=>{if(op==='unlock'&&!confirm('解除鎖定後，申請人可以再補件或修改，終版文件也會恢復自動更新。確定嗎？'))return;
+    if(op==='lock'&&!confirm('核定為終版後，文件不再自動更新，申請人也不能再修改或補傳照片。確定嗎？'))return;
+    const fid=rvCur.folderId;btn.disabled=true;const t=btn.textContent;btn.textContent=busy;
+    try{const j=await rvCall({action:'reviewfinal',op,folderId:fid,by:edAuthor()});if(rvCur&&rvCur.folderId===fid){rvCur.final=j.final;fvRender(j.final)}
+      const it=rvList.find(x=>x.folderId===fid);if(it)it.finalLocked=!!j.final.lock}
+    catch(e){btn.disabled=false;btn.textContent=t;$('fvMsg').textContent='失敗：'+e.message}};
+  if($('fvLock'))$('fvLock').onclick=e=>go('lock',e.target,'核定中…');
+  if($('fvBuild'))$('fvBuild').onclick=e=>go('build',e.target,'更新中…');
+  if($('fvUnlock'))$('fvUnlock').onclick=e=>go('unlock',e.target,'處理中…')}
 /* ===== 公關中心代為補傳照片 ===== */
 let RP={items:[],done:null,busy:false};
 function rpRender(){
@@ -929,7 +959,8 @@ async function rpUpload(){
     const txt=[`補件時間：${new Date().toLocaleString('zh-TW',{hour12:false,timeZone:'Asia/Taipei'})}`,`上傳：${by}（代申請單位補傳）`,src?`照片來源：${src}`:'','',
       ...list.map((it,i)=>`圖${i+1}（${it.photo.name}）：${it.caption.trim()||'（未填圖說）'}`)].filter((x,k,a)=>x!==''||a[k-1]!=='').join('\n');
     await rvCall({action:'reviewphoto',folderId:fid,name:`補件${stamp}_圖說.txt`,mimeType:'text/plain',data:b64text(txt)});
-    const j=await rvCall({action:'reviewphotodone',folderId:fid,count:list.length,source:src,notify,by});
+    const j=await rvCall({action:'reviewphotodone',folderId:fid,count:list.length,source:src,notify,by,items:list.map((it,i)=>({cloud:`補件${stamp}_圖${i+1}_${it.photo.name}`,caption:it.caption.trim()}))});
+    if(j.final&&rvCur&&rvCur.folderId===fid){rvCur.final=j.final;fvRender(j.final)}
     if(rvCur&&rvCur.folderId===fid){rvCur.note=j.note;if($('rvNote'))$('rvNote').value=j.note}
     list.forEach(it=>{URL.revokeObjectURL(it.photo.url)});
     RP={items:[],busy:false,done:{n:list.length,by,mailed:j.mailed,url:j.url,at:new Date().toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Taipei'})}};
@@ -948,7 +979,7 @@ async function loadRev(){
       diffText(a,c).forEach(([t,x])=>{if(t===0){segs.push([0,x]);return}
         let L=segs[segs.length-1];if(!L||L[0]!==1){L=[1,'','',id++];segs.push(L);dec[L[3]]=true}
         if(t<0)L[1]+=x;else L[2]+=x});secs.push([n,segs])});
-    RC={rec,confirm:j.confirm&&j.confirm.revAt===rec.at?j.confirm:null,secs,dec,view:'diff'};rcRender()}catch(e){}}
+    RC={rec,confirm:j.confirm&&j.confirm.revAt===rec.at?j.confirm:null,secs,dec,view:'diff'};rcRender();ftLockUI()}catch(e){}}
 function rcFinal(){const o={};RC.secs.forEach(([n,segs])=>o[n]=segs.map(s=>s[0]===0?s[1]:(RC.dec[s[3]]?s[2]:s[1])).join(''));return o}
 function rcCounts(){const v=Object.values(RC.dec);return{acc:v.filter(Boolean).length,rej:v.filter(x=>!x).length}}
 function rcRender(){
@@ -1027,6 +1058,7 @@ function checkFast(){
   const E=[],W=[],I=[];
   if(!CONFIG.BACKEND_URL)E.push('照片上傳功能尚未啟用，請改以 Email 寄送照片');
   const manual=!bound&&$('ftManualBox').open;
+  if(bound&&bound.quota&&bound.quota.locked)E.push('這件申請已完成定稿，如需更動請洽公關中心承辦');
   const act=document.querySelector('[name=ftAction]:checked')?.value||'photos';
   if(!bound&&!manual)E.push('請先查詢並點選你的原申請（或展開下方手動填寫）');
   if(bound&&bound.quota){const q=bound.quota;if(act==='photos'&&q.photo>=q.photoMax)E.push('補傳照片次數已用完，請聯絡承辦人');if(act==='revise'&&q.revise>=q.reviseMax)E.push('修改次數已用完，請聯絡承辦人')}
@@ -2074,7 +2106,7 @@ function rvRender(){
   const today=todayISO();
   L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
     const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
-    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b>${x.unfinished?' <span class="rv-unfin" title="申請人未完成上傳">⚠</span>':''}<div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${needAtt(x)&&!(rvAttWait(x)&&rvRole==='director')?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.revPending?'｜<b class="rv-plan">修訂稿待申請單位確認</b>':x.revOk?'｜修訂稿已確認':''}${/稿件後補/.test(x.categories)&&x.status!=='已上架'&&x.status!=='不予上架'?'｜稿件待補':''}${hasSoc(x)&&x.status!=='不予上架'&&!rvProg(x)?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b>${x.unfinished?' <span class="rv-unfin" title="申請人未完成上傳">⚠</span>':''}<div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${needAtt(x)&&!(rvAttWait(x)&&rvRole==='director')?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.revPending?'｜<b class="rv-plan">修訂稿待申請單位確認</b>':x.revOk?'｜修訂稿已確認':''}${x.finalLocked?'｜🔒 終版':''}${/稿件後補/.test(x.categories)&&x.status!=='已上架'&&x.status!=='不予上架'?'｜稿件待補':''}${hasSoc(x)&&x.status!=='不予上架'&&!rvProg(x)?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
     if(rvAttWait(x)&&rvRole==='director'){const sug=rvOpLine(x,'派員建議');
       el.firstElementChild.insertAdjacentHTML('beforeend',`<div class="rv-att">🙋 待指派派員｜已核定${x.staff?`（${esc(x.staff)}）`:''}${x.pendingMail?'，通知信等指派後寄出':''}${sug?`｜承辦建議：${esc(sug)}`:''}</div>`)}
     const pg=rvProg(x);if(pg)el.firstElementChild.insertAdjacentHTML('beforeend',pg);
@@ -2101,6 +2133,7 @@ async function rvOpen(folderId){
     <tr><th>事件日期</th><td>${esc(rocD(x.eventDate))||'—'}　<span class="hint">申請送出：${esc(rocD(x.created))}${x.follow?`；補件／修改 ${x.follow} 次`:''}</span></td></tr>
     <tr><th>資料</th><td><a href="${esc(x.url)}" target="_blank" rel="noopener">📁 雲端資料夾</a>${j.docs.map(d=>`　<a href="${esc(d.url)}" target="_blank" rel="noopener">📄 ${esc(d.name)}</a>`).join('')}${j.photoCount?`<span class="hint">　照片 ${j.photoCount} 張</span>`:''}</td></tr>
     <tr><th>申請人補件／修改</th><td id="rvQuota">${rvQuotaHtml(j.quota)}</td></tr>
+    <tr><th>終版文件</th><td id="rvFinal"></td></tr>
   </table>
   <h3 style="margin:14px 0 8px">七、公關中心評估意見</h3>
   <div id="rvDoneNote">${rvDoneHtml(x)}</div>
@@ -2142,7 +2175,7 @@ async function rvOpen(folderId){
     <button type="button" class="primary" id="rvSoc" style="width:auto;padding:9px 18px;background:#9b1f5c">${x.socialDate?'✓ 已完成':'✓ 標記社群已發布'}</button></div>
     ${x.socialDate?'<p class="hint" style="margin-top:6px"><a href="#" id="rvSocUndo">取消標記</a></p>':''}<div class="hint" id="rvSocMsg"></div>`
   :`<p>${x.socialDate?`已發布（${esc(rocD(x.socialDate))}）${x.socialLink?`　<a href="${esc(x.socialLink)}" target="_blank" rel="noopener">貼文連結</a>`:''}`:'待發布'}</p>`}`:''}`;
-  RP={items:[],done:null,busy:false};rpRender();rvShow('rvDetail');window.scrollTo(0,0);
+  RP={items:[],done:null,busy:false};rpRender();fvRender(x.final,x.finalErr);rvShow('rvDetail');window.scrollTo(0,0);
   $('rvBack').onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()};
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
   $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
@@ -2189,8 +2222,8 @@ function rvDoneBtn(btnId,inputId,done,againText){const b=$(btnId),inp=$(inputId)
   inp.oninput=()=>{const ch=inp.value!==orig;b.disabled=!ch;b.classList.toggle('rv-done',!ch);b.textContent=ch?againText:'✓ 已完成'}}
 async function rvPublish(){
   const m=$('rvPubMsg');m.textContent='處理中…';
-  try{const j=await rvCall({action:'reviewpub',folderId:rvCur.folderId,link:val('rvPubLink')});
-    const it=rvList.find(x=>x.folderId===rvCur.folderId);if(it){it.status='已上架';it.pubLink=val('rvPubLink');it.pubDate=j.pubDate||todayISO();it.archived=!!j.archived}
+  try{const j=await rvCall({action:'reviewpub',folderId:rvCur.folderId,link:val('rvPubLink'),by:edAuthor()});if(j.final){rvCur.final=j.final;fvRender(j.final)}
+    const it=rvList.find(x=>x.folderId===rvCur.folderId);if(it){it.status='已上架';it.pubLink=val('rvPubLink');it.pubDate=j.pubDate||todayISO();it.archived=!!j.archived;it.finalLocked=!!(j.final&&j.final.lock)}
     m.textContent=j.archived?`✓ 已標記為已上架，資料夾已移到「${j.archivePath}」。`:'✓ 已標記為已上架。'+(j.archiveErr?`（資料夾未能移動：${j.archiveErr}）`:'');rvTab=hasSoc(rvCur)&&!rvCur.socialDate?'ok':'done';
     rvCur.status='已上架';rvDoneBtn('rvPub','rvPubLink',true,'更新上架連結')}
   catch(e){m.textContent='失敗：'+e.message}}
