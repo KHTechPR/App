@@ -204,6 +204,9 @@ body.review .layout{display:none!important}
 .rv-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .rv-tabs button{border-radius:16px;padding:6px 14px;font-size:14px;background:var(--brand-soft);border:0;cursor:pointer}
 .rv-tabs button.on{background:var(--brand);color:#fff}
+.rv-tabs button.att-hot:not(.on){background:#fff1d6;color:#8a4b00;box-shadow:inset 0 0 0 1px #f0b44c}
+.rv-pgs{margin-top:4px;display:flex;gap:6px;flex-wrap:wrap}.rv-pg{font-size:13px;border-radius:6px;padding:1px 8px;background:#f1f3f7;color:#555;border:1px solid #dde2ea}.rv-pg.ok{background:#e9f7ef;color:#0d5c32;border-color:#b9e2c9}
+.rv-att{display:inline-block;margin-top:4px;font-size:13px;background:#fff8e6;border:1px solid #f3d38a;border-radius:6px;padding:2px 8px;color:#6b4a00}
 .rv-item{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line,#d6dbe5);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fff;cursor:pointer}
 .rv-item:hover{border-color:var(--brand)}
 .rv-meta{font-size:13px;color:var(--muted)}
@@ -227,6 +230,12 @@ body.review .layout{display:none!important}
 .ed-sec{font-size:13px;color:var(--muted);margin:14px 0 4px}.ed-sec:first-child{margin-top:0}
 .ed-txt{white-space:pre-wrap;line-height:1.9;font-size:15px;border:1px solid var(--line,#e5e7eb);border-radius:8px;padding:8px 10px}
 .ed-txt del{color:#b42318;background:#fde8e6}.ed-txt ins{color:#0d5c32;background:#dcf3e4;text-decoration:underline}
+.rp-box{border:1px solid #cbd5e1;border-radius:10px;padding:12px 14px;max-width:760px;background:#fbfcfe}
+.rp-row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:start;padding:8px 0;border-top:1px dashed #e2e8f0}
+.rp-row:first-child{border-top:0}.rp-row img{width:120px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd}
+.rp-meta{font-size:13px;color:#555;margin-bottom:4px}.rp-ok{color:#1e7a46}.rp-warn{color:#b45309}
+.rp-done{background:#e9f7ef;border:1px solid #9bd3b2;border-radius:8px;padding:10px 12px;color:#0d5c32;max-width:760px}
+@media(max-width:560px){.rp-row{grid-template-columns:84px 1fr}.rp-row img{width:84px;height:56px}}
 .rc-box{border:2px solid #e8a317;border-radius:10px;margin-top:12px;overflow:hidden;background:#fff}
 .rc-box.done{border-color:#9bd3b2}
 .rc-hd{background:#fff8e6;padding:10px 14px;font-weight:700;color:#7a4b00;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
@@ -308,7 +317,7 @@ body.draft-pending .req3{display:none}
         <div class="rv-tabs" id="rvTabs"></div>
         <div><span class="hint" id="rvRoleTag" style="margin-right:8px"></span><button type="button" class="small" id="rvReload">重新整理</button> <button type="button" class="small" id="rvLogout">登出</button></div>
       </div>
-      <div class="hint" style="margin:-4px 0 10px">已上架的申請只顯示在「已上架」分頁，雲端資料夾會自動移到「已上架／年-月」歸檔。</div>
+      <div class="hint" style="margin:-4px 0 10px">新聞已上架、社群也已發布的申請會移到「已完成」分頁；已上架的雲端資料夾會自動移到「已上架／年-月」歸檔。</div>
       <div id="rvList"></div>
     </div>
     <div id="rvDetail" class="rv-hidden"></div>
@@ -881,6 +890,51 @@ $('ftLookupBtn').onclick=async()=>{
       el.onclick=()=>{bound=x;uploaded=null;showBound()};$('ftList').appendChild(el)});
   }catch(e){msg.innerHTML=`查詢失敗：${esc(e.message)}。<br>也可以直接點選 <b>[上架申請通知]</b> 信件中的「補件／修改連結」。`}
 };
+/* ===== 公關中心代為補傳照片 ===== */
+let RP={items:[],done:null,busy:false};
+function rpRender(){
+  const w=$('rpWrap');if(!w||!rvCur)return;const x=rvCur;
+  if(RP.done){const d=RP.done;w.innerHTML=`<h3 style="margin:0 0 8px">代為補傳照片</h3><div class="rp-done">✓ 已上傳 ${d.n} 張照片到這件申請的雲端資料夾（${esc(d.at)}，${esc(d.by)}）<br>
+<span style="font-size:13px">${d.mailed?'已寄信告知申請人．':''}申請紀錄「備註」已記下來源</span><br>
+<a class="linkbtn" href="${esc(d.url)}" target="_blank" rel="noopener">開啟雲端資料夾</a>　<button type="button" class="linkbtn" id="rpAgain">再補傳</button></div>`;
+    $('rpAgain').onclick=()=>{RP.done=null;rpRender()};return}
+  const n=RP.items.length,mb=(RP.items.reduce((a,it)=>a+it.photo.size,0)/1048576).toFixed(1);
+  const keepSrc=$('rpSrc')?$('rpSrc').value:`申請單位 Email 提供（${new Date().toLocaleDateString('zh-TW',{month:'numeric',day:'numeric',timeZone:'Asia/Taipei'})} 收到）`,keepN=$('rpNotify')?$('rpNotify').checked:false;
+  w.innerHTML=`<h3 style="margin:0 0 4px">代為補傳照片</h3>
+<p class="hint" style="margin:0 0 8px">申請單位用 Email 寄來的照片，可在這裡上傳到這件申請的雲端資料夾（不佔申請單位的補傳次數）。</p>
+<div class="rp-box"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label class="small pick-btn"><input type="file" id="rpFiles" accept="image/jpeg,image/png,image/heic,image/*" multiple hidden>＋ 選擇照片（可多選）</label><span class="hint">${n?`已選 ${n} 張，共 ${mb} MB`:''}</span></div>
+${n?`<div style="margin-top:8px" id="rpList">${RP.items.map((it,i)=>{const p=it.photo,bad=p.problems.length,off=p.w&&(p.w<p.h||Math.abs(p.w/p.h-1.5)>0.05);
+  return `<div class="rp-row" data-i="${i}"><img alt="" src="${p.url}"><div><div class="rp-meta"><b>${esc(p.name)}</b>　<span class="${bad?'rp-warn':'rp-ok'}">${bad?'⚠ ':'✓ '}${p.w?`${p.w>=p.h?'橫式':'直式'}．${p.w}×${p.h}．`:''}${(p.size/1048576).toFixed(1)} MB${bad?`（${esc(p.problems.join('、'))}）`:''}</span>${p.w?`　<button type="button" class="linkbtn rp-crop">✂ ${off?'裁成 3:2':'裁切'}</button>`:''}${it.orig?'　<button type="button" class="linkbtn rp-undo">還原</button>':''}　<button type="button" class="linkbtn rp-x">移除</button></div>
+<input type="text" class="rp-cap" maxlength="200" placeholder="圖說（選填）"></div></div>`}).join('')}</div>
+<table class="form" style="margin-top:8px"><tr><th>照片來源</th><td><input type="text" id="rpSrc" maxlength="200"></td></tr></table>
+<label class="chk" style="margin:8px 0"><input type="checkbox" id="rpNotify">寄信告知申請人：公關中心已代為補上照片（${esc(x.email)}）</label>
+<div><button type="button" class="primary" id="rpGo" style="width:auto;padding:9px 18px">上傳 ${n} 張照片</button> <span class="hint" id="rpMsg"></span></div>`:''}</div>`;
+  $('rpFiles').onchange=async e=>{for(const f of [...e.target.files])RP.items.push({photo:await inspect(f),orig:null,caption:''});rpRender()};
+  if(!n)return;
+  $('rpSrc').value=keepSrc;$('rpNotify').checked=keepN;
+  w.querySelectorAll('.rp-row').forEach(row=>{const it=RP.items[+row.dataset.i],cap=row.querySelector('.rp-cap');
+    cap.value=it.caption;cap.oninput=()=>{it.caption=cap.value};
+    const cb=row.querySelector('.rp-crop');if(cb)cb.onclick=()=>cropOpen(it,rpRender);
+    const ub=row.querySelector('.rp-undo');if(ub)ub.onclick=()=>{URL.revokeObjectURL(it.photo.url);it.photo=it.orig;it.orig=null;rpRender()};
+    row.querySelector('.rp-x').onclick=()=>{URL.revokeObjectURL(it.photo.url);RP.items.splice(+row.dataset.i,1);rpRender()}});
+  $('rpGo').onclick=rpUpload}
+async function rpUpload(){
+  if(RP.busy)return;const big=RP.items.find(it=>it.photo.size>CONFIG.PHOTO_MAX_MB*1048576);
+  if(big){$('rpMsg').textContent=`「${big.photo.name}」超過 ${CONFIG.PHOTO_MAX_MB}MB，請移除或裁切`;return}
+  RP.busy=true;const btn=$('rpGo'),fid=rvCur.folderId,list=RP.items.slice(),src=$('rpSrc').value.trim(),notify=$('rpNotify').checked,by=edAuthor();
+  btn.disabled=true;$('rpFiles').disabled=true;const guard=e=>{e.preventDefault();e.returnValue=''};window.addEventListener('beforeunload',guard);
+  const stamp=RP.stamp||new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'').replace(/^(\d{4})(\d{4})$/,'$1-$2');RP.stamp=stamp;
+  try{for(let i=0;i<list.length;i++){const p=list[i].photo;if(list[i].up)continue;btn.textContent=`上傳中 ${i+1}／${list.length}…`;
+      await rvCall({action:'reviewphoto',folderId:fid,name:`補件${stamp}_圖${i+1}_${p.name}`,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)});list[i].up=true}
+    const txt=[`補件時間：${new Date().toLocaleString('zh-TW',{hour12:false,timeZone:'Asia/Taipei'})}`,`上傳：${by}（代申請單位補傳）`,src?`照片來源：${src}`:'','',
+      ...list.map((it,i)=>`圖${i+1}（${it.photo.name}）：${it.caption.trim()||'（未填圖說）'}`)].filter((x,k,a)=>x!==''||a[k-1]!=='').join('\n');
+    await rvCall({action:'reviewphoto',folderId:fid,name:`補件${stamp}_圖說.txt`,mimeType:'text/plain',data:b64text(txt)});
+    const j=await rvCall({action:'reviewphotodone',folderId:fid,count:list.length,source:src,notify,by});
+    if(rvCur&&rvCur.folderId===fid){rvCur.note=j.note;if($('rvNote'))$('rvNote').value=j.note}
+    list.forEach(it=>{URL.revokeObjectURL(it.photo.url)});
+    RP={items:[],busy:false,done:{n:list.length,by,mailed:j.mailed,url:j.url,at:new Date().toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Taipei'})}};
+    window.removeEventListener('beforeunload',guard);if(rvCur&&rvCur.folderId===fid)rpRender()}
+  catch(e){window.removeEventListener('beforeunload',guard);RP.busy=false;btn.disabled=false;$('rpFiles').disabled=false;btn.textContent=`重新上傳 ${list.length} 張照片`;$('rpMsg').textContent='上傳失敗：'+e.message+'（已上傳的照片不會重複上傳）'}}
 /* ===== 申請單位確認公關中心修訂稿 ===== */
 let RC=null;   // {rec,confirm,secs:[[名稱,[片段…]]],dec:{id:true接受/false拒絕},view}
 function rcPairs(o,t){const P=ED_FIELDS.map(([k,n])=>[n,(o||{})[k]||'',(t||{})[k]||'']);
@@ -1981,7 +2035,19 @@ setMode();
 /* ===== 公關中心審核頁 ===== */
 const RV_KEY='nkust-pr-review-pin', RV_STAFF=['楊豐榮','鄭婷','鄭潔珊'];
 const hasSoc=x=>/FB\/IG|授權撰寫社群貼文/.test(x.categories||'');
-const RV_TABS=[['pending','待審核',x=>!x.status||x.status==='待審核'||x.status==='處理中'],['supp','需補件',x=>x.status==='需補件'],['ok','已核定',x=>x.status==='已核定'],['no','不予上架',x=>x.status==='不予上架'],['pub','已上架',x=>x.status==='已上架'],['soc','社群待發布',x=>hasSoc(x)&&!x.socialDate&&x.status!=='不予上架'],['all','全部',x=>x.status!=='已上架']];
+const rvOpLine=(x,k)=>{const l=String(x.opinion||'').split('\n').find(l=>l.startsWith(k+'：'));return l?l.slice(k.length+1):''};
+const needAtt=x=>/請公關中心協助/.test(x.categories)&&!rvOpLine(x,'派員出席')&&x.status!=='不予上架'&&x.status!=='已上架';
+const NEWS_RE=/校內稿|校外稿|採訪通知|請公關中心協助|成果報導/;
+const rvReviewed=x=>!!x.status&&x.status!=='待審核'&&x.status!=='處理中';
+const rvProg=x=>{if(!((x.status==='已核定'&&(!rvAttWait(x)||rvRole!=='director'))||(x.status==='已上架'&&!rvFinished(x))))return '';
+  const P=(ok,t)=>`<span class="rv-pg ${ok?'ok':''}">${ok?'✓ ':''}${t}</span>`,a=[];
+  if(NEWS_RE.test(x.categories||''))a.push(P(x.status==='已上架',x.status==='已上架'?`新聞已上架${x.pubDate?' '+esc(rocD(x.pubDate)):''}`:'新聞待上架'));
+  if(hasSoc(x))a.push(P(!!x.socialDate,x.socialDate?`社群已發布 ${esc(rocD(x.socialDate))}`:'社群待發布'));
+  return a.length?`<div class="rv-pgs">${a.join('')}</div>`:''};
+const rvAttWait=x=>needAtt(x)&&x.status==='已核定';                       // 經理已核定、等主任指派派員
+const rvFinished=x=>x.status==='已上架'&&(!hasSoc(x)||!!x.socialDate);      // 新聞已上架＋社群已發布（有申請的才算）
+const RV_TABS=[['pending','待審核',x=>!rvReviewed(x)],['att','待派員',rvAttWait],['supp','需補件',x=>x.status==='需補件'],
+  ['ok','已核定',x=>(x.status==='已核定'&&(!rvAttWait(x)||rvRole!=='director'))||(x.status==='已上架'&&!rvFinished(x))],['done','已完成',rvFinished],['no','不予上架',x=>x.status==='不予上架'],['all','全部',x=>true]];
 let rvList=[],rvTab='pending',rvCur=null,rvRole='staff',rvRole0=0;
 let RV_ACTIVE='';   // 本次進入使用的審核碼，只存在記憶體；重新整理或另開分頁都要再按一次「進入審核」
 const rvPin=()=>RV_ACTIVE;
@@ -1994,20 +2060,24 @@ async function rvCall(body){
   catch(e){if(/審核碼不正確/.test(e.message)){RV_ACTIVE='';try{localStorage.removeItem(RV_KEY)}catch{}$('rvPin').value='';rvShow('rvLogin');$('rvLoginMsg').textContent='審核碼不正確，請重新輸入。'}throw e}}
 async function rvLoad(){
   $('rvMsg').textContent='讀取中…';
-  try{const j=await rvCall({action:'reviewlist'});rvList=j.list;if(!rvRole0&&j.role==='social')rvTab='soc';rvRole0=1;rvRole=j.role||'staff';$('rvRoleTag').innerHTML=rvRole==='director'?'目前身分：<b>主任</b>':rvRole==='social'?'目前身分：<b>社群同仁</b>':'目前身分：新聞同仁';$('rvMsg').textContent='';rvShow('rvListBox');rvRender();return true}
+  try{const j=await rvCall({action:'reviewlist'});rvList=j.list;if(!rvRole0&&j.role==='social')rvTab='ok';rvRole0=1;rvRole=j.role||'staff';$('rvRoleTag').innerHTML=rvRole==='director'?'目前身分：<b>主任</b>':rvRole==='social'?'目前身分：<b>社群同仁</b>':'目前身分：新聞同仁';$('rvMsg').textContent='';rvShow('rvListBox');rvRender();return true}
   catch(e){$('rvMsg').textContent='讀取失敗：'+e.message;return false}}
 function rvRender(){
-  $('rvTabs').innerHTML=RV_TABS.map(([k,n,f])=>`<button type="button" data-k="${k}" class="${k===rvTab?'on':''}">${n} ${rvList.filter(f).length}</button>`).join('');
+  if(rvTab==='att'&&rvRole!=='director')rvTab='pending';
+  $('rvTabs').innerHTML=RV_TABS.filter(([k])=>!(k==='att'&&rvRole!=='director')).map(([k,n,f])=>{const c=rvList.filter(f).length;return `<button type="button" data-k="${k}" class="${k===rvTab?'on':''}${k==='att'&&c?' att-hot':''}">${n} ${c}</button>`}).join('');
   $('rvTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{rvTab=b.dataset.k;rvRender()});
   const f=RV_TABS.find(t=>t[0]===rvTab)[2],L=rvList.filter(f);
   // 依預定上架日排序（近的在前）；已上架分頁依上架日新到舊；沒填預定上架日的排在最後，依事件日
-  if(rvTab==='pub')L.sort((a,b)=>(b.pubDate||'').localeCompare(a.pubDate||''));
+  if(rvTab==='done')L.sort((a,b)=>(b.pubDate||'').localeCompare(a.pubDate||''));
   else L.sort((a,b)=>(a.planned||'9999').localeCompare(b.planned||'9999')||(a.eventDate||'9999').localeCompare(b.eventDate||'9999')||(a.created||'').localeCompare(b.created||''));
   $('rvList').innerHTML=L.length?'':'<p class="hint">目前沒有申請。</p>';
   const today=todayISO();
   L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
     const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
-    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b>${x.unfinished?' <span class="rv-unfin" title="申請人未完成上傳">⚠</span>':''}<div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${/請公關中心協助/.test(x.categories)&&!/(^|\n)派員出席：/.test(x.opinion||'')&&x.status!=='已上架'?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.revPending?'｜<b class="rv-plan">修訂稿待申請單位確認</b>':x.revOk?'｜修訂稿已確認':''}${/稿件後補/.test(x.categories)&&x.status!=='已上架'&&x.status!=='不予上架'?'｜稿件待補':''}${hasSoc(x)&&x.status!=='不予上架'?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b>${x.unfinished?' <span class="rv-unfin" title="申請人未完成上傳">⚠</span>':''}<div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${needAtt(x)&&!(rvAttWait(x)&&rvRole==='director')?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.revPending?'｜<b class="rv-plan">修訂稿待申請單位確認</b>':x.revOk?'｜修訂稿已確認':''}${/稿件後補/.test(x.categories)&&x.status!=='已上架'&&x.status!=='不予上架'?'｜稿件待補':''}${hasSoc(x)&&x.status!=='不予上架'&&!rvProg(x)?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    if(rvAttWait(x)&&rvRole==='director'){const sug=rvOpLine(x,'派員建議');
+      el.firstElementChild.insertAdjacentHTML('beforeend',`<div class="rv-att">🙋 待指派派員｜已核定${x.staff?`（${esc(x.staff)}）`:''}${x.pendingMail?'，通知信等指派後寄出':''}${sug?`｜承辦建議：${esc(sug)}`:''}</div>`)}
+    const pg=rvProg(x);if(pg)el.firstElementChild.insertAdjacentHTML('beforeend',pg);
     el.onclick=()=>rvOpen(x.folderId);$('rvList').appendChild(el)})}
 async function rvOpen(folderId){
   $('rvMsg').textContent='讀取中…';
@@ -2060,6 +2130,8 @@ async function rvOpen(folderId){
   <button type="button" class="primary" id="rvSave" style="max-width:240px">${rvDone(x)?'更新審核結果':'送出審核結果'}</button>
   <div id="rvSaveMsg" style="margin-top:8px"></div>
   <div style="border-top:1px solid var(--line,#e5e7eb);margin:20px 0 12px"></div>
+  <div id="rpWrap"></div>
+  <div style="border-top:1px solid var(--line,#e5e7eb);margin:20px 0 12px"></div>
   <h3 style="margin:0 0 8px">已上架${x.status==='已上架'?`<span class="rv-badge s-已上架" style="margin-left:6px">已上架${x.pubDate?' '+esc(rocD(x.pubDate)):''}</span>`:''}</h3>
   <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:640px"><input type="url" id="rvPubLink" value="${esc(x.pubLink)}" placeholder="上架連結（選填，如校網新聞或 FB 貼文網址）" style="flex:1;min-width:220px">
     <button type="button" class="primary rv-pub-btn" id="rvPub" style="width:auto;padding:9px 18px">${x.status==='已上架'?'✓ 已完成':'✓ 標記為已上架'}</button></div>
@@ -2070,7 +2142,7 @@ async function rvOpen(folderId){
     <button type="button" class="primary" id="rvSoc" style="width:auto;padding:9px 18px;background:#9b1f5c">${x.socialDate?'✓ 已完成':'✓ 標記社群已發布'}</button></div>
     ${x.socialDate?'<p class="hint" style="margin-top:6px"><a href="#" id="rvSocUndo">取消標記</a></p>':''}<div class="hint" id="rvSocMsg"></div>`
   :`<p>${x.socialDate?`已發布（${esc(rocD(x.socialDate))}）${x.socialLink?`　<a href="${esc(x.socialLink)}" target="_blank" rel="noopener">貼文連結</a>`:''}`:'待發布'}</p>`}`:''}`;
-  rvShow('rvDetail');window.scrollTo(0,0);
+  RP={items:[],done:null,busy:false};rpRender();rvShow('rvDetail');window.scrollTo(0,0);
   $('rvBack').onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()};
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
   $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
@@ -2119,7 +2191,7 @@ async function rvPublish(){
   const m=$('rvPubMsg');m.textContent='處理中…';
   try{const j=await rvCall({action:'reviewpub',folderId:rvCur.folderId,link:val('rvPubLink')});
     const it=rvList.find(x=>x.folderId===rvCur.folderId);if(it){it.status='已上架';it.pubLink=val('rvPubLink');it.pubDate=j.pubDate||todayISO();it.archived=!!j.archived}
-    m.textContent=j.archived?`✓ 已標記為已上架，資料夾已移到「${j.archivePath}」。`:'✓ 已標記為已上架。'+(j.archiveErr?`（資料夾未能移動：${j.archiveErr}）`:'');rvTab='pub';
+    m.textContent=j.archived?`✓ 已標記為已上架，資料夾已移到「${j.archivePath}」。`:'✓ 已標記為已上架。'+(j.archiveErr?`（資料夾未能移動：${j.archiveErr}）`:'');rvTab=hasSoc(rvCur)&&!rvCur.socialDate?'ok':'done';
     rvCur.status='已上架';rvDoneBtn('rvPub','rvPubLink',true,'更新上架連結')}
   catch(e){m.textContent='失敗：'+e.message}}
 async function buildReviewDocx(x,f){
@@ -2161,8 +2233,8 @@ async function buildReviewDocx(x,f){
 }
 /* ===== 照片裁切（固定 3:2，原始解析度輸出） ===== */
 const CROP={it:null,img:null,scale:1,W:0,H:0,f:null};
-function cropOpen(it){
-  CROP.it=it;const im=$('cropImg');$('cropName').textContent=it.photo.name;
+function cropOpen(it,done){
+  CROP.it=it;CROP.done=done||null;const im=$('cropImg');$('cropName').textContent=it.photo.name;
   im.onload=()=>{
     const maxW=Math.min(760,window.innerWidth-80),maxH=Math.min(480,window.innerHeight-260);
     const sc=Math.min(maxW/im.naturalWidth,maxH/im.naturalHeight,1);
@@ -2198,7 +2270,7 @@ async function cropApply(){
   const file=new File([blob],base+'_3x2.jpg',{type:'image/jpeg'});
   const info=await inspect(file);
   if(!it.orig)it.orig=it.photo;else URL.revokeObjectURL(it.photo.url);
-  it.photo=info;$('cropDlg').close();renderItems();check()}
+  it.photo=info;$('cropDlg').close();if(CROP.done)CROP.done();else{renderItems();check()}}
 $('cropOk').onclick=cropApply;$('cropCancel').onclick=$('cropClose').onclick=()=>$('cropDlg').close();
 /* ===== 修改稿件（追蹤修訂） ===== */
 const ED={orig:null,edits:null,saved:null,view:'edit',folderId:''};
