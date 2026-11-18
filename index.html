@@ -282,6 +282,25 @@ body.review .layout{display:none!important}
 .rv-plan{color:var(--brand)}
 .rv-unfin{color:#9a5b00;font-weight:700}
 .crop-dlg{max-width:820px}
+#pkDlg{max-width:860px;height:fit-content!important;max-height:92vh}
+.pk-body{background:#f4f6fa;flex:0 1 auto!important}
+.pk-dots{display:flex;gap:6px;justify-content:center;margin:0 0 10px}.pk-dots i{width:9px;height:9px;border-radius:50%;background:#cfd5e2;display:block}.pk-dots i.on{background:var(--brand)}.pk-dots i.bad{box-shadow:0 0 0 2px #f0b44c}
+.pk-card.one{grid-template-columns:1fr;max-width:620px;margin:0 auto}.pk-card.one .pk-pv{width:100%}
+.pk-card{display:grid;grid-template-columns:240px 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
+.pk-pv{width:240px;aspect-ratio:3/2;background:#222;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.pk-pv img{width:100%;height:100%;object-fit:cover}.pk-pv.orig img{object-fit:contain}
+.pk-pv .tag{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.6);color:#fff;font-size:11.5px;border-radius:4px;padding:1px 6px}
+.pk-name{font-weight:700;word-break:break-all}.pk-chk{list-style:none;margin:6px 0;padding:0;font-size:13.5px;line-height:1.6}
+.pk-chk .ok{color:var(--ok)}.pk-chk .bad{color:var(--warn)}
+.pk-opt{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;margin-top:4px}.pk-opt label{display:flex;gap:4px;align-items:center;cursor:pointer}
+.pk-btns{margin-top:6px;display:flex;gap:10px;flex-wrap:wrap}
+@media(max-width:600px){.pk-card{grid-template-columns:1fr}.pk-pv{width:100%}}
+.up-toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:10px 16px;width:min(440px,calc(100vw - 32px))}
+.up-toast .t1{font-size:14px;font-weight:700;color:var(--brand);display:flex;justify-content:space-between;gap:8px}
+.up-toast .bar{height:6px;background:#e8ebf3;border-radius:4px;margin:6px 0;overflow:hidden}.up-toast .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--sky));border-radius:4px;transition:width .4s}
+.up-toast .bar.ind i{width:35%;animation:upind 1.2s ease-in-out infinite}@keyframes upind{0%{margin-left:-35%}100%{margin-left:100%}}
+.up-toast .tick{font-size:13.5px;color:#555;min-height:1.4em;animation:upfade .4s}
+@keyframes upfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .crop-body{background:#fff;text-align:center}
 .crop-stage{position:relative;display:inline-block;user-select:none;touch-action:none;line-height:0;background:#222}
 .crop-stage img{display:block;max-width:100%;opacity:.45;pointer-events:none}
@@ -336,6 +355,12 @@ body.draft-pending .req3{display:none}
   </div></section>
   <p style="text-align:center"><a href="./" class="hint">← 回申請表</a></p>
 </div>
+<dialog id="pkDlg" class="pv-dlg pk-dlg">
+  <div class="pv-head"><b>📷 照片檢查</b><span class="hint" id="pkStep">上傳前先確認裁切與解析度</span><button type="button" class="dlg-x" id="pkClose" aria-label="關閉">×</button></div>
+  <div class="pv-body pk-body" id="pkList"></div>
+  <div class="pv-foot"><span class="hint" id="pkSum"></span><button type="button" id="pkCancel">取消</button><button type="button" id="pkPrev">← 上一張</button><button type="button" id="pkOk" class="pv-ok">確定加入</button></div>
+</dialog>
+<div id="upToast" class="up-toast hidden" role="status" aria-live="polite"><div class="t1"><span id="upTxt">上傳中…</span><span class="hint">請勿關閉頁面</span></div><div class="bar" id="upBar"><i></i></div><div class="tick" id="upTick"></div></div>
 <dialog id="cropDlg" class="pv-dlg crop-dlg">
   <div class="pv-head"><b>✂ 裁切照片（3:2）</b><span class="hint" id="cropName"></span><button type="button" class="dlg-x" id="cropClose" aria-label="關閉">×</button></div>
   <div class="pv-body crop-body"><div id="cropStage" class="crop-stage"><img id="cropImg" alt="裁切照片"><div id="cropFrame" class="crop-frame"><i data-c="nw"></i><i data-c="ne"></i><i data-c="sw"></i><i data-c="se"></i></div></div>
@@ -760,6 +785,57 @@ async function inspect(f,specCheck=true){
   info.problems=p;return info}
 const metaText=p=>`${p.w?p.w+'×'+p.h+'・':''}${(p.size/1048576).toFixed(1)}MB${p.problems.length?'<br>！'+esc(p.problems.join('、')):'・✓ 符合規格'}`;
 
+/* ===== 照片檢查：選照片後先跳出，確認 3:2 裁切與解析度再加入 ===== */
+const PK={list:[],done:null};
+const is32=p=>p.w&&p.w>=p.h&&Math.abs(p.w/p.h-1.5)<=0.05;
+function cropDims(p){let w=p.w,h=Math.round(w/1.5);if(h>p.h){h=p.h;w=Math.round(h*1.5)}return{w,h}}
+async function autoCrop(p){
+  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=p.url});
+  const {w,h}=cropDims({w:img.naturalWidth,h:img.naturalHeight}),cv=document.createElement('canvas');cv.width=w;cv.height=h;
+  cv.getContext('2d').drawImage(img,Math.round((img.naturalWidth-w)/2),Math.round((img.naturalHeight-h)/2),w,h,0,0,w,h);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92));
+  return inspect(new File([blob],p.name.replace(/\.[^.]+$/,'')+'_3x2.jpg',{type:'image/jpeg'}))}
+const pkDims=e=>!e.src.w?null:e.mode==='crop'?(e.orig?{w:e.photo.w,h:e.photo.h}:cropDims(e.src)):{w:e.src.w,h:e.src.h};
+function pkOpen(infos,done){
+  PK.list=infos.map(p=>({src:p,photo:p,orig:null,mode:p.w&&!is32(p)?'crop':'orig'}));PK.done=done;PK.idx=0;pkRender();$('pkDlg').showModal()}
+function pkRender(){
+  const L=$('pkList');L.innerHTML='';const n=PK.list.length;PK.idx=Math.min(PK.idx||0,n-1);
+  if(n>1)L.insertAdjacentHTML('beforeend',`<div class="pk-dots">${PK.list.map((e,k)=>{const d=pkDims(e);return `<i class="${k===PK.idx?'on':''} ${!d||Math.max(d.w,d.h)<3000?'bad':''}"></i>`}).join('')}</div>`);
+  PK.list.forEach((e,i)=>{if(i!==PK.idx)return;const s=e.src,manual=!!e.orig,crop=e.mode==='crop',d=pkDims(e),Lg=d?Math.max(d.w,d.h):0;
+    const chk=[];
+    if(!s.w)chk.push(['bad','無法預覽這張照片（可能是 HEIC 等格式），建議轉成 JPG 再選']);
+    else{if(crop&&s.w<s.h)chk.push(['bad','原本是直式，裁成橫式會切掉上下，請按「調整裁切範圍」確認主角在框內']);
+      chk.push(crop?['ok',`裁成橫式 3:2：${d.w}×${d.h} px`]:is32(s)?['ok',`已是橫式 3:2：${s.w}×${s.h} px`]:['bad',`原始照片 ${s.w}×${s.h} px（${s.w<s.h?'直式':'不是 3:2'}），上架時可能被裁掉`]);
+      chk.push(Lg>=3000?['ok',`解析度足夠（長邊 ${Lg} px）`]:['bad',`解析度偏低（長邊 ${Lg} px，建議 3000 以上）。透過 LINE 等通訊軟體傳過的照片會被壓縮，請向拍攝者要原始檔`]);
+      if(!crop&&!s.jpg)chk.push(['bad','不是 JPG 檔']);
+      if(s.size>CONFIG.PHOTO_MAX_MB*1048576&&!crop)chk.push(['bad',`超過 ${CONFIG.PHOTO_MAX_MB}MB，無法上傳`])}
+    const c=document.createElement('div');c.className='pk-card one';
+    c.innerHTML=`<div class="pk-pv ${crop?'':'orig'}"><img alt="" src="${(manual&&crop?e.photo:s).url}"><span class="tag">${crop?(manual?'自訂裁切':'自動裁切 3:2'):'原始照片'}</span></div>
+<div><div class="pk-name">${n>1?`第 ${i+1} 張：`:''}${esc(s.name)}</div><ul class="pk-chk">${chk.map(([k,t])=>`<li class="${k}">${k==='ok'?'✓':'⚠'} ${esc(t)}</li>`).join('')}</ul>
+${s.w?`<div class="pk-opt"><label><input type="radio" name="pk${i}" value="crop" ${crop?'checked':''}>裁成 3:2${is32(s)?'':'（建議）'}</label><label><input type="radio" name="pk${i}" value="orig" ${crop?'':'checked'}>用原始照片</label></div>`:''}
+<div class="pk-btns">${s.w?'<button type="button" class="linkbtn pk-adj">✂ 調整裁切範圍</button>':''}<button type="button" class="linkbtn pk-x">移除這張</button></div></div>`;
+    c.querySelectorAll(`[name=pk${i}]`).forEach(r=>r.onchange=()=>{e.mode=r.value;pkRender()});
+    const a=c.querySelector('.pk-adj');if(a)a.onclick=()=>{const tmp={photo:e.src,orig:null};cropOpen(tmp,()=>{if(e.orig&&e.photo!==e.src)URL.revokeObjectURL(e.photo.url);e.photo=tmp.photo;e.orig=e.src;e.mode='crop';pkRender()})};
+    c.querySelector('.pk-x').onclick=()=>{URL.revokeObjectURL(e.src.url);PK.list.splice(i,1);if(!PK.list.length){$('pkDlg').close();return}pkRender()};
+    L.appendChild(c)});
+  const low=PK.list.filter(e=>{const d=pkDims(e);return d&&Math.max(d.w,d.h)<3000}).length;
+  $('pkStep').textContent=n>1?`第 ${PK.idx+1}／${n} 張，逐張確認裁切與解析度`:'上傳前先確認裁切與解析度';
+  $('pkSum').textContent=`${n} 張${low?`，其中 ${low} 張解析度偏低`:''}`;
+  $('pkPrev').classList.toggle('hidden',PK.idx===0);
+  $('pkOk').textContent=PK.idx<n-1?'下一張 →':`確定加入 ${n} 張`}
+$('pkPrev').onclick=()=>{PK.idx=Math.max(0,PK.idx-1);pkRender()};
+$('pkOk').onclick=async()=>{if(PK.idx<PK.list.length-1){PK.idx++;pkRender();$('pkList').scrollTop=0;return}
+  const b=$('pkOk');b.disabled=true;b.textContent='處理中…';
+  try{const out=[];for(const e of PK.list){
+      if(e.mode==='crop'&&e.src.w){out.push(e.orig?{photo:e.photo,orig:e.src}:{photo:await autoCrop(e.src),orig:e.src})}
+      else{if(e.orig&&e.photo!==e.src)URL.revokeObjectURL(e.photo.url);out.push({photo:e.src,orig:null})}}
+    $('pkDlg').close();const f=PK.done;PK.done=null;PK.list=[];f&&f(out)}
+  finally{b.disabled=false}};
+$('pkCancel').onclick=$('pkClose').onclick=()=>{PK.list.forEach(e=>{URL.revokeObjectURL(e.src.url);if(e.orig&&e.photo!==e.src)URL.revokeObjectURL(e.photo.url)});PK.list=[];PK.done=null;$('pkDlg').close()};
+/* ===== 上傳進度＋跑馬字幕（類別「上傳照片」，可由 ticker.xlsx 設定）===== */
+const UP={stop:null,start(n){$('upToast').classList.remove('hidden');if(!this.stop)this.stop=startTicker($('upTick'),'upload');this.set(0,n)},
+  set(i,n){$('upTxt').textContent=n>1?`照片上傳中 ${Math.min(i+1,n)}／${n}`:n===1?'照片上傳中…':'處理中…';$('upBar').classList.toggle('ind',n<=1);$('upBar').firstElementChild.style.width=n>1?Math.round(i/n*100)+'%':''},
+  end(){$('upToast').classList.add('hidden');if(this.stop){this.stop();this.stop=null}}};
 /* 第六項：照片＋圖說同一列 */
 function renderItems(){
   const box=$('capList');box.innerHTML='';
@@ -775,7 +851,7 @@ function renderItems(){
     const cb=row.querySelector('.crop-btn');if(cb)cb.onclick=()=>cropOpen(it);
     const cu=row.querySelector('.crop-undo');if(cu)cu.onclick=()=>{URL.revokeObjectURL(it.photo.url);it.photo=it.orig;it.orig=null;renderItems();check()};
     const one=row.querySelector('input[type=file]');
-    if(one)one.onchange=async e=>{const f=e.target.files[0];if(!f)return;it.photo=await inspect(f);it.orig=null;renderItems();check()};
+    if(one)one.onchange=async e=>{const f=e.target.files[0];if(!f)return;e.target.value='';pkOpen([await inspect(f)],out=>{if(!out.length)return;it.photo=out[0].photo;it.orig=out[0].orig;renderItems();check()})};
     row.querySelector('.x-btn').onclick=()=>{if(it.photo)URL.revokeObjectURL(it.photo.url);items.splice(i,1);if(!items.length)items.push({photo:null,caption:''});renderItems();check()};
     box.appendChild(row)});
   const n=items.filter(x=>x.photo).length;
@@ -783,10 +859,10 @@ function renderItems(){
 }
 $('photoFiles').addEventListener('change',async e=>{
   const fs=[...e.target.files];e.target.value='';
-  for(const f of fs){const info=await inspect(f);
-    const empty=items.find(x=>!x.photo&&!x.caption.trim());
-    if(empty)empty.photo=info;else items.push({photo:info,caption:''})}
-  renderItems();check()});
+  const infos=[];for(const f of fs)infos.push(await inspect(f));if(!infos.length)return;
+  pkOpen(infos,out=>{for(const r of out){const empty=items.find(x=>!x.photo&&!x.cloud&&!x.caption.trim());
+      if(empty){empty.photo=r.photo;empty.orig=r.orig}else items.push({photo:r.photo,orig:r.orig,caption:''})}
+    renderItems();check()})});
 $('addCap').onclick=()=>{items.push({photo:null,caption:''});renderItems();check();const t=[...document.querySelectorAll('.cap')].pop();t&&t.focus()};
 items.push({photo:null,caption:''});renderItems();
 
@@ -831,8 +907,10 @@ async function uploadAll(progress,meta){
   const f=revising&&!meta?{folderId:revising.folderId,token:revising.token,url:revising.url||'',appId:revising.appId||''}
     :await gas(meta||{action:'folder',unit:val('unit'),eventName:val('eventName'),eventDate:val('eventDate'),contact:`${val('cName')}（${val('cPhone')}）`,contactName:val('cName'),email:val('cEmail'),categories:catNames().join('、'),note:uploadNote()});
   const pre=revising&&!meta?'修訂'+new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'')+'_':'';
-  for(let i=0;i<list.length;i++){const {p,prefix}=list[i];progress(`上傳檔案 ${i+1}／${list.length}：${p.name}`);
-    await gas({action:'file',folderId:f.folderId,token:f.token,name:pre+prefix+p.name,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)})}
+  if(list.length)UP.start(list.length);
+  try{for(let i=0;i<list.length;i++){const {p,prefix}=list[i];progress(`上傳檔案 ${i+1}／${list.length}：${p.name}`);UP.set(i,list.length);
+    await gas({action:'file',folderId:f.folderId,token:f.token,name:pre+prefix+p.name,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)})}}
+  finally{UP.end()}
   list.forEach(({p,prefix})=>{const it=items.find(x=>x.photo===p);if(it)it.cloud=pre+prefix+p.name});
   uploaded={sig:fileSig()+(meta?'F':''),url:f.url,folderId:f.folderId,token:f.token,appId:f.appId||'',photoCount:list.filter(x=>x.prefix.startsWith('圖')).length,assetCount:list.filter(x=>x.prefix.startsWith('素材')).length};
   return uploaded}
@@ -984,7 +1062,8 @@ async function rpUpload(){
   RP.busy=true;const btn=$('rpGo'),fid=rvCur.folderId,list=RP.items.slice(),src=$('rpSrc').value.trim(),notify=$('rpNotify').checked,by=edAuthor();
   btn.disabled=true;$('rpFiles').disabled=true;const guard=e=>{e.preventDefault();e.returnValue=''};window.addEventListener('beforeunload',guard);
   const stamp=RP.stamp||new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'').replace(/^(\d{4})(\d{4})$/,'$1-$2');RP.stamp=stamp;
-  try{for(let i=0;i<list.length;i++){const p=list[i].photo;if(list[i].up)continue;btn.textContent=`上傳中 ${i+1}／${list.length}…`;
+  UP.start(list.length);
+  try{for(let i=0;i<list.length;i++){const p=list[i].photo;if(list[i].up)continue;btn.textContent=`上傳中 ${i+1}／${list.length}…`;UP.set(i,list.length);
       await rvCall({action:'reviewphoto',folderId:fid,name:`補件${stamp}_圖${i+1}_${p.name}`,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)});list[i].up=true}
     const txt=[`補件時間：${new Date().toLocaleString('zh-TW',{hour12:false,timeZone:'Asia/Taipei'})}`,`上傳：${by}（代申請單位補傳）`,src?`照片來源：${src}`:'','',
       ...list.map((it,i)=>`圖${i+1}（${it.photo.name}）：${it.caption.trim()||'（未填圖說）'}`)].filter((x,k,a)=>x!==''||a[k-1]!=='').join('\n');
@@ -994,8 +1073,8 @@ async function rpUpload(){
     if(rvCur&&rvCur.folderId===fid){rvCur.note=j.note;if($('rvNote'))$('rvNote').value=j.note}
     list.forEach(it=>{URL.revokeObjectURL(it.photo.url)});
     RP={items:[],busy:false,done:{n:list.length,by,mailed:j.mailed,url:j.url,at:new Date().toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Taipei'})}};
-    window.removeEventListener('beforeunload',guard);if(rvCur&&rvCur.folderId===fid)rpRender()}
-  catch(e){window.removeEventListener('beforeunload',guard);RP.busy=false;btn.disabled=false;$('rpFiles').disabled=false;btn.textContent=`重新上傳 ${list.length} 張照片`;$('rpMsg').textContent='上傳失敗：'+e.message+'（已上傳的照片不會重複上傳）'}}
+    UP.end();window.removeEventListener('beforeunload',guard);if(rvCur&&rvCur.folderId===fid)rpRender()}
+  catch(e){UP.end();window.removeEventListener('beforeunload',guard);RP.busy=false;btn.disabled=false;$('rpFiles').disabled=false;btn.textContent=`重新上傳 ${list.length} 張照片`;$('rpMsg').textContent='上傳失敗：'+e.message+'（已上傳的照片不會重複上傳）'}}
 /* ===== 申請單位確認公關中心修訂稿 ===== */
 let RC=null;   // {rec,confirm,secs:[[名稱,[片段…]]],dec:{id:true接受/false拒絕},view}
 function rcPairs(o,t){const P=ED_FIELDS.map(([k,n])=>[n,(o||{})[k]||'',(t||{})[k]||'']);
@@ -1387,12 +1466,12 @@ async function deliver(d,blob,res){
       uploaded.docSaved=true;uploaded.docId=r.id;uploaded.docBlob=blob;docOk=true;s2.ok('申請表已存入雲端')}
     // 3. 照片／素材
     const list=filesToUpload().filter(x=>!x.p.cloudDone);
-    if(list.length){const s3=step(`上傳照片／素材 0／${list.length}`);const pre=revising?'修訂'+stamp()+'_':'';
-      for(let i=0;i<list.length;i++){const {p,prefix}=list[i];s3.ok(`上傳照片／素材 ${i+1}／${list.length}：${p.name}`);steps[steps.length-1].s='run';draw();
+    if(list.length){const s3=step(`上傳照片／素材 0／${list.length}`);const pre=revising?'修訂'+stamp()+'_':'';UP.start(list.length);
+      for(let i=0;i<list.length;i++){const {p,prefix}=list[i];s3.ok(`上傳照片／素材 ${i+1}／${list.length}：${p.name}`);steps[steps.length-1].s='run';draw();UP.set(i,list.length);
         await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:pre+prefix+p.name,mimeType:p.file.type||'image/jpeg',data:await toB64(p.file)});
         p.cloudDone=true;const it=items.find(x=>x.photo===p);if(it)it.cloud=pre+prefix+p.name;
         if(prefix.startsWith('圖'))uploaded.photoCount++;else uploaded.assetCount++}
-      s3.ok(`照片／素材 ${list.length} 個檔案已存入雲端`)}
+      UP.end();s3.ok(`照片／素材 ${list.length} 個檔案已存入雲端`)}
     // 4. 申請資料（供日後修改）
     try{await gas({action:'file',folderId:uploaded.folderId,token:uploaded.token,name:'申請資料.json',mimeType:'application/json',data:b64text(JSON.stringify(snapshot()))})}catch(e){}
     // 5. 通知信
@@ -1409,10 +1488,10 @@ async function deliver(d,blob,res){
     $('retryBtn').onclick=()=>deliver(d,blob,res);
     for(const g of d.groups)res.innerHTML+=mailLinks(CONFIG.ROUTES[g],`【新聞資訊上架申請】${d.unit}－${d.eventName}`,`公關中心您好：\n\n${d.unit}申請「${d.eventName}」新聞資訊上架，申請表 Word 檔如附件。\n\n聯絡人：${d.contact.name}　${d.contact.phone}`,CONFIG.ROUTES[g].label,d.contact.email);
     if($('retryBtn'))$('retryBtn').onclick=()=>deliver(d,blob,res);
-    window.removeEventListener('beforeunload',guard);dl();
+    UP.end();window.removeEventListener('beforeunload',guard);dl();
     return;
   }
-  window.removeEventListener('beforeunload',guard);dl();
+  UP.end();window.removeEventListener('beforeunload',guard);dl();
   SENT={...uploaded,eventName:d.eventName,unit:d.unit};
   const me={folderId:uploaded.folderId,token:uploaded.token,appId:uploaded.appId||'',eventName:d.eventName,unit:d.unit,contact:d.contact.name,email:d.contact.email,categories:d.categories.join('、')};
   const sb=$('submitBtn');sb.disabled=true;sb.classList.add('sent');sb.textContent=`✓ ${revising?'修訂版已送出':'已送出'}${uploaded.appId?`（${uploaded.appId}）`:''}`;$('submitHint').classList.add('hidden');
@@ -1460,14 +1539,16 @@ async function runFastBound(res){
   const list=items.map((x,i)=>x.photo?{p:x.photo,prefix:`補件${stamp}_圖${i+1}_`}:null).filter(Boolean);
   $('submitBtn').disabled=true;
   try{
-    for(let i=0;i<list.length;i++){res.innerHTML=`<div class="notice info">上傳檔案 ${i+1}／${list.length}：${esc(list[i].p.name)}…請勿關閉頁面</div>`;
+    UP.start(list.length);
+    for(let i=0;i<list.length;i++){res.innerHTML=`<div class="notice info">上傳檔案 ${i+1}／${list.length}：${esc(list[i].p.name)}…請勿關閉頁面</div>`;UP.set(i,list.length);
       await gas({action:'file',folderId:bound.folderId,token:bound.token,name:list[i].prefix+list[i].p.name,mimeType:list[i].p.file.type||'image/jpeg',data:await toB64(list[i].p.file)})}
     const note=[`補件時間：${new Date().toLocaleString('zh-TW',{hour12:false})}`,val('ftNote')?`補充說明：${val('ftNote')}`:'','',...caps].filter((x,k,a)=>x!==''||a[k-1]!=='').join('\n');
     await gas({action:'file',folderId:bound.folderId,token:bound.token,name:`補件${stamp}_圖說.txt`,mimeType:'text/plain',data:b64text(note)});
     try{const j=await gas({action:'loaddata',folderId:bound.folderId,token:bound.token});const dd=j.data||{};dd.items=(dd.items||[]).filter(x=>x.caption||x.cloud);
       items.forEach((x,i)=>{if(x.photo)dd.items.push({caption:x.caption,cloud:`補件${stamp}_圖${i+1}_${x.photo.name}`})});
       await gas({action:'file',folderId:bound.folderId,token:bound.token,name:'申請資料.json',mimeType:'application/json',data:b64text(JSON.stringify(dd))})}catch(e){/* 舊申請沒有內容檔就略過 */}
-  }catch(err){res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再試。</div>`;$('submitBtn').disabled=false;return}
+  }catch(err){UP.end();res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再試。</div>`;$('submitBtn').disabled=false;return}
+  UP.end();
   $('submitBtn').disabled=false;
   const groups=kindsOf(bound.categories);
   res.innerHTML=`<div class="notice info">正在寄送通知信給承辦人…</div>`;
@@ -1978,16 +2059,17 @@ function docsForPrompt(){
 }
 /* ===== 等待字幕（跑馬燈） =====
    預設內容如下；若 repository 裡有 ticker.xlsx（或 ticker.csv），會自動讀取並取代。
-   Excel 第一個工作表：A 欄「類別」（新聞稿／社群貼文／檢視初稿／換句秒數）、B 欄「字幕」、C 欄「出現頻率」。
+   Excel 第一個工作表：A 欄「類別」（新聞稿／社群貼文／檢視初稿／上傳照片／換句秒數）、B 欄「字幕」、C 欄「出現頻率」。
    出現頻率：空白或 1＝一般；2＝兩倍常出現；小於 1（如 0.2）＝較少出現，且每次等待最多出現一次；0＝暫停不出現。 */
 const T=(text,w=1)=>({text,w});
 const TICKER={
   news:[T('媒體超人正在閱讀你的資料…'),T('找到彩蛋截圖傳給公關中心主任就送你小禮物…',0.1),T('正在幫你想一個讓記者想點開的標題…'),T('披風整理中，馬上就好…'),T('AI難免頭殼壞去，人工查核戒慎恐懼！')],
   social:[T('媒體超人正在滑手機找靈感…'),T('正在挑選剛剛好的 emoji…'),T('把新聞稿縮成學生願意看完的長度…'),T('正在想最吸睛的 hashtag…')],
+  upload:[T('媒體超人正在檢視美美的照片…'),T('幫照片擦擦灰塵、調整一下構圖…'),T('照片正在排隊搭電梯上雲端…'),T('攝影大師正在點頭稱讚…'),T('把每一張照片小心抱上雲端…'),T('小提醒：橫式 3:2、長邊 3000px 的照片最上鏡…'),T('找到彩蛋截圖傳給公關中心主任就送你小禮物…',0.1)],
   review:[T('媒體超人正在逐字閱讀你的初稿…'),T('查證事實，戒慎恐懼！…'),T('核對校名、縮寫與引言寫法…'),T('正在寫修改建議…')],
   sec:2.5
 };
-const TICKER_KEYS={'新聞稿':'news','新聞':'news','社群貼文':'social','社群':'social','檢視初稿':'review','檢視':'review'};
+const TICKER_KEYS={'新聞稿':'news','新聞':'news','社群貼文':'social','社群':'social','檢視初稿':'review','檢視':'review','上傳照片':'upload','照片上傳':'upload','上傳':'upload'};
 function startTicker(out,key){
   const all=(TICKER[key]||[]).filter(x=>x.w>0);
   if(!all.length){out.textContent='AI 處理中…';return ()=>{}}
@@ -2001,11 +2083,11 @@ function startTicker(out,key){
     for(const x of pool){r-=x.w;if(r<=0)return x}
     return pool[pool.length-1];
   };
-  const t=setInterval(()=>{cur=pick();if(cur.w<1)usedRare.add(cur);out.textContent=cur.text},Math.max(1,Number(TICKER.sec)||2.5)*1000);
+  const t=setInterval(()=>{cur=pick();if(cur.w<1)usedRare.add(cur);out.textContent=cur.text;out.style.animation='none';void out.offsetWidth;out.style.animation=''},Math.max(1,Number(TICKER.sec)||2.5)*1000);
   return ()=>clearInterval(t);
 }
 function applyTickerRows(rows){
-  const got={news:[],social:[],review:[]};
+  const got={news:[],social:[],review:[],upload:[]};
   rows.forEach(r=>{const k=String(r[0]??'').trim(),v=String(r[1]??'').trim();if(!k||!v)return;
     if(/秒/.test(k)){const n=parseFloat(v);if(n>0)TICKER.sec=n;return}
     const key=TICKER_KEYS[k];if(!key)return;
