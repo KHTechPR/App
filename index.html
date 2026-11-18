@@ -920,7 +920,7 @@ function opRender(msg){
   $('rvMsgTxt').addEventListener('input',opMailState);
   const w=$('rvMailWrap');
   if(!locked)w.innerHTML=`<label class="chk" style="margin:10px 0"><input type="checkbox" id="rvNotify" ${rvDone(x)&&!x.pendingMail?'':'checked'}>寄信通知申請人審核結果（${esc(x.email)}）${x.pendingMail?'<span class="hint">　通知信保留中，主任指派派員後寄出</span>':rvDone(x)?'<span class="hint">　先前已寄過；需要再次通知申請人才勾選</span>':''}</label><br>`;
-  else w.innerHTML=`<div class="rv-mail"><label class="chk"><input type="checkbox" id="rvNotify"> 寄信通知申請人（只寄這次的補充說明${x.email?'，'+esc(x.email):''}）</label><br><span class="why" id="rvMailWhy"></span><br><span class="hint">這件已寄過 ${Math.max(1,x.mailCount||h.filter(e=>e.mailed).length)} 封通知信。同一件申請每天最多補寄 1 封，超過需主任審核碼。</span></div>`;
+  else w.innerHTML=`<div class="rv-mail"><label class="chk"><input type="checkbox" id="rvNotify"> 寄信通知申請人（只寄這次的補充說明${x.email?'，'+esc(x.email):''}）</label><br><span class="why" id="rvMailWhy"></span></div>`;
   opMailState()}
 function opMailState(){
   const x=rvCur;if(!x||!x._opLocked||!$('rvMailWhy'))return;
@@ -928,7 +928,7 @@ function opMailState(){
   const add=($('rvMsgTxt').value||'').trim(),changed=r!==x._rk||((r==='return'||r==='supplement')&&t!==x._rtxt);
   const daily=(x.resentToday||0)>=1&&rvRole!=='director',cb=$('rvNotify'),ok=(add||changed)&&!daily;
   cb.disabled=!ok;if(!ok)cb.checked=false;cb.parentElement.style.color=ok?'':'#9aa0aa';
-  $('rvMailWhy').textContent=daily?'今天已補寄過這件的通知信，要再寄需主任審核碼；這次存檔不會寄信。':!(add||changed)?'沒有新增補充說明，評估結果也沒變，這次存檔不會寄信。':'有新的補充說明或評估結果有變，需要通知申請人才勾選。'}
+  $('rvMailWhy').textContent=daily?'今天已寄過通知信，這次僅存檔不寄信。':!(add||changed)?'若無新增說明或修改評估結果，僅存檔不寄信。':'需要通知申請人才勾選。'}
 /* ===== 定稿文件（審核頁）===== */
 function fvRender(f,err){
   const el=$('rvFinal');if(!el||!rvCur)return;f=f||{};const L=f.lock,info=f.info||{},log=f.log||[];
@@ -2234,7 +2234,7 @@ async function rvSave(){
       const blob=await buildReviewDocx(j.item,{received:val('rvRecv'),planned:val('rvPlan'),staff:val('rvStaff'),result:r,resultText:r==='return'?val('rvRet'):r==='supplement'?val('rvSup'):'',extras,message:msgAll});
       await rvCall({action:'reviewfile',folderId:rvCur.folderId,data:await toB64(blob)})}
     catch(e){docMsg=`<br>⚠ 評估意見 Word 檔未能存入資料夾（${esc(e.message)}），請再按一次「送出審核結果」。`}
-    m.innerHTML=`<div class="notice ok">✓ 已儲存，處理狀態：<b>${esc(j.item.status)}</b>。已寫入申請紀錄試算表，${docMsg}${j.mailed?`已寄信通知申請人（${esc(j.item.email)}）。`:j.held?'這件有申請派員，通知信會在主任指派後寄出。':j.item.mailSkip==='daily'?'（未寄信：今天已補寄過，要再寄需主任審核碼）':j.item.mailSkip==='nothing'?'（未寄信：沒有新的補充說明）':$('rvNotify').checked?'（未寄信：申請人 Email 不是校內信箱或今日信件已達上限）':''}</div>`;
+    m.innerHTML=`<div class="notice ok">✓ 已儲存，處理狀態：<b>${esc(j.item.status)}</b>。已寫入申請紀錄試算表，${docMsg}${j.mailed?`已寄信通知申請人（${esc(j.item.email)}）。`:j.held?'這件有申請派員，通知信會在主任指派後寄出。':j.item.mailSkip==='daily'?'（今天已寄過通知信，僅存檔不寄信）':j.item.mailSkip==='nothing'?'（無新增說明，僅存檔不寄信）':$('rvNotify').checked?'（未寄信：申請人 Email 不是校內信箱或今日信件已達上限）':''}</div>`;
     opRender(msgAll)}
   catch(e){m.innerHTML=`<div class="notice err">儲存失敗：${esc(e.message)}</div>`}
   $('rvSave').disabled=false;if(rvDone(rvCur)&&!rvCur.pendingMail&&!rvCur._opLocked)$('rvNotify').checked=false}
