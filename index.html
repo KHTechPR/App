@@ -250,6 +250,9 @@ body.review .layout{display:none!important}
 .psel .mv{display:flex;justify-content:space-between;align-items:center;margin-top:4px}.psel .mv button{width:auto;padding:0 8px;font-size:13px;margin:0}
 .psel .sum{font-size:13.5px;color:#0d5c32}.psel .lockbar{background:#f3fbf6;border:1px solid #9bd3b2;color:#0d5c32;border-radius:8px;padding:6px 10px;font-size:13.5px;margin-bottom:8px}
 .fv-acts{margin:10px 0 4px}
+.rv-danger{border-top:1px dashed #e8b4ae;margin:28px 0 4px;padding-top:12px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+.rv-del-btn{background:#fff!important;color:#b42318!important;border:1px solid #e8b4ae!important;border-radius:8px;padding:6px 14px;width:auto;margin:0;font-weight:600;cursor:pointer}
+.rv-del-btn:hover{background:#fdecea!important}
 .fv .btnL,.fv-acts .btnL{background:#1e7a46!important;color:#fff!important;border:0;border-radius:8px;padding:6px 14px;font-weight:700;width:auto;margin:6px 8px 0 0;cursor:pointer}
 .fv details{font-size:13px;color:#555;margin-top:4px}.fv details li{margin:2px 0}
 .ft-locked{margin-top:12px;background:#f3fbf6;border:1px solid #9bd3b2;color:#0d5c32;border-radius:8px;padding:10px 12px}
@@ -2331,8 +2334,17 @@ async function rvOpen(folderId){
   ${rvRole==='social'||rvRole==='director'?`<div style="display:flex;gap:8px;flex-wrap:wrap;max-width:640px"><input type="url" id="rvSocLink" value="${esc(x.socialLink)}" placeholder="FB／IG 貼文連結（選填）" style="flex:1;min-width:220px">
     <button type="button" class="primary" id="rvSoc" style="width:auto;padding:9px 18px;background:#9b1f5c">${x.socialDate?'✓ 已完成':'✓ 標記社群已發布'}</button></div>
     ${x.socialDate?'<p class="hint" style="margin-top:6px"><a href="#" id="rvSocUndo">取消標記</a></p>':''}<div class="hint" id="rvSocMsg"></div>`
-  :`<p>${x.socialDate?`已發布（${esc(rocD(x.socialDate))}）${x.socialLink?`　<a href="${esc(x.socialLink)}" target="_blank" rel="noopener">貼文連結</a>`:''}`:'待發布'}</p>`}`:''}`;
+  :`<p>${x.socialDate?`已發布（${esc(rocD(x.socialDate))}）${x.socialLink?`　<a href="${esc(x.socialLink)}" target="_blank" rel="noopener">貼文連結</a>`:''}`:'待發布'}</p>`}`:''}
+  ${rvRole==='director'?`<div class="rv-danger"><button type="button" id="rvDel" class="rv-del-btn">🗑 刪除這件申請</button><span class="hint">試算表的這一列會刪除，雲端資料夾移到垃圾桶（30 天內可從 Drive 垃圾桶救回）。只有主任看得到這個按鈕。</span><div class="hint" id="rvDelMsg"></div></div>`:''}`;
   RP={items:[],done:null,busy:false};rpRender();PS.fid=x.folderId;PS.locked=!!(x.final&&x.final.lock);fvRender(x.final,x.finalErr);psLoad();opRender(msg);rvShow('rvDetail');window.scrollTo(0,0);
+  if($('rvDel'))$('rvDel').onclick=async()=>{const x=rvCur,fid=x.folderId;
+    const t=prompt(`確定要刪除這件申請嗎？\n「${x.eventName}」（${x.unit}）\n\n刪除後清單上就看不到這件，雲端資料夾會移到垃圾桶。\n請輸入申請編號 ${x.appId} 確認：`);
+    if(t===null)return;if(t.trim()!==x.appId){$('rvDelMsg').textContent='申請編號不符，未刪除。';return}
+    const b=$('rvDel');b.disabled=true;b.textContent='刪除中…';
+    try{const j=await rvCall({action:'reviewdelete',folderId:fid,appId:t.trim()});rvList=rvList.filter(y=>y.folderId!==fid);rvCur=null;
+      try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender();
+      $('rvList').insertAdjacentHTML('beforebegin',`<div class="notice ok" id="rvDelDone" style="margin:8px 0">已刪除申請 ${esc(j.appId)}${j.trashed?'，雲端資料夾已移到垃圾桶':'（雲端資料夾找不到，可能已先刪除）'}。</div>`);setTimeout(()=>{const e=$('rvDelDone');if(e)e.remove()},8000)}
+    catch(e){b.disabled=false;b.textContent='🗑 刪除這件申請';$('rvDelMsg').textContent='刪除失敗：'+e.message}};
   $('rvBack').onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender()};
   $('rvRet').onfocus=()=>document.querySelector('[name=rvRes][value=return]').checked=true;
   $('rvSup').onfocus=()=>document.querySelector('[name=rvRes][value=supplement]').checked=true;
