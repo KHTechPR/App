@@ -939,7 +939,7 @@ function fvRender(f,err){
   if(L){el.innerHTML=`<div class="fv lock"><span class="hd st-l">🔒 已定稿</span>　${esc(L.at)} ${esc(L.by)} 確認<br>${links}${src}${hist}
 ${rvRole==='director'?'<div class="sm" style="margin-top:4px">需要再修改？<button type="button" class="linkbtn" id="fvUnlock">解除定稿</button>（解除後申請人可再補件或修改）</div>':'<div class="sm" style="margin-top:4px">已定稿，不再自動更新；申請人也不能再修改或補傳。</div>'}${msg}</div>`}
   else el.innerHTML=`<div class="fv"><span class="hd st-e">✏️ 編修中</span>（每次修改、補件會自動更新同一份文件）<br>${links}${src}${hist}
-${rvRole!=='social'?'<button type="button" class="btnL" id="fvLock">🔒 定稿</button>':''}<button type="button" class="linkbtn" id="fvBuild">立即更新</button>
+<button type="button" class="btnL" id="fvLock">🔒 定稿</button><button type="button" class="linkbtn" id="fvBuild">立即更新</button>
 <div class="hint">定稿後不再自動更新，申請人也不能再修改或補傳。標記已上架時會自動定稿。</div>${msg}</div>`;
   const go=async(op,btn,busy)=>{if(op==='unlock'&&!confirm('解除定稿後，申請人可以再補件或修改，定稿文件也會恢復自動更新。確定嗎？'))return;
     if(op==='lock'&&!confirm('定稿後，文件不再自動更新，申請人也不能再修改或補傳照片。確定嗎？'))return;
@@ -2363,8 +2363,8 @@ function edOpen(){
     `<label>修改說明（選填，會放進給申請人的說明）</label><input type="text" id="ed_note" value="${esc((ED.saved&&ED.saved.note)||'')}" placeholder="例如：標題精簡、補上合作期程">`;
   ED.view='edit';edTab();$('edDlg').showModal();
   $('edEdit').oninput=()=>edCount()}
-// 追蹤修訂的修訂者依登入的審核碼決定：新聞審核碼＝楊豐榮、主任審核碼＝主任、社群審核碼＝公關中心社群組
-const ED_AUTHOR={staff:'楊豐榮',director:'主任',social:'公關中心社群組'};
+// 追蹤修訂的修訂者依登入的審核碼決定：新聞審核碼＝楊豐榮、主任審核碼＝主任、社群審核碼＝公關中心
+const ED_AUTHOR={staff:'楊豐榮',director:'主任',social:'公關中心'};
 function edAuthor(){return ED_AUTHOR[rvRole]||'公關中心'}
 function edTab(){document.querySelectorAll('.ed-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===ED.view));
   $('edEdit').classList.toggle('hidden',ED.view!=='edit');$('edDiff').classList.toggle('hidden',ED.view!=='diff');
