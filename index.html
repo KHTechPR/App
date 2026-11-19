@@ -280,6 +280,28 @@ body.review .layout{display:none!important}
 .chg.acc .tg{background:#1e7a46;color:#fff}.chg.rej .tg{background:#8a919c;color:#fff}
 .rc-sum{font-size:13px;color:#444;margin:8px 0}
 .rc-ok{background:#1e7a46!important;color:#fff!important;border:0;border-radius:8px;padding:8px 16px;font-weight:700;width:auto}
+.rt-flow{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:13px;margin:0 0 10px}
+.rt-flow span{padding:3px 10px;border-radius:14px;background:#f1f2f4;color:#6b7280}.rt-flow span.ok{background:#e9f7ef;color:#0d5c32}.rt-flow span.now{background:#1f3a8a;color:#fff;font-weight:700}.rt-flow i{color:#b6bcc6;font-style:normal}
+.rt-todo{background:#fff8e6;border:1px solid #f3d58a;border-radius:8px;padding:9px 12px;margin:0 0 12px;font-size:14px;color:#5b4300}
+.rt-card{border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:10px 12px;margin:0 0 10px;background:#fff}
+.rt-hd{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin:0 0 6px}.rt-n{font-size:12px;background:#fff1d6;color:#7a4b00;border-radius:10px;padding:1px 8px}
+.rt-lb{font-size:12px;color:#6b7280;margin:8px 0 3px}.rt-ta{width:100%;font-size:15px;line-height:1.8}
+.rt-mine .ed-txt{border-color:#bfdbfe;background:#f5f9ff}.rt-mine del{color:#1d4ed8!important;background:#e0ebff!important}.rt-mine ins{color:#1d4ed8!important;background:#dbe8ff!important;text-decoration:underline}
+.rt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.rt-ph{border:1px solid var(--line,#e5e7eb);border-radius:8px;padding:6px;background:#fafbfc}.rt-ph.off{opacity:.55}
+.rt-im{position:relative;aspect-ratio:3/2;background:#eef0f3;border-radius:6px;overflow:hidden}.rt-im img{width:100%;height:100%;object-fit:cover}
+.rt-im .no{position:absolute;left:4px;top:4px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;border-radius:6px;padding:0 6px}
+.rt-im .offtag{position:absolute;inset:auto 0 0 0;background:#b42318;color:#fff;font-size:12px;text-align:center;font-weight:700}
+.rt-cap{width:100%;font-size:13px;margin:6px 0 2px}
+.rt-bar{position:sticky;bottom:0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#fff;border-top:1px solid var(--line,#e5e7eb);padding:10px 0 4px;margin-top:12px;z-index:5}.rt-bar .sp{flex:1}
+.rt-ptab{width:100%;border-collapse:collapse;font-size:14px}.rt-ptab th,.rt-ptab td{border:1px solid var(--line,#e5e7eb);padding:6px;vertical-align:top;text-align:left}.rt-ptab th{background:#f6f7f9;font-weight:600}.rt-ptab img{width:150px;aspect-ratio:3/2;object-fit:cover;border-radius:4px}.rt-ptab td:first-child{white-space:nowrap;width:48px}.rt-ptab td:nth-child(2){width:160px}
+.rt-wait{background:#eef4ff!important;border-color:#bfdbfe!important;color:#1e3a8a!important}
+.rv-sum{border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:12px 14px;margin:0 0 12px;background:#fbfcfe}
+.rv-sum-t{font-size:18px;font-weight:700;margin:0 0 2px}.rv-sum-m{font-size:13px;color:#6b7280}
+.rv-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:0 0 8px}.rv-kpi div{border:1px solid var(--line,#e5e7eb);border-radius:8px;padding:6px 10px;background:#fff}
+.rv-kpi span{display:block;font-size:12px;color:#6b7280}.rv-kpi b{font-size:14px}
+.rv-nav{display:flex;gap:6px;flex-wrap:wrap}.rv-nav a{font-size:13px;border:1px solid #cbd2e1;border-radius:14px;padding:2px 10px;text-decoration:none;background:#fff}
+.rv-ok{color:#0d5c32}.rv-app{border-color:#bfdbfe;background:#f8fbff}.fv-ask{margin:0 0 10px}
 .rc-done{background:#e9f7ef;border:1px solid #9bd3b2;border-radius:8px;padding:10px 12px;color:#0d5c32}
 .ed-note{background:var(--brand-soft);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14px}
 .q-left{font-weight:700;color:var(--brand)}.q-left.out{color:var(--err)}
@@ -1085,17 +1107,24 @@ function fvRender(f,err){
   if(L){el.innerHTML=`<div class="fv lock"><span class="hd st-l">🔒 已定稿</span>　${esc(L.at)} ${esc(L.by)} 確認<br>${links}${pf}${src}${hist}</div>`;
     acts.innerHTML=`${rvRole==='director'?'<div class="sm">需要再修改？<button type="button" class="linkbtn" id="fvUnlock">解除定稿</button>（解除後申請人可再補件或修改）</div>':''}${msg}`}
   else{el.innerHTML=`<div class="fv"><span class="hd st-e">✏️ 編修中</span>（每次修改、補件會自動更新同一份文件）<br>${links}${src}${hist}</div>`;
-    acts.innerHTML=`<button type="button" class="btnL" id="fvLock">🔒 定稿</button><button type="button" class="linkbtn" id="fvBuild">立即更新</button>
+    const rt=rvCur.rt||{};
+    acts.innerHTML=`<div class="fv-ask">${rt.finalOk?`<div class="rc-done" style="margin:0 0 8px">✅ 申請單位已確認可以定稿（${esc(rt.finalOk)}）</div>`:rt.ask?`<div class="hint" style="margin:0 0 6px">⏳ 已請申請單位做定稿前最後確認（${esc(new Date(rt.ask).toLocaleString('zh-TW',{hour12:false,timeZone:'Asia/Taipei'}))}），等待回覆。<button type="button" class="linkbtn" id="fvAsk">再請一次</button></div>`:`<button type="button" class="small" id="fvAsk" ${rt.appPending?'disabled title="請先處理申請單位送回的修改稿"':''}>📨 請申請單位做定稿前最後確認</button> <span class="hint">（不強制；申請單位會收到信，看最終版本後按確認）</span>`}</div>
+<button type="button" class="btnL" id="fvLock">🔒 定稿</button><button type="button" class="linkbtn" id="fvBuild">立即更新</button>
 <div class="hint">定稿後不再自動更新，申請人也不能再修改或補傳。標記已上架時會自動定稿。</div>${msg}`}
   if(PS.locked!==!!L&&PS.fid===rvCur.folderId){PS.locked=!!L;psRender()}
   const go=async(op,btn,busy)=>{if(op==='unlock'&&!confirm('解除定稿後，申請人可以再補件或修改，定稿文件也會恢復自動更新。確定嗎？'))return;
-    if(op==='lock'&&!confirm('定稿後，文件不再自動更新，申請人也不能再修改或補傳照片。確定嗎？'))return;
+    if(op==='lock'&&!confirm(((rvCur.rt||{}).finalOk?'':'申請單位還沒有確認最終版本。\n')+'定稿後，文件不再自動更新，申請人也不能再修改或補傳照片。確定嗎？'))return;
     const fid=rvCur.folderId;btn.disabled=true;const t=btn.textContent;btn.textContent=busy;
     try{const j=await rvCall({action:'reviewfinal',op,folderId:fid,by:edAuthor()});if(rvCur&&rvCur.folderId===fid){rvCur.final=j.final;fvRender(j.final)}
       const it=rvList.find(x=>x.folderId===fid);if(it)it.finalLocked=!!j.final.lock}
     catch(e){btn.disabled=false;btn.textContent=t;$('fvMsg').textContent='失敗：'+e.message}};
   if($('fvLock'))$('fvLock').onclick=e=>go('lock',e.target,'確認中…');
   if($('fvBuild'))$('fvBuild').onclick=e=>go('build',e.target,'更新中…');
+  if($('fvAsk'))$('fvAsk').onclick=async e=>{const fid=rvCur.folderId,b=e.target;if(!confirm('寄信請申請單位檢視最終版本（文字＋照片＋圖說）並確認？'))return;b.disabled=true;
+    try{const j=await rvCall({action:'reviewask',folderId:fid,by:edAuthor()});if(rvCur&&rvCur.folderId===fid){rvCur.rt=j.st;fvRender(rvCur.final);$('rvSumBox').innerHTML=rvSumHtml(rvCur,{photoCount:rvCur._pc});rvAppBind();
+      $('fvMsg').textContent=j.mailed?'✓ 已寄信給申請單位':'✓ 已開放最後確認（今天已寄過信，未再寄信；申請人從原連結即可看到）'}
+      const it=rvList.find(y=>y.folderId===fid);if(it){it.askPending=true;it.finalOk=false}}
+    catch(err){b.disabled=false;$('fvMsg').textContent='失敗：'+err.message}};
   if($('fvUnlock'))$('fvUnlock').onclick=e=>go('unlock',e.target,'處理中…')}
 /* ===== 公關中心代為補傳照片 ===== */
 let RP={items:[],done:null,busy:false};
@@ -1145,56 +1174,108 @@ async function rpUpload(){
     RP={items:[],busy:false,done:{n:list.length,by,mailed:j.mailed,url:j.url,at:new Date().toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Taipei'})}};
     UP.end();window.removeEventListener('beforeunload',guard);if(rvCur&&rvCur.folderId===fid)rpRender()}
   catch(e){UP.end();window.removeEventListener('beforeunload',guard);RP.busy=false;btn.disabled=false;$('rpFiles').disabled=false;btn.textContent=`重新上傳 ${list.length} 張照片`;$('rpMsg').textContent='上傳失敗：'+e.message+'（已上傳的照片不會重複上傳）'}}
-/* ===== 申請單位確認公關中心修訂稿 ===== */
-let RC=null;   // {rec,confirm,secs:[[名稱,[片段…]]],dec:{id:true接受/false拒絕},view}
+/* ===== 申請單位：稿件確認／修改（一頁完成）＋定稿前最後確認 ===== */
+let RC=null;   // {st,rec,confirm,secs,dec,mode,mine:{k:文字},caps:{id:圖說},off:{id:true},cur:{txt,photos},appEdit}
 function rcPairs(o,t){const P=ED_FIELDS.map(([k,n])=>[n,(o||{})[k]||'',(t||{})[k]||'']);
   const oc=(o||{}).caps||[],tc=(t||{}).caps||[];for(let i=0;i<Math.max(oc.length,tc.length);i++)P.push([`圖${i+1} 圖說`,oc[i]||'',tc[i]||'']);return P}
 async function loadRev(){
   const box=$('rcBox'),b=bound;box.classList.add('hidden');box.innerHTML='';RC=null;
   if(!b||!b.token||!CONFIG.BACKEND_URL)return;
-  try{const j=await gas({action:'revget',folderId:b.folderId,token:b.token});if(bound!==b||!j.edits||!j.edits.text)return;
-    const rec=j.edits,secs=[];let id=0;const dec={};
-    rcPairs(rec.orig,rec.text).filter(([,a,c])=>a||c).forEach(([n,a,c])=>{const segs=[];
+  try{const j=await gas({action:'revget',folderId:b.folderId,token:b.token});if(bound!==b||j.locked)return;
+    const st=j.st||{},rec=j.edits&&j.edits.text?j.edits:null,secs=[],dec={};let id=0;
+    if(rec)rcPairs(rec.orig,rec.text).filter(([,a,c])=>a||c).forEach(([n,a,c])=>{const segs=[];
       diffText(a,c).forEach(([t,x])=>{if(t===0){segs.push([0,x]);return}
         let L=segs[segs.length-1];if(!L||L[0]!==1){L=[1,'','',id++];segs.push(L);dec[L[3]]=true}
         if(t<0)L[1]+=x;else L[2]+=x});secs.push([n,segs])});
-    RC={rec,confirm:j.confirm&&j.confirm.revAt===rec.at?j.confirm:null,secs,dec,view:'diff'};rcRender();ftLockUI()}catch(e){}}
+    const confirmed=rec&&j.confirm&&j.confirm.revAt===rec.at?j.confirm:null;
+    const mode=st.finalOk?'ok':st.ask?'ask':st.appPending?'pending':rec&&!confirmed?'review':(confirmed||st.appAcc)?'done':'';
+    if(!mode||!j.current)return;
+    RC={st,rec,confirm:confirmed,secs,dec,mode,mine:{},caps:{},off:{},cur:j.current,appEdit:j.appEdit};rcRender();ftLockUI();
+    if(/^#photos=/.test(location.hash))setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'start'}),150)}catch(e){}}
 function rcFinal(){const o={};RC.secs.forEach(([n,segs])=>o[n]=segs.map(s=>s[0]===0?s[1]:(RC.dec[s[3]]?s[2]:s[1])).join(''));return o}
 function rcCounts(){const v=Object.values(RC.dec);return{acc:v.filter(Boolean).length,rej:v.filter(x=>!x).length}}
+const rcName=k=>(ED_FIELDS.find(f=>f[0]===k)||[])[1]||k;
+function rcPr(k){if(RC.mode!=='review')return RC.cur.txt[k]||'';const n=rcName(k),f=rcFinal();return n in f?f[n]:(RC.cur.txt[k]||'')}
+function rcVal(k){return RC.mine[k]!=null?RC.mine[k]:rcPr(k)}
+function rcOwn(){let t=0;   // 連續的刪除＋新增算一處
+  ED_FIELDS.forEach(([k])=>{if(RC.mine[k]==null)return;let prev=0;diffText(rcPr(k),RC.mine[k]).forEach(([o])=>{if(o&&!prev)t++;prev=o})});
+  const caps=RC.cur.photos.filter(p=>RC.caps[p.id]!=null&&RC.caps[p.id]!==p.cap).length,off=Object.keys(RC.off).filter(i=>RC.off[i]).length;
+  return{text:t,caps,off,any:!!(t||caps||off)}}
+function rcMineHtml(k){if(RC.mine[k]==null)return'';const d=diffText(rcPr(k),RC.mine[k]);if(!d.some(x=>x[0]))return'';
+  return `<div class="rt-mine"><div class="rt-lb">你的修改（藍色）</div><div class="ed-txt">${d.map(([o,x])=>o===0?esc(x):o<0?`<del>${esc(x)}</del>`:`<ins>${esc(x)}</ins>`).join('')}</div></div>`}
+function rcFlow(at){const S=['送出申請','公關中心修訂','你確認／修改','最後確認','定稿'];
+  return `<div class="rt-flow">${S.map((s,i)=>`<span class="${i<at?'ok':i===at?'now':''}">${i<at?'✓ ':i>=2?['','','②','③','④'][i]+' ':''}${s}</span>`).join('<i>›</i>')}</div>`}
+function rcPhotoTable(list){return list.length?`<table class="rt-ptab"><tr><th>圖號</th><th>照片</th><th>圖說</th></tr>${list.map((p,i)=>`<tr><td>圖${i+1}</td><td>${p.thumb?`<img src="${p.thumb}" alt="">`:'—'}</td><td>${esc(p.cap||'')}</td></tr>`).join('')}</table>`:'<p class="hint">（沒有照片）</p>'}
 function rcRender(){
-  const box=$('rcBox'),r=RC.rec,c=RC.confirm;box.classList.remove('hidden');box.classList.toggle('done',!!c);
-  const fin=c?c.final:rcFinal();
-  const finalHtml=RC.secs.map(([n])=>`<div class="ed-sec">${esc(n)}</div><div class="ed-txt">${esc(fin[n]||'')}</div>`).join('');
-  if(c){box.innerHTML=`<div class="rc-bd"><div class="rc-done">✓ 你已確認公關中心修訂稿（${esc(c.at)}）：接受 ${c.accepted} 處、拒絕 ${c.rejected} 處。<br>確認後的定稿已存入原申請資料夾，並通知承辦人。<button type="button" class="linkbtn" id="rcShow">${RC.show?'收合定稿':'檢視定稿'}</button></div>${RC.show?`<div style="margin-top:10px">${finalHtml}</div>`:''}</div>`;
-    $('rcShow').onclick=()=>{RC.show=!RC.show;rcRender()};return}
-  const n=Object.keys(RC.dec).length,k=rcCounts();
-  const diffHtml=RC.secs.map(([nm,segs])=>`<div class="ed-sec">${esc(nm)}</div><div class="ed-txt">${segs.map(s=>s[0]===0?esc(s[1]):`<span class="chg ${RC.dec[s[3]]?'acc':'rej'}" data-i="${s[3]}" title="點一下切換接受／拒絕">${s[1]?`<del>${esc(s[1])}</del>`:''}${s[2]?`<ins>${esc(s[2])}</ins>`:''}<span class="tg">${RC.dec[s[3]]?'✓ 接受':'✗ 拒絕'}</span></span>`).join('')}</div>`).join('');
-  const keep=$('rcComment')?$('rcComment').value:'';
-  box.innerHTML=`<div class="rc-hd"><span>📝 公關中心已修訂你的新聞稿，請確認</span><span class="meta">修訂者 ${esc(r.by||'公關中心')}．${esc(r.at||'')}．共 ${n} 處修改</span></div>
-<div class="rc-bd"><div class="rc-tabs"><button type="button" data-v="diff" class="${RC.view==='diff'?'on':''}">修訂對照</button><button type="button" data-v="final" class="${RC.view==='final'?'on':''}">修訂後定稿</button><span class="sp"></span>${RC.view==='diff'?'<span class="hint">點一下修改處可切換「接受／拒絕」</span>':''}</div>
-${r.note?`<p class="hint" style="margin:0 0 6px">修改說明：${esc(r.note)}</p>`:''}
-${RC.view==='diff'?diffHtml:finalHtml}
-<div class="rc-sum">已接受 <b>${k.acc}</b> 處、拒絕 <b>${k.rej}</b> 處　<button type="button" class="linkbtn" id="rcAll">${k.rej?'全部接受':'全部拒絕'}</button>　<button type="button" class="linkbtn" id="rcWord">下載追蹤修訂 Word</button></div>
-<label class="hint" for="rcComment" style="display:block;margin-top:6px"><b>給公關中心的意見</b>（選填；有拒絕的修改時建議說明原因）</label>
+  const box=$('rcBox'),m=RC.mode;box.classList.remove('hidden');box.classList.toggle('done',m==='ok'||m==='done'||m==='pending');
+  if(m==='ok'){box.innerHTML=`<div class="rc-bd">${rcFlow(4)}<div class="rc-done">✅ 你已確認最終版本可以定稿（${esc(RC.st.finalOk)}）。公關中心定稿後就會發布。</div></div>`;return}
+  if(m==='pending'){const a=RC.appEdit||{},c=a.counts||{};
+    box.innerHTML=`<div class="rc-bd">${rcFlow(2)}<div class="rc-done rt-wait">📨 你已把修改稿送回公關中心${a.at?`（${esc(a.at)}）`:''}：${[c.text&&`文字 ${c.text} 處`,c.rej&&`不採用 ${c.rej} 處`,c.caps&&`圖說 ${c.caps} 處`,c.off&&`不使用照片 ${c.off} 張`].filter(Boolean).join('、')||'無變動'}。<br>等待公關中心確認，確認後會再請你做定稿前的最後確認。</div>${a.comment?`<p class="hint" style="margin:8px 0 0">你的說明：${esc(a.comment)}</p>`:''}</div>`;return}
+  if(m==='done'){const c=RC.confirm;
+    box.innerHTML=`<div class="rc-bd">${rcFlow(3)}<div class="rc-done">✓ ${c?`你已確認公關中心修訂稿（${esc(c.at)}）：接受 ${c.accepted} 處、拒絕 ${c.rejected} 處。`:'公關中心已採用你送回的修改。'}<br>公關中心準備好最終版本後，會請你做定稿前的最後確認。</div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button type="button" class="linkbtn" id="rcShow">${RC.show?'收合目前版本':'檢視目前版本'}</button><button type="button" class="small" id="rcEdit">✏️ 我要再修改</button></div>
+${RC.show?`<div style="margin-top:10px">${ED_FIELDS.map(([k,n])=>`<div class="ed-sec">${esc(n)}</div><div class="ed-txt">${esc(RC.cur.txt[k]||'')}</div>`).join('')}${rcPhotoTable(RC.cur.photos)}</div>`:''}</div>`;
+    $('rcShow').onclick=()=>{RC.show=!RC.show;rcRender()};$('rcEdit').onclick=()=>{RC.mode='edit';rcRender()};return}
+  if(m==='ask'){box.innerHTML=`<div class="rc-hd"><span>📋 請做定稿前的最後確認</span><span class="meta">確認後公關中心就會定稿發布</span></div><div class="rc-bd">${rcFlow(3)}
+<div class="rt-todo"><b>現在需要你做的事：</b>看一下最終版本（文字＋照片＋圖說），沒問題就按「確認無誤，可以定稿」；還想改就按「我要修改」。</div>
+${ED_FIELDS.filter(([k])=>RC.cur.txt[k]).map(([k,n])=>`<div class="ed-sec">${esc(n)}</div><div class="ed-txt">${esc(RC.cur.txt[k])}</div>`).join('')}
+<div class="ed-sec">照片與圖說</div>${rcPhotoTable(RC.cur.photos)}
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center"><button type="button" class="rc-ok" id="rcFinalOk">✓ 確認無誤，可以定稿</button><button type="button" class="small" id="rcModify">✏️ 我要修改</button><span class="hint" id="rcMsg"></span></div></div>`;
+    $('rcModify').onclick=()=>{RC.mode='edit';rcRender()};
+    $('rcFinalOk').onclick=async()=>{const bt=$('rcFinalOk');bt.disabled=true;bt.textContent='送出中…';
+      try{const j=await gas({action:'revfinalok',folderId:bound.folderId,token:bound.token});RC.st=j.st;RC.mode='ok';rcRender()}
+      catch(e){bt.disabled=false;bt.textContent='✓ 確認無誤，可以定稿';$('rcMsg').textContent='送出失敗：'+e.message}};return}
+  // review／edit：一頁完成
+  const R=m==='review',r=RC.rec||{},keep=$('rcComment')?$('rcComment').value:'';
+  const card=([k,n])=>{const sec=R?RC.secs.find(s=>s[0]===n):null,ch=sec?sec[1].filter(s=>s[0]):[];if(!rcVal(k)&&!ch.length&&!RC.cur.txt[k])return'';
+    return `<div class="rt-card"><div class="rt-hd"><b>${esc(n)}</b>${ch.length?`<span class="rt-n">公關中心修改 ${ch.length} 處</span>`:''}</div>
+${ch.length?`<div class="rt-lb">公關中心的修改（點一下切換 ✓採用／✗不採用）</div><div class="ed-txt">${sec[1].map(s=>s[0]===0?esc(s[1]):`<span class="chg ${RC.dec[s[3]]?'acc':'rej'}" data-i="${s[3]}">${s[1]?`<del>${esc(s[1])}</del>`:''}${s[2]?`<ins>${esc(s[2])}</ins>`:''}<span class="tg">${RC.dec[s[3]]?'✓ 採用':'✗ 不採用'}</span></span>`).join('')}</div>`:''}
+<div class="rt-lb">目前版本（可直接修改）</div><textarea class="rt-ta" data-k="${k}" rows="${k==='body'?10:2}">${esc(rcVal(k))}</textarea><div id="rtMine_${k}">${rcMineHtml(k)}</div></div>`};
+  const ph=RC.cur.photos.map((p,i)=>{const off=!!RC.off[p.id];return `<div class="rt-ph ${off?'off':''}" data-id="${esc(p.id)}"><div class="rt-im">${p.thumb?`<img src="${p.thumb}" alt="">`:''}<span class="no">圖${i+1}</span>${off?'<span class="offtag">不使用</span>':''}</div>
+<input type="text" class="rt-cap" value="${esc(RC.caps[p.id]!=null?RC.caps[p.id]:p.cap||'')}" placeholder="圖說" ${off?'disabled':''}><button type="button" class="linkbtn rt-off">${off?'↩ 復原':'🗑 不使用'}</button></div>`}).join('');
+  box.innerHTML=`<div class="rc-hd"><span>📝 ${R?'公關中心已修訂你的新聞稿，請確認或修改':'修改稿件'}</span>${R?`<span class="meta">修訂者 ${esc(r.by||'公關中心')}．${esc(r.at||'')}</span>`:''}</div>
+<div class="rc-bd">${rcFlow(2)}
+<div class="rt-todo"><b>現在需要你做的事：</b>${R?'逐項看公關中心的修改，不同意的點一下改成「不採用」；也可以直接在「目前版本」修改文字、圖說，或把不要的照片標成「不使用」。都沒問題就按「✓ 全部同意」。':'直接在下方修改文字、圖說，或把不要的照片標成「不使用」，改好後按「送回公關中心」。'}</div>
+${R&&r.note?`<p class="hint" style="margin:0 0 6px">修改說明：${esc(r.note)}</p>`:''}
+${ED_FIELDS.map(card).join('')}
+${RC.cur.photos.length?`<div class="rt-card"><div class="rt-hd"><b>照片與圖說</b><span class="hint">圖說可直接修改；不要的照片按「不使用」（不會刪除，可復原）</span></div><div class="rt-grid">${ph}</div></div>`:''}
+<label class="hint" for="rcComment" style="display:block;margin-top:6px"><b>給公關中心的說明</b>（選填；有不採用或修改時建議說明原因）</label>
 <textarea id="rcComment" style="min-height:60px;width:100%;margin-top:4px" maxlength="1000"></textarea>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center"><button type="button" class="rc-ok" id="rcOk">確認送出（接受 ${k.acc}、拒絕 ${k.rej}）</button><span class="hint" id="rcMsg"></span></div></div>`;
-  $('rcComment').value=keep;
-  box.querySelectorAll('.rc-tabs button').forEach(b=>b.onclick=()=>{RC.view=b.dataset.v;rcRender()});
+${R?`<div class="rc-sum"><button type="button" class="linkbtn" id="rcWord">下載追蹤修訂 Word</button></div>`:''}
+<div class="rt-bar"><span class="hint" id="rcMsg"></span><span class="sp"></span>${R?'<button type="button" class="small" id="rcAgree">✓ 全部同意</button>':''}<button type="button" class="rc-ok" id="rcOk"></button></div></div>`;
+  $('rcComment').value=keep;rcBar();
   box.querySelectorAll('.chg').forEach(el=>el.onclick=()=>{const i=el.dataset.i;RC.dec[i]=!RC.dec[i];rcRender()});
-  $('rcAll').onclick=()=>{const to=!!k.rej;Object.keys(RC.dec).forEach(i=>RC.dec[i]=to);rcRender()};
-  $('rcWord').onclick=async()=>{const blob=await edDocx('tracked',{pairs:rcPairs(r.orig,r.text),who:r.by||'公關中心',meta:[`申請編號：${bound.appId||''}　活動或成果名稱：${bound.eventName||''}`,`修訂：${r.by||'公關中心'}　${r.at||''}`]});
+  box.querySelectorAll('.rt-ta').forEach(ta=>ta.oninput=()=>{const k=ta.dataset.k;RC.mine[k]=ta.value===rcPr(k)?null:ta.value;$('rtMine_'+k).innerHTML=rcMineHtml(k);rcBar()});
+  box.querySelectorAll('.rt-ph').forEach(el=>{const id=el.dataset.id;el.querySelector('.rt-cap').oninput=e=>{RC.caps[id]=e.target.value;rcBar()};
+    el.querySelector('.rt-off').onclick=()=>{RC.off[id]=!RC.off[id];rcRender()}});
+  if($('rcAgree'))$('rcAgree').onclick=()=>{if(rcOwn().any&&!confirm('「全部同意」會採用公關中心的全部修改，並放棄你自己的修改。確定嗎？'))return;
+    Object.keys(RC.dec).forEach(i=>RC.dec[i]=true);RC.mine={};RC.caps={};RC.off={};rcRender();rcConfirm()};
+  if($('rcWord'))$('rcWord').onclick=async()=>{const blob=await edDocx('tracked',{pairs:rcPairs(r.orig,r.text),who:r.by||'公關中心',meta:[`申請編號：${bound.appId||''}　活動或成果名稱：${bound.eventName||''}`,`修訂：${r.by||'公關中心'}　${r.at||''}`]});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='新聞稿_修訂稿（追蹤修訂）.docx';document.body.appendChild(a);a.click();a.remove()};
-  $('rcOk').onclick=rcConfirm}
+  $('rcOk').onclick=()=>(R&&!rcOwn().any)?rcConfirm():rcSubmit()}
+function rcBar(){const b=$('rcOk');if(!b)return;const o=rcOwn(),k=RC.mode==='review'?rcCounts():{acc:0,rej:0};
+  if(RC.mode==='review'&&!o.any){b.textContent=`確認送出（採用 ${k.acc}、不採用 ${k.rej}）`;b.disabled=false;return}
+  const p=[o.text&&`文字 ${o.text} 處`,k.rej&&`不採用 ${k.rej} 處`,o.caps&&`圖說 ${o.caps} 處`,o.off&&`不使用照片 ${o.off} 張`].filter(Boolean);
+  b.textContent=`送回公關中心（${p.join('、')||'尚無修改'}）`;b.disabled=!p.length}
+async function rcSubmit(){
+  const btn=$('rcOk'),o=rcOwn(),k=RC.mode==='review'?rcCounts():{rej:0},comment=$('rcComment').value.trim().slice(0,1000);
+  if(o.off&&RC.cur.photos.every(p=>RC.off[p.id])&&!confirm('你把所有照片都標成「不使用」，確定嗎？'))return;
+  btn.disabled=true;const t=btn.textContent;btn.textContent='送出中…';$('rcMsg').textContent='';
+  try{const final={},base={},caps={};ED_FIELDS.forEach(([f])=>{final[f]=rcVal(f);base[f]=rcPr(f)});
+    RC.cur.photos.forEach(p=>{if(RC.caps[p.id]!=null&&RC.caps[p.id]!==p.cap)caps[p.id]=RC.caps[p.id]});
+    const j=await gas({action:'revsubmit',folderId:bound.folderId,token:bound.token,final,base,caps,off:Object.keys(RC.off).filter(i=>RC.off[i]),comment,nText:o.text,nRej:k.rej});
+    RC.st=j.st;RC.appEdit=j.appEdit;RC.mode='pending';rcRender()}
+  catch(e){btn.disabled=false;btn.textContent=t;$('rcMsg').textContent='送出失敗：'+e.message}}
 async function rcConfirm(){
   const btn=$('rcOk'),k=rcCounts(),fin=rcFinal(),comment=$('rcComment').value.trim().slice(0,1000);
-  if(k.rej&&!comment&&!confirm('你拒絕了部分修改，但沒有寫意見。確定直接送出嗎？'))return;
+  if(k.rej&&!comment&&!confirm('你有不採用的修改，但沒有寫說明。確定直接送出嗎？'))return;
   btn.disabled=true;btn.textContent='送出中…';$('rcMsg').textContent='';
   try{const rejected=[];RC.secs.forEach(([n,segs])=>segs.forEach(s=>{if(s[0]&&!RC.dec[s[3]])rejected.push([n,s[1],s[2]])}));
     const blob=await edDocx('clean',{title:'新聞稿定稿（申請單位確認）',pairs:RC.secs.map(([n])=>[n,fin[n],fin[n]]),who:bound.unit||'申請單位',
       meta:[`申請編號：${bound.appId||''}　活動或成果名稱：${bound.eventName||''}`,`公關中心修訂：${RC.rec.by||''}　申請單位確認：接受 ${k.acc} 處、拒絕 ${k.rej} 處`].concat(comment?['申請單位意見：'+comment]:[])});
     const j=await gas({action:'revconfirm',folderId:bound.folderId,token:bound.token,revAt:RC.rec.at,accepted:k.acc,rejected:k.rej,comment,final:fin,rejectedList:rejected.slice(0,50),data:await toB64(blob)});
-    RC.confirm=j.confirm;RC.show=false;rcRender()}
-  catch(e){btn.disabled=false;btn.textContent=`確認送出（接受 ${k.acc}、拒絕 ${k.rej}）`;$('rcMsg').textContent='送出失敗：'+e.message}}
+    RC.confirm=j.confirm;RC.mode='done';RC.show=false;ED_FIELDS.forEach(([f,n])=>{if(n in fin)RC.cur.txt[f]=fin[n]});rcRender()}
+  catch(e){btn.disabled=false;rcBar();$('rcMsg').textContent='送出失敗：'+e.message}}
 /* 從通知信的連結進來：#photos=資料夾ID.驗證碼 */
 async function bindFromHash(){
   const m=decodeURIComponent(location.hash).match(/^#photos=([\w-]+)\.([\w=-]+)/);if(!m||!CONFIG.BACKEND_URL)return;
@@ -2286,15 +2367,54 @@ function rvRender(){
   const today=todayISO();
   L.forEach(x=>{const el=document.createElement('div');el.className='rv-item';
     const late=x.eventDate&&x.eventDate<today&&(!x.status||x.status==='待審核');
-    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b>${x.unfinished?' <span class="rv-unfin" title="申請人未完成上傳">⚠</span>':''}<div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${needAtt(x)&&!(rvAttWait(x)&&rvRole==='director')?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.revPending?'｜<b class="rv-plan">修訂稿待申請單位確認</b>':x.revOk?'｜修訂稿已確認':''}${x.finalLocked?'｜🔒 已定稿':''}${/稿件後補/.test(x.categories)&&x.status!=='已上架'&&x.status!=='不予上架'?'｜稿件待補':''}${hasSoc(x)&&x.status!=='不予上架'&&!rvProg(x)?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
+    el.innerHTML=`<div>${rvTags(x.categories)}<b>${esc(x.eventName)}</b>${x.unfinished?' <span class="rv-unfin" title="申請人未完成上傳">⚠</span>':''}<div class="rv-meta">${x.planned&&x.status!=='已上架'?`<b class="rv-plan">預定上架 ${esc(rocD(x.planned))}</b>｜`:''}${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.categories?'｜'+esc(x.categories):''}${x.eventDate?`｜<span class="${late?'rv-late':''}">事件日 ${esc(rocD(x.eventDate))}${late?'（已過）':''}</span>`:''}｜收件 ${esc(rocD(x.created))}${x.follow?`｜補件 ${x.follow} 次`:''}${x.staff?`｜承辦 ${esc(x.staff)}`:''}${needAtt(x)&&!(rvAttWait(x)&&rvRole==='director')?'｜派員待指派':''}${x.pendingMail?'｜通知信待寄':''}${x.revPending?'｜<b class="rv-plan">修訂稿待申請單位確認</b>':x.revOk?'｜修訂稿已確認':''}${x.appPending?'｜<b class="rv-plan">申請單位送回修改稿</b>':''}${x.finalOk&&!x.finalLocked?'｜<b class="rv-ok">申請單位已確認可定稿</b>':x.askPending&&!x.finalLocked?'｜待申請單位最後確認':''}${x.finalLocked?'｜🔒 已定稿':''}${/稿件後補/.test(x.categories)&&x.status!=='已上架'&&x.status!=='不予上架'?'｜稿件待補':''}${hasSoc(x)&&x.status!=='不予上架'&&!rvProg(x)?(x.socialDate?`｜社群已發布 ${esc(rocD(x.socialDate))}`:'｜社群待發布'):''}${x.status==='已上架'?`${x.pubDate?`｜上架 ${esc(rocD(x.pubDate))}`:''}${x.pubLink?`｜<a href="${esc(x.pubLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 上架連結</a>`:''}${x.archived?'｜📦 已歸檔':''}`:''}</div></div><span class="rv-badge s-${esc(x.status||'待審核')}">${esc(x.status||'待審核')}</span>`;
     if(rvAttWait(x)&&rvRole==='director'){const sug=rvOpLine(x,'派員建議');
       el.firstElementChild.insertAdjacentHTML('beforeend',`<div class="rv-att">🙋 待指派派員｜已審核${x.staff?`（${esc(x.staff)}）`:''}${x.pendingMail?'，通知信等指派後寄出':''}${sug?`｜承辦建議：${esc(sug)}`:''}</div>`)}
     const pg=rvProg(x);if(pg)el.firstElementChild.insertAdjacentHTML('beforeend',pg);
     el.onclick=()=>rvOpen(x.folderId);$('rvList').appendChild(el)})}
-async function rvOpen(folderId){
+/* ===== 審核頁：總覽卡＋申請單位的修改 ===== */
+function rvSumHtml(x,j){const rt=x.rt||{},L=x.final&&x.final.lock,pub=x.status==='已上架',soc=hasSoc(x);
+  const S=['收件','審核','申請單位修改','最後確認','定稿','上架'];
+  const at=rt.appPending&&!L?2:rt.ask&&!rt.finalOk&&!L?3:pub?6:L?5:rt.finalOk?4:rt.ask?3:(rt.appPending||rt.appAcc||x.revPending||x.revOk)?2:rvDone(x)?2:1;
+  const todo=rt.appPending?['申請單位送回修改稿，請確認是否接受','rvAppSec']:rt.finalOk&&!L?['申請單位已確認最終版本，可以定稿','rvFinalSec']
+    :!rvDone(x)?['請填寫評估意見並送出審核結果','rvOpSec']:rt.ask?['已請申請單位做最後確認，等待回覆','rvFinalSec']
+    :x.revPending?['修訂稿已寄出，等待申請單位確認或修改','rvOpSec']:L&&!pub?['已定稿，可以上架','rvPubSec']
+    :!L&&!pub?['可請申請單位做定稿前最後確認，或直接定稿','rvFinalSec']:soc&&!x.socialDate?['社群貼文待發布','rvPubSec']:['目前沒有待辦',''];
+  const kp=[['稿件',rt.appPending?'申請單位送回修改':x.revPending?'待申請單位確認':rt.appAcc||x.revOk?'申請單位已確認':(x.result||'').startsWith('潤修')?'公關中心潤修':'原稿'],
+    ['照片',`${j.photoCount||0} 張${x.final&&x.final.info&&x.final.info.picked!==false?`．定稿 ${x.final.info.photos||0} 張`:''}`],
+    ['定稿文件',L?'🔒 已定稿':rt.finalOk?'✅ 可定稿':rt.ask?'⏳ 待最後確認':'✏️ 編修中'],
+    ['社群',soc?(x.socialDate?'已發布':'待發布'):'無']];
+  const nav=[['rvInfoSec','申請資料'],...(rt.appPending||rt.appAcc?[['rvAppSec','申請單位的修改']]:[]),['rvFinalSec','定稿文件與照片'],['rvOpSec','七、評估意見'],['rvPubSec','上架／社群']];
+  return `<div class="rv-sum"><div class="rv-sum-t">${esc(x.eventName)} <span class="rv-badge s-${esc(x.status)}">${esc(x.status)}</span></div>
+<div class="rv-sum-m">${esc(x.appId)}｜${esc(x.unit)} ${esc(x.contact)}${x.eventDate?`｜事件日 ${esc(rocD(x.eventDate))}`:''}${x.planned?`｜預定上架 ${esc(rocD(x.planned))}`:''}｜承辦 ${esc(x.staff||'未指定')}</div>
+<div class="rt-flow" style="margin:8px 0">${S.map((s,i)=>`<span class="${i<at?'ok':i===at?'now':''}">${i<at?'✓ ':''}${s}</span>`).join('<i>›</i>')}</div>
+<div class="rt-todo" id="rvTodo" style="margin:0 0 8px"><b>待辦：</b>${esc(todo[0])}${todo[1]?`　<a href="#" data-go="${todo[1]}">↓ 前往查看</a>`:''}</div>
+<div class="rv-kpi">${kp.map(([a,b])=>`<div><span>${a}</span><b>${esc(b)}</b></div>`).join('')}</div>
+<div class="rv-nav">${nav.map(([id,n])=>`<a href="#" data-go="${id}">${n}</a>`).join('')}</div></div>`}
+function rvGo(id){const e=$(id);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}
+function rvAppHtml(x){const rt=x.rt||{},a=x.appEdit;
+  if(!rt.appPending||!a)return rt.appAcc?`<div class="hint" style="margin:0 0 6px">✓ 已接受申請單位送回的修改（${esc(new Date(rt.appAcc).toLocaleString('zh-TW',{hour12:false,timeZone:'Asia/Taipei'}))}）</div>`:'';
+  const f=ED_FIELDS.map(([k,n])=>{const d=diffText((a.base||{})[k],(a.final||{})[k]);if(!d.some(z=>z[0]))return'';
+    return `<div class="ed-sec">${esc(n)}</div><div class="ed-txt">${d.map(([o,t])=>o===0?esc(t):o<0?`<del>${esc(t)}</del>`:`<ins>${esc(t)}</ins>`).join('')}</div>`}).join('');
+  const c=a.counts||{},caps=Object.keys(a.caps||{});
+  return `<div class="rt-card rv-app"><div class="rt-hd"><b>📨 ${esc(a.by||'申請單位')} 送回修改稿</b><span class="hint">第 ${a.round||2} 輪．${esc(a.at||'')}</span></div>
+<div class="hint" style="margin:0 0 6px">${[c.text&&`文字 ${c.text} 處`,c.rej&&`不採用公關修改 ${c.rej} 處`,c.caps&&`圖說 ${c.caps} 處`,c.off&&`不使用照片 ${c.off} 張`].filter(Boolean).join('、')||'無變動'}（藍色為申請單位的修改）</div>
+<div class="rt-mine">${f||'<p class="hint">文字沒有修改。</p>'}</div>
+${caps.length||(a.off||[]).length?`<div class="ed-sec">照片</div><ul style="margin:4px 0;padding-left:20px" id="rvAppPh">${caps.map(id=>`<li>圖說改為：「${esc(a.caps[id])}」<span class="hint" data-pid="${esc(id)}"></span></li>`).join('')}${(a.off||[]).map(id=>`<li>🗑 不使用這張照片<span class="hint" data-pid="${esc(id)}"></span></li>`).join('')}</ul>`:''}
+${a.comment?`<p style="margin:6px 0"><b>申請單位說明：</b>${esc(a.comment)}</p>`:''}
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px"><button type="button" class="rc-ok" id="rvAppAcc">✓ 接受申請單位的修改</button><button type="button" class="small" id="rvAppRe">✏️ 接受後再修訂</button><span class="hint" id="rvAppMsg"></span></div>
+<div class="hint" style="margin-top:4px">接受後：申請資料、定稿文件、照片與圖說一併更新。「再修訂」會接著開啟修改稿件，修改後再寄給申請單位確認。</div></div>`}
+function rvAppBind(){const go=async re=>{const fid=rvCur.folderId,b=$(re?'rvAppRe':'rvAppAcc');b.disabled=true;$('rvAppMsg').textContent='處理中…';
+    try{const j=await rvCall({action:'reviewappaccept',folderId:fid,by:edAuthor()});if(!rvCur||rvCur.folderId!==fid)return;
+      const it=rvList.find(y=>y.folderId===fid);if(it)it.appPending=false;
+      await rvOpen(fid);if(re){await edLoad(fid);$('rvEditBox').classList.remove('hidden');const r=document.querySelector('[name=rvRes][value=edit]');if(r)r.checked=true;edOpen()}else{$('rvAppSec').insertAdjacentHTML('beforeend','<div class="notice ok" style="margin:6px 0">✓ 已接受申請單位的修改，定稿文件已更新。</div>');rvGo('rvAppSec')}}
+    catch(e){b.disabled=false;$('rvAppMsg').textContent='失敗：'+e.message}};
+  if($('rvAppAcc'))$('rvAppAcc').onclick=()=>go(false);if($('rvAppRe'))$('rvAppRe').onclick=()=>go(true);
+  document.querySelectorAll('#rvSumBox [data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();rvGo(a.dataset.go)})}
+async function rvOpen(folderId,jump){
   $('rvMsg').textContent='讀取中…';
   let j;try{j=await rvCall({action:'reviewget',folderId})}catch(e){$('rvMsg').textContent='讀取失敗：'+e.message;return}
-  $('rvMsg').textContent='';rvCur=j.item;const x=j.item;if(j.role)rvRole=j.role;const canAtt=rvRole==='director';
+  $('rvMsg').textContent='';rvCur=j.item;const x=j.item;x._pc=j.photoCount;if(j.role)rvRole=j.role;const canAtt=rvRole==='director';
   try{history.replaceState(null,'','#review='+folderId)}catch{}
   const rk=(x.result||'').startsWith('退回')?'return':(x.result||'').startsWith('補件')?'supplement':(x.result||'').startsWith('潤修')?'edit':(x.result||'').startsWith('照刊')?'asis':'';
   const opl=(x.opinion||'').split('\n'),firstLine=opl[0]||'';
@@ -2305,7 +2425,8 @@ async function rvOpen(folderId){
   const opt=(k,html)=>`<label class="rv-opt"><input type="radio" name="rvRes" value="${k}" ${rk===k?'checked':''}> ${html}</label>`;
   $('rvDetail').innerHTML=`
   <p style="margin-top:0"><a href="#review" id="rvBack">← 回清單</a></p>
-  <h3 style="margin:0 0 8px">${esc(x.appId)}　${esc(x.eventName)} <span class="rv-badge s-${esc(x.status)}">${esc(x.status)}</span></h3>
+  <div id="rvSumBox">${rvSumHtml(x,j)}</div>
+  <h3 style="margin:14px 0 8px" id="rvInfoSec">申請資料</h3>
   <table class="form" style="margin-bottom:12px">
     <tr><th>申請單位</th><td>${esc(x.unit)}　${esc(x.contact)}　<a href="mailto:${esc(x.email)}">${esc(x.email)}</a></td></tr>
     <tr><th>申請項目</th><td>${esc(x.categories)}</td></tr>
@@ -2314,11 +2435,12 @@ async function rvOpen(folderId){
     <tr><th>資料</th><td><a href="${esc(x.url)}" target="_blank" rel="noopener">📁 雲端資料夾</a>${j.docs.map(d=>`　<a href="${esc(d.url)}" target="_blank" rel="noopener">📄 ${esc(d.name)}</a>`).join('')}${j.photoCount?`<span class="hint">　照片 ${j.photoCount} 張</span>`:''}</td></tr>
     <tr><th>申請人補件／修改</th><td id="rvQuota">${rvQuotaHtml(j.quota)}</td></tr>
   </table>
-  <h3 style="margin:14px 0 8px">定稿文件</h3>
+  ${x.rt&&(x.rt.appPending||x.rt.appAcc)?`<h3 style="margin:14px 0 8px" id="rvAppSec">申請單位的修改</h3>${rvAppHtml(x)}`:''}
+  <h3 style="margin:14px 0 8px" id="rvFinalSec">定稿文件與照片</h3>
   <div id="rvFinal"></div>
   <div id="psBox" class="psel"></div>
   <div id="fvActs" class="fv-acts"></div>
-  <h3 style="margin:22px 0 8px">七、公關中心評估意見</h3>
+  <h3 style="margin:22px 0 8px" id="rvOpSec">七、公關中心評估意見</h3>
   <div id="rvDoneNote">${rvDoneHtml(x)}</div>
   <table class="form">
     <tr><th>收件</th><td><input type="date" id="rvRecv" value="${esc(x.received||x.created||todayISO())}" style="max-width:200px"></td></tr>
@@ -2348,7 +2470,7 @@ async function rvOpen(folderId){
   <div style="border-top:1px solid var(--line,#e5e7eb);margin:20px 0 12px"></div>
   <div id="rpWrap"></div>
   <div style="border-top:1px solid var(--line,#e5e7eb);margin:20px 0 12px"></div>
-  <h3 style="margin:0 0 8px">已上架${x.status==='已上架'?`<span class="rv-badge s-已上架" style="margin-left:6px">已上架${x.pubDate?' '+esc(rocD(x.pubDate)):''}</span>`:''}</h3>
+  <h3 style="margin:0 0 8px" id="rvPubSec">已上架${x.status==='已上架'?`<span class="rv-badge s-已上架" style="margin-left:6px">已上架${x.pubDate?' '+esc(rocD(x.pubDate)):''}</span>`:''}</h3>
   <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:640px"><input type="url" id="rvPubLink" value="${esc(x.pubLink)}" placeholder="上架連結（選填，如校網新聞或 FB 貼文網址）" style="flex:1;min-width:220px">
     <button type="button" class="primary rv-pub-btn" id="rvPub" style="width:auto;padding:9px 18px">${x.status==='已上架'?'✓ 已完成':'✓ 標記為已上架'}</button></div>
   <div class="hint" id="rvPubMsg" style="margin-top:6px">標記後：處理狀態改為「已上架」，雲端資料夾自動移到「已上架／年-月」歸檔，連結不會失效。</div>
@@ -2359,7 +2481,7 @@ async function rvOpen(folderId){
     ${x.socialDate?'<p class="hint" style="margin-top:6px"><a href="#" id="rvSocUndo">取消標記</a></p>':''}<div class="hint" id="rvSocMsg"></div>`
   :`<p>${x.socialDate?`已發布（${esc(rocD(x.socialDate))}）${x.socialLink?`　<a href="${esc(x.socialLink)}" target="_blank" rel="noopener">貼文連結</a>`:''}`:'待發布'}</p>`}`:''}
   ${rvRole==='director'?`<div class="rv-danger"><button type="button" id="rvDel" class="rv-del-btn">🗑 刪除這件申請</button><span class="hint">試算表的這一列會刪除，雲端資料夾移到垃圾桶（30 天內可從 Drive 垃圾桶救回）。只有主任看得到這個按鈕。</span><div class="hint" id="rvDelMsg"></div></div>`:''}`;
-  RP={items:[],done:null,busy:false};rpRender();PS.fid=x.folderId;PS.locked=!!(x.final&&x.final.lock);fvRender(x.final,x.finalErr);psLoad();opRender(msg);rvShow('rvDetail');window.scrollTo(0,0);
+  RP={items:[],done:null,busy:false};rpRender();PS.fid=x.folderId;PS.locked=!!(x.final&&x.final.lock);fvRender(x.final,x.finalErr);psLoad();opRender(msg);rvShow('rvDetail');window.scrollTo(0,0);rvAppBind();if(jump)setTimeout(()=>rvGo(jump),200);
   if($('rvDel'))$('rvDel').onclick=async()=>{const x=rvCur,fid=x.folderId;
     const t=prompt(`確定要刪除這件申請嗎？\n「${x.eventName}」（${x.unit}）\n\n刪除後清單上就看不到這件，雲端資料夾會移到垃圾桶。\n請輸入申請編號 ${x.appId} 確認：`);
     if(t===null)return;if(t.trim()!==x.appId){$('rvDelMsg').textContent='申請編號不符，未刪除。';return}
@@ -2625,7 +2747,7 @@ async function initReview(){
   $('rvPinBtn').onclick=async()=>{const p=val('rvPin');if(!p)return;RV_ACTIVE=p;
     try{if($('rvRemember').checked)localStorage.setItem(RV_KEY,p);else localStorage.removeItem(RV_KEY)}catch{}
     $('rvLoginMsg').textContent='登入中…';
-    if(await rvLoad()){$('rvLoginMsg').textContent='';const m=decodeURIComponent(location.hash).match(/^#review=([\w-]+)/);if(m)rvOpen(m[1])}else if(rvPin())$('rvLoginMsg').textContent=$('rvMsg').textContent};
+    if(await rvLoad()){$('rvLoginMsg').textContent='';const m=decodeURIComponent(location.hash).match(/^#review=([\w-]+)(?:!(\w+))?/);if(m)rvOpen(m[1],{app:'rvAppSec',final:'rvFinalSec'}[m[2]])}else if(rvPin())$('rvLoginMsg').textContent=$('rvMsg').textContent};
   $('rvPin').onkeydown=e=>{if(e.key==='Enter')$('rvPinBtn').click()};
   $('rvReload').onclick=rvLoad;
   $('rvLogout').onclick=()=>{RV_ACTIVE='';rvList=[];$('rvPin').value=rvSaved();$('rvMsg').textContent='';rvShow('rvLogin')};
