@@ -411,7 +411,7 @@ body.draft-pending .req3{display:none}
     <div id="rvDetail" class="rv-hidden"></div>
     <div class="hint" id="rvMsg"></div>
   </div></section>
-  <p style="text-align:center"><a href="./" class="hint" id="rvFoot">← 回申請表</a></p>
+  <p style="text-align:center"><a href="#review" class="hint" id="rvFoot">← 回清單</a></p>
 </div>
 <dialog id="pkDlg" class="pv-dlg pk-dlg">
   <div class="pv-head"><b>📷 照片檢查</b><span class="hint" id="pkStep">上傳前先確認裁切與解析度</span><button type="button" class="dlg-x" id="pkClose" aria-label="關閉">×</button></div>
@@ -2385,8 +2385,9 @@ let RV_ACTIVE='';   // 本次進入使用的審核碼，只存在記憶體；重
 const rvPin=()=>RV_ACTIVE;
 const rvSaved=()=>{try{return localStorage.getItem(RV_KEY)||''}catch{return ''}};
 const rvShow=id=>{['rvLogin','rvListBox','rvDetail'].forEach(k=>$(k).classList.toggle('rv-hidden',k!==id));
-  const f=$('rvFoot');if(!f)return;if(id==='rvDetail'){f.textContent='← 回清單';f.href='#review';f.onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}rvShow('rvListBox');rvRender();window.scrollTo(0,0)}}
-  else{f.textContent='← 回申請表';f.href='./';f.onclick=null}};
+  const f=$('rvFoot');if(!f)return;f.textContent='← 回清單';f.href='#review';
+  f.onclick=e=>{e.preventDefault();try{history.replaceState(null,'','#review')}catch{}
+    if(RV_ACTIVE&&rvList.length){rvShow('rvListBox');rvRender()}else{const pin=$('rvPin');if(pin)pin.focus()}window.scrollTo(0,0)}};
 const rocD=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${+m[1]-1911}/${+m[2]}/${+m[3]}`:''};
 const todayISO=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 async function rvCall(body){
