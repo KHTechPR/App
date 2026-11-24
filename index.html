@@ -330,6 +330,18 @@ body.review .layout{display:none!important}
 .t-in{background:#dbe7ff;color:#1f3a93}.t-out{background:#ffe2c7;color:#9a4a00}.t-media{background:#e8def8;color:#4a2a8a}
 .t-staff{background:#fad2cf;color:#8a1c12}.t-result{background:#ceead6;color:#1e6b34}.t-social{background:#fde1ef;color:#9b1f5c}
 .rv-plan{color:var(--brand)}
+.ca-cur .ca-t{display:inline-block;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:0 8px;margin:0 4px 4px 0;background:#fff}
+.ca-cur .ca-t.rm{text-decoration:line-through;color:#9aa3ae;background:#fafafa}
+.ca-cur .ca-t.ad{background:var(--brand-soft);color:var(--brand);border-color:#b7c3e6;font-weight:600}
+.ca-ed{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:6px;background:#fafbfc}
+.ca-ed .grp{font-size:12.5px;color:var(--muted);margin:2px 0}
+.ca-ed label.chk{font-size:14px;margin-right:12px}
+.ca-log{font-size:13px;line-height:1.6;margin-top:6px;color:var(--muted)}
+.ca-log>div{padding:4px 0;border-top:1px dashed var(--line)}
+.ca-log b{color:var(--ink);font-weight:600}
+.ca-log .over{text-decoration:line-through;color:#9aa3ae}
+.ca-who{font-size:11.5px;border-radius:4px;padding:0 6px;margin-left:6px;background:var(--brand-soft);color:var(--brand);font-weight:700}
+.ca-who.d{background:#fff1dc;color:#9a4a00}
 .rv-unfin{color:#9a5b00;font-weight:700}
 .crop-dlg{max-width:820px}
 #pkDlg{max-width:860px;height:fit-content!important;max-height:92vh}
@@ -353,6 +365,17 @@ body.review .layout{display:none!important}
 .ld-dots{display:flex;gap:6px;justify-content:center;margin-top:10px}.ld-dots i{width:8px;height:8px;border-radius:50%;background:var(--sky,#38bdf8);animation:ldDot 1s infinite}.ld-dots i:nth-child(2){animation-delay:.15s}.ld-dots i:nth-child(3){animation-delay:.3s}
 @keyframes ldDot{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.ld-card img,.ld-dots i{animation:none}}
+.sb-ov .ld-card{width:min(380px,calc(100vw - 40px))}
+.sb-steps{list-style:none;padding:0;margin:12px 0 0;text-align:left;font-size:14px}
+.sb-steps li{padding:3px 0 3px 24px;position:relative;color:#9aa3ae}
+.sb-steps li::before{content:"○";position:absolute;left:4px}
+.sb-steps li.ok{color:var(--ok,#1d7a46)}.sb-steps li.ok::before{content:"✓";font-weight:700}
+.sb-steps li.run{color:var(--brand);font-weight:600}.sb-steps li.run::before{content:"➜"}
+.sb-steps li.err{color:var(--err,#b3261e)}.sb-steps li.err::before{content:"✗";font-weight:700}
+.sb-steps li.bar{padding-top:0}.sb-steps li.bar::before{content:""}
+.sb-bar{height:6px;background:#e7ebf3;border-radius:3px;overflow:hidden}.sb-bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .4s}
+.sb-note{font-size:12.5px;color:#9aa3ae;margin-top:10px}
+#sbGo{margin-top:12px;padding:6px 18px}
 .up-toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:10px 16px;width:min(440px,calc(100vw - 32px))}
 .up-toast .t1{font-size:14px;font-weight:700;color:var(--brand);display:flex;justify-content:space-between;gap:8px}
 .up-toast .bar{height:6px;background:#e8ebf3;border-radius:4px;margin:6px 0;overflow:hidden}.up-toast .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--sky));border-radius:4px;transition:width .4s}
@@ -419,6 +442,7 @@ body.draft-pending .req3{display:none}
   <div class="pv-foot"><span class="hint" id="pkSum"></span><button type="button" id="pkCancel">取消</button><button type="button" id="pkPrev">← 上一張</button><button type="button" id="pkOk" class="pv-ok">確定加入</button></div>
 </dialog>
 <div id="ldOv" class="ld-ov hidden" role="status" aria-live="polite"><div class="ld-card"><img src="SuperNorth-header.png" alt="" onerror="this.remove()"><div class="t" id="ldTxt">讀取中…</div><div class="tk" id="ldTick"></div><div class="ld-dots"><i></i><i></i><i></i></div></div></div>
+<div id="sbOv" class="ld-ov sb-ov hidden" role="status" aria-live="polite"><div class="ld-card"><img src="SuperNorth-header.png" alt="" onerror="this.remove()"><div class="t" id="sbTitle">媒體超人正在幫你送出資料…</div><div class="tk" id="sbTick"></div><ul class="sb-steps" id="sbSteps"></ul><div class="ld-dots" id="sbDots"><i></i><i></i><i></i></div><div class="sb-note" id="sbNote">照片較多時需要一點時間，請勿關閉頁面</div><button type="button" class="small hidden" id="sbGo">查看結果</button></div></div>
 <div id="upToast" class="up-toast hidden" role="status" aria-live="polite"><div class="t1"><span id="upTxt">上傳中…</span><span class="hint">請勿關閉頁面</span></div><div class="bar" id="upBar"><i></i></div><div class="tick" id="upTick"></div></div>
 <dialog id="cropDlg" class="pv-dlg crop-dlg">
   <div class="pv-head"><b>✂ 裁切照片（3:2）</b><span class="hint" id="cropName"></span><button type="button" class="dlg-x" id="cropClose" aria-label="關閉">×</button></div>
@@ -892,10 +916,25 @@ $('pkOk').onclick=async()=>{if(PK.idx<PK.list.length-1){PK.idx++;pkRender();$('p
     $('pkDlg').close();const f=PK.done;PK.done=null;PK.list=[];f&&f(out)}
   finally{b.disabled=false}};
 $('pkCancel').onclick=$('pkClose').onclick=()=>{PK.list.forEach(e=>{URL.revokeObjectURL(e.src.url);if(e.orig&&e.photo!==e.src)URL.revokeObjectURL(e.photo.url)});PK.list=[];PK.done=null;$('pkDlg').close()};
+/* ===== 送出時的跳出框（媒體超人）；字幕類別「送出申請」，上傳照片時改用「上傳照片」 ===== */
+const SB={on:0,stop:null,key:'',bar:null,t:0,
+  open(title){const o=$('sbOv');clearTimeout(this.t);this.on=1;this.bar=null;this.list=null;$('sbTitle').textContent=title||'媒體超人正在幫你送出資料…';$('sbSteps').innerHTML='';
+    $('sbGo').classList.add('hidden');$('sbDots').classList.remove('hidden');$('sbNote').classList.remove('hidden');o.classList.remove('hidden');requestAnimationFrame(()=>o.classList.add('on'));this.tick('submit')},
+  tick(k){if(this.stop)this.stop();this.key=k;this.stop=startTicker($('sbTick'),k)},
+  steps(list){if(!this.on)return;this.list=list;$('sbSteps').innerHTML=list.map(x=>`<li class="${x.s}">${esc(x.t)}</li>`+(x.s==='run'&&this.bar!=null?`<li class="bar"><div class="sb-bar"><i style="width:${this.bar}"></i></div></li>`:'')).join('')},
+  photo(){this.bar='0%';if(this.key!=='upload')this.tick('upload');if(this.list)this.steps(this.list)},
+  set(i,n){this.bar=n>1?Math.round(i/n*100)+'%':'45%';const b=$('sbSteps').querySelector('.sb-bar i');if(b)b.style.width=this.bar;else if(this.list)this.steps(this.list)},
+  photoEnd(){this.bar=null;if(this.key!=='submit')this.tick('submit')},
+  done(sub,warn){if(!this.on)return;if(this.stop){this.stop();this.stop=null}
+    $('sbTitle').textContent=warn?'申請已送出，但有一個步驟沒完成':'送出完成！';$('sbTick').textContent=sub||'';
+    $('sbDots').classList.add('hidden');$('sbNote').classList.add('hidden');$('sbGo').classList.remove('hidden');
+    clearTimeout(this.t);if(!warn)this.t=setTimeout(()=>this.close(),1500)},
+  close(){clearTimeout(this.t);if(this.stop){this.stop();this.stop=null}this.on=0;this.bar=null;const o=$('sbOv');o.classList.remove('on');setTimeout(()=>{if(!this.on)o.classList.add('hidden')},160)}};
+$('sbGo').onclick=()=>{SB.close();const r=$('result');if(r)r.scrollIntoView({behavior:'smooth',block:'start'})};
 /* ===== 上傳進度＋跑馬字幕（類別「上傳照片」，可由 ticker.xlsx 設定）===== */
-const UP={stop:null,start(n){$('upToast').classList.remove('hidden');if(!this.stop)this.stop=startTicker($('upTick'),'upload');this.set(0,n)},
-  set(i,n){$('upTxt').textContent=n>1?`照片上傳中 ${Math.min(i+1,n)}／${n}`:n===1?'照片上傳中…':'處理中…';$('upBar').classList.toggle('ind',n<=1);$('upBar').firstElementChild.style.width=n>1?Math.round(i/n*100)+'%':''},
-  end(){$('upToast').classList.add('hidden');if(this.stop){this.stop();this.stop=null}}};
+const UP={stop:null,start(n){if(SB.on){SB.photo();SB.set(0,n);return}$('upToast').classList.remove('hidden');if(!this.stop)this.stop=startTicker($('upTick'),'upload');this.set(0,n)},
+  set(i,n){if(SB.on){SB.set(i,n);return}$('upTxt').textContent=n>1?`照片上傳中 ${Math.min(i+1,n)}／${n}`:n===1?'照片上傳中…':'處理中…';$('upBar').classList.toggle('ind',n<=1);$('upBar').firstElementChild.style.width=n>1?Math.round(i/n*100)+'%':''},
+  end(){if(SB.on)SB.photoEnd();$('upToast').classList.add('hidden');if(this.stop){this.stop();this.stop=null}}};
 /* 第六項：照片＋圖說同一列 */
 function renderItems(){
   const box=$('capList');box.innerHTML='';
@@ -1633,9 +1672,9 @@ async function deliver(d,blob,res){
   const dl=()=>{const a=document.createElement('a');a.href=url;a.download=name+'.docx';document.body.appendChild(a);a.click();a.remove()};
   const guard=e=>{e.preventDefault();e.returnValue='照片還在上傳中，現在離開會缺少檔案。確定要離開嗎？';return e.returnValue};
   window.addEventListener('beforeunload',guard);
-  const steps=[];const draw=()=>{res.innerHTML=`<div class="notice info"><b>送出中，照片上傳可能需要一點時間，請勿關閉頁面…</b><ul class="steps">${steps.map(x=>`<li class="${x.s}">${esc(x.t)}</li>`).join('')}</ul></div>`};
+  const steps=[];const draw=()=>{res.innerHTML=`<div class="notice info"><b>送出中，照片上傳可能需要一點時間，請勿關閉頁面…</b><ul class="steps">${steps.map(x=>`<li class="${x.s}">${esc(x.t)}</li>`).join('')}</ul></div>`;SB.steps(steps)};
   const step=t=>{const x={t,s:'run'};steps.push(x);draw();return {ok:(t2)=>{x.s='ok';if(t2)x.t=t2;draw()},err:(t2)=>{x.s='err';x.t=t2;draw()}}};
-  $('submitBtn').disabled=true;
+  $('submitBtn').disabled=true;SB.open(revising?'媒體超人正在幫你送出修改…':'');
   const stamp=()=>new Date().toLocaleString('sv-SE',{timeZone:'Asia/Taipei'}).slice(5,16).replace(/[-: ]/g,'');
   let docOk=uploaded&&uploaded.docSaved&&uploaded.docBlob===blob;
   try{
@@ -1667,7 +1706,7 @@ async function deliver(d,blob,res){
         uploaded.notified=n.already?'already':'sent';s5.ok('通知信已寄出')}
       catch(e){s5.err(`通知信寄送失敗：${e.message}`);uploaded.notifyErr=e.message}}
   }catch(e){
-    $('submitBtn').disabled=false;
+    SB.close();$('submitBtn').disabled=false;
     const who=d.groups.map(g=>CONFIG.PHONES[g]).join('；');
     res.innerHTML=res.innerHTML.replace('<b>送出中，照片上傳可能需要一點時間，請勿關閉頁面…</b>','<b>送出未完成</b>')+
       `<div class="notice err">${e.doc?'申請表沒有成功存入公關中心雲端。':'上傳過程發生錯誤：'+esc(e.message)+'。'}請按「重新送出」再試一次（已完成的部分不會重複上傳）。若持續失敗，請把剛下載的 Word 申請表寄給承辦人，並電話告知：${esc(who)}
@@ -1679,6 +1718,7 @@ async function deliver(d,blob,res){
     return;
   }
   UP.end();window.removeEventListener('beforeunload',guard);dl();
+  SB.done(uploaded.appId?`申請編號：${uploaded.appId}`:'',steps.some(x=>x.s==='err'));
   SENT={...uploaded,eventName:d.eventName,unit:d.unit};
   const me={folderId:uploaded.folderId,token:uploaded.token,appId:uploaded.appId||'',eventName:d.eventName,unit:d.unit,contact:d.contact.name,email:d.contact.email,categories:d.categories.join('、')};
   const sb=$('submitBtn');sb.disabled=true;sb.classList.add('sent');sb.textContent=`✓ ${revising?'修訂版已送出':'已送出'}${uploaded.appId?`（${uploaded.appId}）`:''}`;$('submitHint').classList.add('hidden');
@@ -1725,24 +1765,26 @@ async function runFastBound(res){
   const caps=items.map((x,i)=>x.photo?`圖${i+1}（${x.photo.name}）：${x.caption.trim()||'（未填圖說）'}`:'').filter(Boolean);
   const list=items.map((x,i)=>x.photo?{p:x.photo,prefix:`補件${stamp}_圖${i+1}_`}:null).filter(Boolean);
   $('submitBtn').disabled=true;
+  const st=[],add=t=>{const x={t,s:'run'};st.push(x);SB.steps(st);return x};
+  SB.open('媒體超人正在幫你送出補件…');const s1=add(`上傳照片 0／${list.length}`);
   try{
     UP.start(list.length);
-    for(let i=0;i<list.length;i++){res.innerHTML=`<div class="notice info">上傳檔案 ${i+1}／${list.length}：${esc(list[i].p.name)}…請勿關閉頁面</div>`;UP.set(i,list.length);
+    for(let i=0;i<list.length;i++){res.innerHTML=`<div class="notice info">上傳檔案 ${i+1}／${list.length}：${esc(list[i].p.name)}…請勿關閉頁面</div>`;s1.t=`上傳照片 ${i+1}／${list.length}：${list[i].p.name}`;SB.steps(st);UP.set(i,list.length);
       await gas({action:'file',folderId:bound.folderId,token:bound.token,name:list[i].prefix+list[i].p.name,mimeType:list[i].p.file.type||'image/jpeg',data:await toB64(list[i].p.file)})}
     const note=[`補件時間：${new Date().toLocaleString('zh-TW',{hour12:false})}`,val('ftNote')?`補充說明：${val('ftNote')}`:'','',...caps].filter((x,k,a)=>x!==''||a[k-1]!=='').join('\n');
     await gas({action:'file',folderId:bound.folderId,token:bound.token,name:`補件${stamp}_圖說.txt`,mimeType:'text/plain',data:b64text(note)});
     try{const j=await gas({action:'loaddata',folderId:bound.folderId,token:bound.token});const dd=j.data||{};dd.items=(dd.items||[]).filter(x=>x.caption||x.cloud);
       items.forEach((x,i)=>{if(x.photo)dd.items.push({caption:x.caption,cloud:`補件${stamp}_圖${i+1}_${x.photo.name}`})});
       await gas({action:'file',folderId:bound.folderId,token:bound.token,name:'申請資料.json',mimeType:'application/json',data:b64text(JSON.stringify(dd))})}catch(e){/* 舊申請沒有內容檔就略過 */}
-  }catch(err){UP.end();res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再試。</div>`;$('submitBtn').disabled=false;return}
-  UP.end();
+  }catch(err){UP.end();SB.close();res.innerHTML=`<div class="notice err">上傳失敗：${esc(err.message)}。請稍後再試。</div>`;$('submitBtn').disabled=false;return}
+  UP.end();s1.s='ok';s1.t=`照片 ${list.length} 張已存入雲端`;const s2=add('寄送通知信給承辦人');
   $('submitBtn').disabled=false;
   const groups=kindsOf(bound.categories);
   res.innerHTML=`<div class="notice info">正在寄送通知信給承辦人…</div>`;
   try{await gas({action:'notify',kind:'fast',folderId:bound.folderId,token:bound.token,groups,email:bound.email||'',appId:bound.appId||'',
       unit:bound.unit,name:bound.contact,eventName:bound.eventName,photoCount:list.length,captions:caps});
-    res.innerHTML=sentBox(groups,false,`照片 ${list.length} 張`,bound.email||'');fastDone(res);}
-  catch(e){res.innerHTML=`<div class="up-ok">✓ 照片已上傳到原申請的雲端資料夾</div><div class="notice err">通知信寄送失敗：${esc(e.message)}。請直接打電話告知承辦人：${esc(groups.map(g=>CONFIG.PHONES[g]).join('；'))}</div>`;fastDone(res)}
+    res.innerHTML=sentBox(groups,false,`照片 ${list.length} 張`,bound.email||'');fastDone(res);s2.s='ok';s2.t='通知信已寄出';SB.steps(st);SB.done(bound.appId?`申請編號：${bound.appId}`:'');}
+  catch(e){s2.s='err';s2.t='通知信寄送失敗';SB.steps(st);SB.done('照片已存入雲端',true);res.innerHTML=`<div class="up-ok">✓ 照片已上傳到原申請的雲端資料夾</div><div class="notice err">通知信寄送失敗：${esc(e.message)}。請直接打電話告知承辦人：${esc(groups.map(g=>CONFIG.PHONES[g]).join('；'))}</div>`;fastDone(res)}
 }
 const b64text=t=>{const u=new TextEncoder().encode(t);let s='';u.forEach(b=>s+=String.fromCharCode(b));return btoa(s)};
 function notifySummary(d){
@@ -2253,11 +2295,12 @@ const TICKER={
   news:[T('媒體超人正在閱讀你的資料…'),T('找到彩蛋截圖傳給公關中心主任就送你小禮物…',0.1),T('正在幫你想一個讓記者想點開的標題…'),T('披風整理中，馬上就好…'),T('AI難免頭殼壞去，人工查核戒慎恐懼！')],
   social:[T('媒體超人正在滑手機找靈感…'),T('正在挑選剛剛好的 emoji…'),T('把新聞稿縮成學生願意看完的長度…'),T('正在想最吸睛的 hashtag…')],
   upload:[T('媒體超人正在檢視美美的照片…'),T('幫照片擦擦灰塵、調整一下構圖…'),T('照片正在排隊搭電梯上雲端…'),T('攝影大師正在點頭稱讚…'),T('把每一張照片小心抱上雲端…'),T('小提醒：橫式 3:2、長邊 3000px 的照片最上鏡…'),T('找到彩蛋截圖傳給公關中心主任就送你小禮物…',0.1)],
+  submit:[T('媒體超人正在打包你的申請資料…'),T('披風整理中，資料一件一件飛過去…'),T('正在把申請表放進雲端資料夾…'),T('快好了，正在通知公關中心承辦人…')],
   load:[T('媒體超人正在飛去雲端拿資料…'),T('超人正在翻找這件申請…'),T('馬上就好，超人加速中…')],
   review:[T('媒體超人正在逐字閱讀你的初稿…'),T('查證事實，戒慎恐懼！…'),T('核對校名、縮寫與引言寫法…'),T('正在寫修改建議…')],
   sec:2.5
 };
-const TICKER_KEYS={'新聞稿':'news','新聞':'news','社群貼文':'social','社群':'social','檢視初稿':'review','檢視':'review','上傳照片':'upload','照片上傳':'upload','上傳':'upload','讀取資料':'load','讀取':'load'};
+const TICKER_KEYS={'新聞稿':'news','新聞':'news','社群貼文':'social','社群':'social','檢視初稿':'review','檢視':'review','上傳照片':'upload','照片上傳':'upload','上傳':'upload','讀取資料':'load','讀取':'load','送出申請':'submit','送出':'submit'};
 function startTicker(out,key){
   const all=(TICKER[key]||[]).filter(x=>x.w>0);
   if(!all.length){out.textContent='AI 處理中…';return ()=>{}}
@@ -2275,7 +2318,7 @@ function startTicker(out,key){
   return ()=>clearInterval(t);
 }
 function applyTickerRows(rows){
-  const got={news:[],social:[],review:[],upload:[]};
+  const got={};Object.values(TICKER_KEYS).forEach(k=>got[k]=[]);   // 每個類別都要有，否則讀到不認得的類別會整個檔案失效
   rows.forEach(r=>{const k=String(r[0]??'').trim(),v=String(r[1]??'').trim();if(!k||!v)return;
     if(/秒/.test(k)){const n=parseFloat(v);if(n>0)TICKER.sec=n;return}
     const key=TICKER_KEYS[k];if(!key)return;
@@ -2390,6 +2433,52 @@ const rvShow=id=>{['rvLogin','rvListBox','rvDetail'].forEach(k=>$(k).classList.t
     if(RV_ACTIVE&&rvList.length){rvShow('rvListBox');rvRender()}else{const pin=$('rvPin');if(pin)pin.focus()}window.scrollTo(0,0)}};
 const rocD=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${+m[1]-1911}/${+m[2]}/${+m[3]}`:''};
 const todayISO=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+
+/* ===== 審核：調整申請項目（2026-11-23a） ===== */
+const CA_ALL=['校內稿','校外稿','採訪通知','請公關中心協助','無預定日期之成果報導','FB/IG 活動預告','FB/IG 活動花絮、成果','FB/IG 大型企劃'];
+const caKnown=s=>CA_ALL.filter(n=>String(s||'').includes(n));
+const caShort=n=>n.replace(/^FB\/IG /,'').replace('無預定日期之成果報導','成果報導');
+const CA_ROLE={director:['主任','d'],staff:['新聞',''],social:['社群','']};
+function caHtml(x){
+  const a=x.catAdj||{orig:caKnown(x.categories),hist:[],locked:false},cur=caKnown(x.categories),orig=a.orig||cur;
+  const tag=(n,k)=>`<span class="ca-t ${k}">${esc(n)}</span>`;
+  const tags=a.hist.length?[...CA_ALL.filter(n=>orig.includes(n)&&!cur.includes(n)).map(n=>tag(n,'rm')),...CA_ALL.filter(n=>cur.includes(n)).map(n=>tag(n,orig.includes(n)?'':'ad'))].join(''):cur.map(n=>tag(n,'')).join('');
+  const other=String(x.categories||'');let rest=other;CA_ALL.forEach(n=>rest=rest.split(n).join('、'));rest=rest.split('、').map(t=>t.trim()).filter(Boolean);
+  const canEdit=!a.locked||rvRole==='director';
+  const log=a.hist.length?`<div class="ca-log">${a.hist.map(e=>{const [rl,rk]=CA_ROLE[e.role]||['',''];
+    return e.over?`<div class="over">${esc(e.at)} ${esc(e.by)}　${esc(e.diff)}</div>`
+      :`<div><b>${esc(e.at)} ${esc(e.by)}</b>${rl?`<span class="ca-who ${rk}">${rl}</span>`:''}<br>${esc(e.diff)}<br>理由：${esc(e.reason)}</div>`}).join('')}</div>`:'';
+  return `<div class="ca-cur">${tags}${rest.length?`<span class="hint">${esc(rest.join('、'))}</span>`:''}
+    ${canEdit?`<button type="button" class="small" id="caOpen" style="margin-left:4px;padding:2px 10px;font-size:13px">${rvRole==='director'&&a.hist.length?'主任調整':'調整申請項目'}</button>`:''}</div>
+    ${a.hist.length?`<div class="hint" style="margin-top:2px">原申請：${esc(orig.join('、')||'（無）')}</div>`:''}
+    <div class="ca-ed hidden" id="caEd">
+      <div class="grp">新聞</div>${CA_ALL.slice(0,5).map(n=>`<label class="chk"><input type="checkbox" name="caC" value="${esc(n)}" ${cur.includes(n)?'checked':''}>${esc(caShort(n))}</label>`).join('')}
+      <div class="grp" style="margin-top:4px">社群</div>${CA_ALL.slice(5).map(n=>`<label class="chk"><input type="checkbox" name="caC" value="${esc(n)}" ${cur.includes(n)?'checked':''}>${esc(caShort(n))}</label>`).join('')}
+      <input type="text" id="caWhy" placeholder="調整理由（必填，會寫進寄給申請人的審核結果信）" style="margin-top:6px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;align-items:center">
+        <button type="button" class="small" id="caSave" style="background:var(--brand);color:#fff">儲存調整</button>
+        ${a.hist.length&&cur.join('|')!==orig.join('|')?'<button type="button" class="small" id="caOrig">恢復申請人原勾選</button>':''}
+        <button type="button" class="small" id="caCancel">取消</button><span class="hint" id="caMsg"></span></div>
+    </div>${log}`;
+}
+function caBind(){
+  if(!$('caOpen'))return;
+  $('caOpen').onclick=()=>{$('caEd').classList.toggle('hidden');if(!$('caEd').classList.contains('hidden'))$('caWhy').focus()};
+  $('caCancel').onclick=()=>{$('caCell').innerHTML=caHtml(rvCur);caBind()};
+  const go=async(cats,reason)=>{const m=$('caMsg');
+    if(!cats.length){m.textContent='請至少勾選一個申請項目。';return}
+    if(!reason){m.textContent='請填寫調整理由。';$('caWhy').focus();return}
+    $('caSave').disabled=true;m.textContent='儲存中…';
+    try{const j=await rvCall({action:'reviewcats',folderId:rvCur.folderId,cats,reason,by:rvRole==='social'?'社群同仁':edAuthor()});
+      const i=rvList.findIndex(y=>y.folderId===rvCur.folderId);if(i>=0)Object.assign(rvList[i],{categories:j.item.categories});
+      const nm={news:'新聞承辦',social:'社群承辦'};
+      const note=[j.notified&&j.notified.length?`已通知${j.notified.map(g=>nm[g]).join('、')}`:'',j.skipped&&j.skipped.length?`${j.skipped.map(g=>nm[g]).join('、')}今天已通知過，這次不再寄信`:''].filter(Boolean).join('；');
+      await rvOpen(rvCur.folderId,'rvInfoSec');
+      if($('caCell'))$('caCell').insertAdjacentHTML('beforeend',`<div class="notice ok" style="margin-top:6px">✓ 申請項目已更新${note?'。'+esc(note):''}。調整理由會併入下一封寄給申請人的審核結果信。</div>`);
+    }catch(e){m.textContent='儲存失敗：'+e.message;$('caSave').disabled=false}};
+  $('caSave').onclick=()=>go([...document.querySelectorAll('[name=caC]:checked')].map(c=>c.value),val('caWhy'));
+  if($('caOrig'))$('caOrig').onclick=()=>go((rvCur.catAdj||{}).orig||[],val('caWhy')||'恢復申請人原勾選');
+}
 async function rvCall(body){
   try{return await gas({...body,pin:rvPin()})}
   catch(e){if(/審核碼不正確/.test(e.message)){RV_ACTIVE='';try{localStorage.removeItem(RV_KEY)}catch{}$('rvPin').value='';rvShow('rvLogin');$('rvLoginMsg').textContent='審核碼不正確，請重新輸入。'}throw e}}
@@ -2477,7 +2566,7 @@ async function rvOpen(folderId,jump){
   <h3 style="margin:14px 0 8px" id="rvInfoSec">申請資料</h3>
   <table class="form" style="margin-bottom:12px">
     <tr><th>申請單位</th><td>${esc(x.unit)}　${esc(x.contact)}　<a href="mailto:${esc(x.email)}">${esc(x.email)}</a></td></tr>
-    <tr><th>申請項目</th><td>${esc(x.categories)}</td></tr>
+    <tr><th>申請項目</th><td id="caCell">${caHtml(x)}</td></tr>
     ${x.revPending||x.revConfirm?`<tr><th>修訂稿確認</th><td>${x.revPending?'<b class="rv-plan">待申請單位確認</b> <span class="hint">申請人可從補件／修改連結逐處接受或拒絕</span>':`✅ ${esc(x.revConfirm)}`}</td></tr>`:''}
     <tr><th>事件日期</th><td>${esc(rocD(x.eventDate))||'—'}　<span class="hint">申請送出：${esc(rocD(x.created))}${x.follow?`；補件／修改 ${x.follow} 次`:''}</span></td></tr>
     <tr><th>資料</th><td><a href="${esc(x.url)}" target="_blank" rel="noopener">📁 雲端資料夾</a>${j.docs.map(d=>`　<a href="${esc(d.url)}" target="_blank" rel="noopener">📄 ${esc(d.name)}</a>`).join('')}${j.photoCount?`<span class="hint">　照片 ${j.photoCount} 張</span>`:''}</td></tr>
@@ -2529,7 +2618,7 @@ async function rvOpen(folderId,jump){
     ${x.socialDate?'<p class="hint" style="margin-top:6px"><a href="#" id="rvSocUndo">取消標記</a></p>':''}<div class="hint" id="rvSocMsg"></div>`
   :`<p>${x.socialDate?`已發布（${esc(rocD(x.socialDate))}）${x.socialLink?`　<a href="${esc(x.socialLink)}" target="_blank" rel="noopener">貼文連結</a>`:''}`:'待發布'}</p>`}`:''}
   ${rvRole==='director'?`<div class="rv-danger"><button type="button" id="rvDel" class="rv-del-btn">🗑 刪除這件申請</button><span class="hint">試算表的這一列會刪除，雲端資料夾移到垃圾桶（30 天內可從 Drive 垃圾桶救回）。只有主任看得到這個按鈕。</span><div class="hint" id="rvDelMsg"></div></div>`:''}`;
-  RP={items:[],done:null,busy:false};rpRender();PS.fid=x.folderId;PS.locked=!!(x.final&&x.final.lock);fvRender(x.final,x.finalErr);psLoad();opRender(msg);rvShow('rvDetail');window.scrollTo(0,0);rvAppBind();if(jump)setTimeout(()=>rvGo(jump),200);
+  caBind();RP={items:[],done:null,busy:false};rpRender();PS.fid=x.folderId;PS.locked=!!(x.final&&x.final.lock);fvRender(x.final,x.finalErr);psLoad();opRender(msg);rvShow('rvDetail');window.scrollTo(0,0);rvAppBind();if(jump)setTimeout(()=>rvGo(jump),200);
   if($('rvDel'))$('rvDel').onclick=async()=>{const x=rvCur,fid=x.folderId;
     const t=prompt(`確定要刪除這件申請嗎？\n「${x.eventName}」（${x.unit}）\n\n刪除後清單上就看不到這件，雲端資料夾會移到垃圾桶。\n請輸入申請編號 ${x.appId} 確認：`);
     if(t===null)return;if(t.trim()!==x.appId){$('rvDelMsg').textContent='申請編號不符，未刪除。';return}
