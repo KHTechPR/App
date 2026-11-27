@@ -1555,7 +1555,8 @@ function check(){grpCount();try{autoPostStyle()}catch(e){}
 
   /* 期限判定 */
   const ev=parseDate(val('eventDate'));
-  const needDate=c.some(x=>['internal','external','notice','staff','fbPost','fbBig'].includes(x));
+  // 勾了「無預定日期之成果報導」：事件日期免填（採訪通知、請公關中心協助仍需日期）
+  const needDate=c.includes('result')?c.some(x=>['notice','staff'].includes(x)):c.some(x=>['internal','external','notice','staff','fbPost','fbBig'].includes(x));
   let overdue=false;
   for(const k of Object.keys(CAT_NAME)){const st=$('st-'+k);if(st){st.textContent='';st.className='status'}}
   if(needDate&&!ev)E.push('請填事件日期（期限依事件日計算）');
